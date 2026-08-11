@@ -24,6 +24,11 @@ So there are two links, doing two different jobs:
 Neither pushes WHOOP data *into* the 18Birdies app. That needs a partnership
 with 18Birdies, not a client.
 
+**Running it from an iPhone?** See [IPHONE.md](IPHONE.md). Short version:
+nothing can read your iPhone's Health data remotely — HealthKit is on-device
+only, with no cloud API — so the phone pushes data out instead, via an Apple
+Shortcut hitting `wb serve`. No Mac or Xcode needed.
+
 ---
 
 ## Path 1 — the on-phone link
@@ -79,6 +84,7 @@ bun src/cli.ts import-health export.xml    # import golf rounds from an Apple He
 bun src/cli.ts rounds                      # list stored rounds
 bun src/cli.ts report                      # correlate WHOOP metrics against scoring
 bun src/cli.ts readiness [YYYY-MM-DD]      # golf readiness for a date
+bun src/cli.ts serve [--port N]            # ingest server for the iPhone Shortcut
 ```
 
 ### Getting rounds in
@@ -125,6 +131,23 @@ weather and who you're playing with. Under ~10 usable rounds the numbers are
 directional only, and the report says so. A metric needs at least 3 rounds with
 both a score and WHOOP data to appear at all.
 
+### Ingest server
+
+`serve` accepts rounds pushed from an Apple Shortcut on your iPhone and can
+hand readiness back for a notification:
+
+| Route | Method | Purpose |
+|---|---|---|
+| `/health` | GET | Reachability. No auth. |
+| `/rounds` | POST | Round JSON. Forgiving about key names and string numbers. |
+| `/readiness?date=` | GET | Readiness, preformatted for a notification. |
+
+Auth is a bearer token (`WB_INGEST_TOKEN`, or one generated per run), accepted
+as either an `Authorization` header or `?token=` — the latter because custom
+headers in Shortcuts are fiddly. It binds `0.0.0.0` over plain HTTP, which is
+fine on your own LAN and not fine exposed to the internet; use a TLS tunnel if
+you need it off-network. Full Shortcut recipes are in [IPHONE.md](IPHONE.md).
+
 ### Readiness
 
 ```
@@ -158,7 +181,7 @@ isn't there. Point Claude at this directory, or copy the skill into
 ## Development
 
 ```bash
-bun test                      # 57 tests
+bun test                      # 74 tests
 bun run typecheck
 ```
 

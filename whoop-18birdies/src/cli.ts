@@ -1,6 +1,9 @@
 #!/usr/bin/env bun
+import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { networkInterfaces } from "node:os";
 import { dataDir } from "./config.ts";
+import { startServer } from "./server.ts";
 import { CSV_TEMPLATE, roundsFromCsv } from "./rounds/csv.ts";
 import { roundsFromAppleHealthExport } from "./rounds/appleHealth.ts";
 import { scoreToPar } from "./rounds/types.ts";
@@ -21,6 +24,7 @@ const USAGE = `wb — link WHOOP physiology to 18Birdies golf rounds
   wb rounds                      List stored rounds
   wb report                      Correlate WHOOP metrics against scoring
   wb readiness [YYYY-MM-DD]      Golf readiness for a date (default: today)
+  wb serve [--port N]            Ingest server for the iPhone Shortcut
 
 Setup: create an app at developer.whoop.com, then export
   WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET
@@ -219,6 +223,54 @@ async function cmdReadiness(date: string | undefined): Promise<void> {
   for (const line of readiness.advice) console.log(`  • ${line}`);
 }
 
+/** LAN addresses the iPhone can actually reach — loopback is useless to it. */
+function lanAddresses(): string[] {
+  const out: string[] = [];
+  for (const entries of Object.values(networkInterfaces())) {
+    for (const entry of entries ?? []) {
+      if (entry.family === "IPv4" && !entry.internal) out.push(entry.address);
+    }
+  }
+  return out;
+}
+
+async function cmdServe(args: string[]): Promise<void> {
+  const port = Number(flagValue(args, "--port") ?? 8790);
+  if (!Number.isFinite(port) || port <= 0 || port > 65535) {
+    throw new Error("--port must be a valid port number");
+  }
+
+  let token = process.env.WB_INGEST_TOKEN;
+  const generated = !token;
+  if (!token) token = randomBytes(24).toString("base64url");
+
+  const { port: bound } = startServer({ token, port, hostname: "0.0.0.0" });
+
+  console.log(`Ingest server listening on port ${bound}.\n`);
+  if (generated) {
+    console.log("Generated a one-off token for this run. Set WB_INGEST_TOKEN to keep it stable:");
+    console.log(`  export WB_INGEST_TOKEN=${token}\n`);
+  }
+
+  const hosts = lanAddresses();
+  if (hosts.length === 0) {
+    console.log("No LAN address found — the phone will need a tunnel to reach this machine.");
+  } else {
+    console.log("Point the iPhone Shortcut at one of these (same Wi-Fi):");
+    for (const host of hosts) console.log(`  http://${host}:${bound}/rounds`);
+  }
+
+  console.log(`\n  POST /rounds              round JSON from the Shortcut`);
+  console.log(`  GET  /readiness?date=…    today's readiness, preformatted for a notification`);
+  console.log(`  GET  /health              reachability check (no auth)`);
+  console.log(`\nAuthorize with 'Authorization: Bearer <token>' or '?token=<token>'.`);
+  console.log("Plain HTTP over your own LAN — do not expose this port to the internet.");
+  console.log("\nCtrl-C to stop.");
+
+  // Bun keeps the process alive while the server is bound.
+  await new Promise<void>(() => {});
+}
+
 async function main(): Promise<void> {
   const [cmd, ...args] = process.argv.slice(2);
 
@@ -242,6 +294,8 @@ async function main(): Promise<void> {
       return cmdReport();
     case "readiness":
       return cmdReadiness(args[0]);
+    case "serve":
+      return cmdServe(args);
     default:
       process.stdout.write(USAGE);
       if (cmd && cmd !== "help" && cmd !== "--help" && cmd !== "-h") {

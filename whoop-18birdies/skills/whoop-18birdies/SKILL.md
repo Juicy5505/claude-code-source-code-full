@@ -1,6 +1,6 @@
 ---
 name: whoop-18birdies
-description: Link WHOOP recovery, sleep and strain data to 18Birdies golf rounds. Use when the user asks to connect WHOOP to 18Birdies, sync golf rounds with WHOOP, check golf readiness before a round, or find out how recovery and sleep affect their scoring.
+description: Link WHOOP recovery, sleep and strain data to 18Birdies golf rounds. Use when the user asks to connect WHOOP to 18Birdies, sync golf rounds with WHOOP, check golf readiness before a round, find out how recovery and sleep affect their scoring, or get golf/Apple Health data off their iPhone.
 ---
 
 # WHOOP × 18Birdies
@@ -78,6 +78,7 @@ bun src/cli.ts import-health export.xml    # import golf rounds from an Apple He
 bun src/cli.ts rounds                      # list stored rounds
 bun src/cli.ts report                      # correlate WHOOP metrics against scoring
 bun src/cli.ts readiness [YYYY-MM-DD]      # golf readiness for a date
+bun src/cli.ts serve [--port N]            # ingest server for the iPhone Shortcut
 ```
 
 ### Getting rounds in
@@ -94,6 +95,36 @@ Because 18Birdies will not export, rounds arrive one of two ways:
 
 If the user wants to backfill scores, offer to transcribe them from 18Birdies
 screenshots into the CSV template — that is usually faster than typing.
+
+## If the user asks you to read their iPhone directly
+
+Say plainly that this is not possible for anyone, and why: **HealthKit is
+on-device only.** Apple exposes no cloud API for it, there is no Apple Health /
+HealthKit / iCloud MCP connector (verified against the connector registry), and
+no amount of permissions changes that. Do not go hunting for a server that
+reads it, and do not imply you have connected to their phone.
+
+Then offer the direction that does work — **the phone pushes data out**:
+
+1. `bun src/cli.ts serve` on their machine. It prints LAN URLs and a bearer
+   token, binds `0.0.0.0`, and exposes `/health`, `POST /rounds`, and
+   `GET /readiness`.
+2. An Apple Shortcut on the iPhone reads Health locally and POSTs to `/rounds`;
+   a second Shortcut GETs `/readiness` and shows a notification. Full recipes,
+   including automation triggers, are in `IPHONE.md` — walk them through it
+   rather than improvising the steps.
+
+Two things to keep straight:
+
+- WHOOP needs no phone involvement at all; the toolkit pulls it from WHOOP's
+  cloud API. **The phone's only job is supplying golf rounds.**
+- Shortcuts action labels drift between iOS versions and Apple's docs were
+  unreachable when `IPHONE.md` was written. The JSON shapes are right; if a
+  label doesn't match, tell them to find the nearest equivalent. The server is
+  deliberately forgiving about key names and string-typed numbers.
+
+If they'd rather not run a server, `import-health` on an Apple Health export
+zip does a one-off backfill with no server at all.
 
 ## Interpreting the report
 
