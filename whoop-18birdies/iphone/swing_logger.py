@@ -37,14 +37,21 @@ import location
 import motion
 
 from shot_model import fit_swings, shot_distances
-from swing_metrics import analyse_swing, consistency, fatigue_split, tempo_verdict
+from swing_metrics import (
+    AdaptiveThreshold,
+    analyse_swing,
+    consistency,
+    fatigue_split,
+    tempo_verdict,
+)
 
 # --- Tuning ------------------------------------------------------------------
 
-# Peak user-acceleration magnitude, in g, that counts as a swing. A full swing
-# on the lead forearm spikes well above everyday motion, but the right number
-# depends on your tempo and exactly where the phone is strapped. Run
-# `calibrate` and pick something comfortably above your walking peaks.
+# Detection calibrates itself by default: it tracks a rolling median of your
+# own motion and fires on a multiple of it, so it adapts to wherever the phone
+# actually is instead of assuming. Set AUTO_THRESHOLD = False to go back to a
+# fixed number in g.
+AUTO_THRESHOLD = True
 SWING_THRESHOLD_G = 6.0
 
 # Ignore anything this soon after a detection. A swing is one event but spans
@@ -267,11 +274,15 @@ def range_session():
     """
     swings = []
     buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
+    detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
 
     motion.start_updates()
-    print("Range mode. Threshold {:.1f} g. No GPS — distance is meaningless here.".format(
-        SWING_THRESHOLD_G
-    ))
+    print("Range mode. No GPS — distance is meaningless standing still.")
+    print(
+        "Threshold: self-calibrating from your own motion."
+        if detector
+        else "Threshold: fixed at {:.1f} g.".format(SWING_THRESHOLD_G)
+    )
     print("Practice swings count as swings; keep them well clear of your real ones.")
     print("Keep this screen on. Stop the script when the bucket is done.\n")
 
@@ -288,8 +299,14 @@ def range_session():
             buffer.append((now, mag, read_attitude()))
             samples += 1
 
+            if detector:
+                detector.observe(mag)
+
             if trip_time is None:
-                if mag >= SWING_THRESHOLD_G and (now - last_detection) >= REFRACTORY_SECONDS:
+                tripped = (
+                    detector.is_swing(mag) if detector else mag >= SWING_THRESHOLD_G
+                )
+                if tripped and (now - last_detection) >= REFRACTORY_SECONDS:
                     trip_time = now
             elif now - trip_time >= POST_PEAK_SECONDS:
                 swing = resolve_swing_no_gps(buffer, trip_time, len(swings) + 1)
@@ -318,7 +335,12 @@ def range_session():
             json.dump(
                 {
                     "mode": "range",
-                    "threshold_g": SWING_THRESHOLD_G,
+                    "auto_threshold": AUTO_THRESHOLD,
+                    "threshold_g": (
+                        round(detector.threshold(), 2)
+                        if detector
+                        else SWING_THRESHOLD_G
+                    ),
                     "sample_rate_hz": round(samples / elapsed),
                     "swings": swings,
                 },
@@ -408,11 +430,16 @@ def print_range_summary(swings, elapsed, samples):
 def detect():
     swings = []
     buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
+    detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
 
     motion.start_updates()
     location.start_updates()
 
-    print("Watching for swings. Threshold {:.1f} g.".format(SWING_THRESHOLD_G))
+    print(
+        "Watching for swings. Threshold: {}".format(
+            "self-calibrating" if detector else "{:.1f} g".format(SWING_THRESHOLD_G)
+        )
+    )
     print("Keep this screen on and in front. Stop the script to finish.\n")
 
     started = time.time()
@@ -428,8 +455,14 @@ def detect():
             buffer.append((now, mag, read_attitude()))
             samples += 1
 
+            if detector:
+                detector.observe(mag)
+
             if trip_time is None:
-                if mag >= SWING_THRESHOLD_G and (now - last_detection) >= REFRACTORY_SECONDS:
+                tripped = (
+                    detector.is_swing(mag) if detector else mag >= SWING_THRESHOLD_G
+                )
+                if tripped and (now - last_detection) >= REFRACTORY_SECONDS:
                     trip_time = now
             elif now - trip_time >= POST_PEAK_SECONDS:
                 swing = resolve_swing(buffer, trip_time, len(swings) + 1)
@@ -471,7 +504,12 @@ def detect():
         with open(LOG_PATH, "w") as handle:
             json.dump(
                 {
-                    "threshold_g": SWING_THRESHOLD_G,
+                    "auto_threshold": AUTO_THRESHOLD,
+                    "threshold_g": (
+                        round(detector.threshold(), 2)
+                        if detector
+                        else SWING_THRESHOLD_G
+                    ),
                     "sample_rate_hz": round(samples / elapsed),
                     "fit": fit,
                     "swings": swings,
