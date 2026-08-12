@@ -36,7 +36,7 @@ struct DashboardView: View {
     private var rpmGauge: some View {
         GaugeView(value: store.rpm, maxValue: 7000, tick: 1000,
                   centerText: String(format: "%.1f", store.rpm / 1000),
-                  unitText: "rpm ×1000", redlineFrom: 5800, tickDivisor: 1000)
+                  unitText: "rpm ×1000", redlineFrom: 6000, tickDivisor: 1000)
             .panelStyle()
     }
 

@@ -5,6 +5,16 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                LabeledContent("Vehicle", value: store.vehicleName)
+                Picker("Body style", selection: $store.tankGallons) {
+                    Text("4-Door · 20.8 gal").tag(20.8)
+                    Text("2-Door · 16.9 gal").tag(16.9)
+                }
+            } footer: {
+                Text("Body style sets the fuel tank size used for the range estimate.")
+            }
+
             Section("Units") {
                 Picker("Units", selection: $store.units) {
                     ForEach(VehicleDataStore.Units.allCases) { u in

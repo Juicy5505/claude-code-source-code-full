@@ -10,7 +10,8 @@ final class DriveSimulator {
     private let phases: [(mph: Double, seconds: TimeInterval)] = [
         (0, 5), (27, 10), (44, 12), (66, 18), (74, 15), (33, 8),
     ]
-    private let upshiftMph: [Double] = [0, 12, 21, 33, 47, 62, 999]
+    // 10R60 10-speed upshift points (2.3L EcoBoost Bronco)
+    private let upshiftMph: [Double] = [0, 9, 15, 22, 30, 39, 48, 58, 68, 78, 999]
 
     func step(dt: TimeInterval, store: VehicleDataStore) {
         elapsed += dt
@@ -26,7 +27,7 @@ final class DriveSimulator {
         store.speedMph = max(0, min(160, store.speedMph + max(-rate * dt, min(rate * dt, diff))))
 
         var g = 1
-        while g < 6 && store.speedMph > upshiftMph[g] { g += 1 }
+        while g < 10 && store.speedMph > upshiftMph[g] { g += 1 }
         store.gear = store.speedMph < 0.5 ? "P" : "D\(g)"
 
         let idle: Double = 750

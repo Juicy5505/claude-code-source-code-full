@@ -326,7 +326,10 @@
     <!-- HOME -->
     <section class="view active" id="view-home" aria-label="Home">
       <div id="home-status">
-        <div class="greet" id="greet">Good evening</div>
+        <div>
+          <div class="greet" id="greet">Good evening</div>
+          <div style="color:var(--muted); font-size:0.78rem; margin-top:3px; text-transform:uppercase; letter-spacing:0.1em;">2022 Bronco · Outer Banks</div>
+        </div>
         <div class="cond num">
           <span>Range <b id="hRange">—</b></span>
           <span>Fuel <b id="hFuel">—</b></span>
@@ -473,6 +476,15 @@
       </div>
       <div class="set-group">
         <div class="set-row">
+          <div><div class="k">Bronco body style</div><div class="hint">Sets the fuel tank size used for the range estimate — 20.8 gal on 4-door, 16.9 gal on 2-door.</div></div>
+          <div class="seg" id="segBody" role="group" aria-label="Body style">
+            <button data-tank="20.8" class="on">4-Door</button>
+            <button data-tank="16.9">2-Door</button>
+          </div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-row">
           <div><div class="k">Speed warning</div><div class="hint">Speed ring on the map turns red above this.</div></div>
           <div class="seg" id="segLimit" role="group" aria-label="Speed warning threshold">
             <button data-l="65">65</button><button data-l="75" class="on">75</button><button data-l="85">85</button><button data-l="0">Off</button>
@@ -517,7 +529,11 @@ const S = {
   gpsOk: false, obdOk: false,
 };
 
-const TANK_GAL = 14.5, MPG = 29;
+/* Vehicle profile: 2022 Ford Bronco Outer Banks (2.3L EcoBoost, 10-speed).
+   Tank: 20.8 gal (4-door) / 16.9 gal (2-door); EPA combined ~20 mpg. */
+const VEHICLE = "2022 Ford Bronco Outer Banks";
+let TANK_GAL = 20.8;
+const MPG = 20;
 
 const fmt = {
   speed: (mph) => S.units === "metric" ? Math.round(mph * 1.60934) : Math.round(mph),
@@ -607,8 +623,8 @@ sim.step = function (dt) {
   const rate = diff > 0 ? 6.5 : 11;                    // accelerate gently, brake harder
   S.speed = clamp(S.speed + clamp(diff, -rate * dt, rate * dt), 0, 160);
   // Derived metrics
-  const gearRatios = [0, 12, 21, 33, 47, 62, 999];     // upshift speeds
-  let g = 1; while (S.speed > gearRatios[g] && g < 6) g++;
+  const gearRatios = [0, 9, 15, 22, 30, 39, 48, 58, 68, 78, 999]; // 10R60 10-speed upshift points
+  let g = 1; while (S.speed > gearRatios[g] && g < 10) g++;
   S.gear = S.speed < 0.5 ? "P" : "D" + g;
   const idle = 750;
   S.rpm = S.speed < 0.5 ? idle + Math.sin(perf * 2) * 30
@@ -845,7 +861,7 @@ function drawGauges(force) {
   });
   drawDial($("gRpm"), {
     value: dispRpm, max: 7000, tick: 1000, tickLabel: (v) => v / 1000,
-    center: (dispRpm / 1000).toFixed(1), unit: "rpm ×1000", redFrom: 5800,
+    center: (dispRpm / 1000).toFixed(1), unit: "rpm ×1000", redFrom: 6000,
   });
 }
 
@@ -1137,6 +1153,12 @@ $("segUnits").addEventListener("click", (e) => {
 $("segSource").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
   setSource(b.dataset.s);
+});
+$("segBody").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  TANK_GAL = Number(b.dataset.tank);
+  document.querySelectorAll("#segBody button").forEach(x => x.classList.toggle("on", x === b));
+  updateTiles();
 });
 $("segLimit").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;

@@ -45,9 +45,14 @@ final class VehicleDataStore: ObservableObject {
     @Published var obdStatus: String = "Not connected"
     @Published var obdConnected: Bool = false
 
-    /// Estimated tank size and economy used for the range readout.
-    let tankGallons: Double = 14.5
-    let milesPerGallon: Double = 29
+    /// Vehicle profile: 2022 Ford Bronco Outer Banks (2.3L EcoBoost, 10R60).
+    /// Tank is 20.8 gal on the 4-door, 16.9 gal on the 2-door (Settings toggle);
+    /// EPA combined economy ~20 mpg drives the range estimate.
+    let vehicleName = "2022 Ford Bronco Outer Banks"
+    let milesPerGallon: Double = 20
+    @Published var tankGallons: Double {
+        didSet { UserDefaults.standard.set(tankGallons, forKey: "tankGallons") }
+    }
 
     var rangeMiles: Double { fuelPercent / 100 * tankGallons * milesPerGallon }
 
@@ -57,6 +62,8 @@ final class VehicleDataStore: ObservableObject {
     private var lastTick = Date()
 
     private init() {
+        let tank = UserDefaults.standard.double(forKey: "tankGallons")
+        tankGallons = tank == 0 ? 20.8 : tank
         tripMiles = UserDefaults.standard.double(forKey: "tripMiles")
         let odo = UserDefaults.standard.double(forKey: "odometerMiles")
         odometerMiles = odo == 0 ? 48_213.4 : odo

@@ -22,7 +22,7 @@ final class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegat
                                   didConnect interfaceController: CPInterfaceController) {
         self.interfaceController = interfaceController
 
-        let gauges = CPInformationTemplate(title: "NightDrive", layout: .twoColumn,
+        let gauges = CPInformationTemplate(title: "Bronco Outer Banks", layout: .twoColumn,
                                            items: gaugeItems(), actions: [])
         gauges.tabTitle = "Gauges"
         gauges.tabImage = UIImage(systemName: "gauge.with.needle")
