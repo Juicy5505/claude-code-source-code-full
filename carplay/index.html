@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0A0E13">
+<title>NightDrive</title>
+<style>
+  /* Deliberately single-theme: this is a night-safe automotive screen.
+     Every color is painted explicitly so the page holds on any host ground. */
+  :root {
+    --ground:   #0A0E13;
+    --panel:    #111823;
+    --panel-2:  #0E141D;
+    --hairline: #22303F;
+    --text:     #EAF2F9;
+    --muted:    #7E93A8;
+    --accent:   #45D6E0;
+    --accent-dim: rgba(69, 214, 224, 0.16);
+    --good:     #4ADE80;
+    --warn:     #FFB454;
+    --crit:     #FF6259;
+    --radius:   18px;
+    --dock-w:   96px;
+    font-size: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .mono { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; }
+
+  /* ---------- Shell: dock + stage ---------- */
+  #shell { display: flex; height: 100dvh; width: 100vw; }
+
+  #dock {
+    width: var(--dock-w);
+    flex: none;
+    background: var(--panel-2);
+    border-right: 1px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: max(14px, env(safe-area-inset-top)) 10px 14px;
+    gap: 6px;
+    z-index: 10;
+  }
+  #dock .clock { text-align: center; margin-bottom: 6px; }
+  #dock .clock .t { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; }
+  #dock .clock .d { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px; }
+
+  .dock-btn {
+    width: 62px; height: 62px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .dock-btn svg { width: 30px; height: 30px; }
+  .dock-btn:hover { background: var(--panel); }
+  .dock-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dock-btn.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(69,214,224,0.35); }
+
+  #dock .spacer { flex: 1; }
+
+  /* Mini speed readout pinned to dock bottom — visible in every view */
+  #dockSpeed { text-align: center; padding: 8px 4px 2px; border-top: 1px solid var(--hairline); width: 100%; }
+  #dockSpeed .v { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+  #dockSpeed .u { font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 3px; }
+
+  #srcDot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-top: 8px; }
+  #srcDot.live { background: var(--good); box-shadow: 0 0 8px rgba(74,222,128,0.7); }
+
+  #stage { flex: 1; position: relative; min-width: 0; }
+  .view { position: absolute; inset: 0; display: none; overflow: hidden; }
+  .view.active { display: flex; }
+
+  /* ---------- Home ---------- */
+  #view-home { flex-direction: column; padding: clamp(16px, 3vw, 36px); gap: 18px; }
+  #home-status { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  #home-status .greet { font-size: clamp(1.2rem, 2.6vw, 1.7rem); font-weight: 700; }
+  #home-status .cond { color: var(--muted); font-size: 0.85rem; display: flex; gap: 16px; }
+  #home-status .cond b { color: var(--text); font-weight: 600; }
+
+  #app-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-auto-rows: minmax(120px, 170px);
+    gap: 14px;
+    align-content: start;
+  }
+  .app-tile {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--panel);
+    color: var(--text);
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+    padding: 16px;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    transition: transform 0.12s, border-color 0.15s;
+  }
+  .app-tile:hover { border-color: var(--accent); }
+  .app-tile:active { transform: scale(0.97); }
+  .app-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .app-tile .icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app-tile .icon svg { width: 30px; height: 30px; }
+  .app-tile .name { font-weight: 600; font-size: 0.95rem; }
+  .app-tile .sub { color: var(--muted); font-size: 0.72rem; margin-top: 2px; }
+  .ic-maps  { background: linear-gradient(135deg, #1C4A5E, #103040); color: #7CE3F0; }
+  .ic-waze  { background: linear-gradient(135deg, #33CCFF22, #0E86B3); color: #CDEFFB; }
+  .ic-music { background: linear-gradient(135deg, #FA5C74, #C22B50); color: #fff; }
+  .ic-dash  { background: linear-gradient(135deg, #21323F, #14202B); color: var(--accent); }
+  .ic-phone { background: linear-gradient(135deg, #1F7A46, #14532D); color: #B9F5CF; }
+  .ic-set   { background: linear-gradient(135deg, #2A3644, #1A2430); color: #AFC3D6; }
+
+  /* ---------- Dashboard ---------- */
+  #view-dash { flex-direction: column; padding: clamp(10px, 2vw, 24px); gap: 12px; }
+  #gauges { flex: 1; display: flex; gap: 12px; min-height: 0; }
+  #gauges canvas { width: 100%; height: 100%; display: block; }
+  .gauge-wrap { position: relative; flex: 1; min-width: 0; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--panel); overflow: hidden; }
+  .gauge-wrap.speed { flex: 1.4; }
+
+  #tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .tile {
+    border: 1px solid var(--hairline); border-radius: var(--radius);
+    background: var(--panel); padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .tile .label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); display: flex; justify-content: space-between; }
+  .tile .value { font-size: 1.45rem; font-weight: 700; line-height: 1.1; }
+  .tile .value small { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+  .bar { height: 6px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--hairline); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s, background 0.4s; }
+  .tile.warn .value, .tile.warn .label { color: var(--warn); }
+  .tile.crit .value, .tile.crit .label { color: var(--crit); }
+  .tile.warn .bar i { background: var(--warn); }
+  .tile.crit .bar i { background: var(--crit); }
+
+  /* ---------- Navigation ---------- */
+  #view-nav { flex-direction: column; }
+  #navCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #turn-banner {
+    position: absolute; top: 14px; left: 14px; right: auto;
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(14, 20, 29, 0.92);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 12px 18px 12px 14px;
+    backdrop-filter: blur(6px);
+    max-width: min(420px, calc(100% - 28px));
+  }
+  #turn-banner svg { width: 40px; height: 40px; color: var(--accent); flex: none; }
+  #turn-banner .dist { font-size: 1.5rem; font-weight: 800; line-height: 1.05; }
+  #turn-banner .street { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+  #eta-bar {
+    position: absolute; bottom: 14px; left: 14px;
+    display: flex; gap: 18px; align-items: baseline;
+    background: rgba(14, 20, 29, 0.92);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    backdrop-filter: blur(6px);
+  }
+  #eta-bar b { font-size: 1.15rem; font-weight: 700; }
+  #eta-bar span { color: var(--muted); font-size: 0.75rem; }
+  #nav-speed {
+    position: absolute; bottom: 14px; right: 14px;
+    width: 78px; height: 78px; border-radius: 50%;
+    background: rgba(14, 20, 29, 0.92);
+    border: 2px solid var(--hairline);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  #nav-speed b { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+  #nav-speed span { font-size: 0.55rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 2px; }
+  #nav-speed.over { border-color: var(--crit); }
+  #nav-speed.over b { color: var(--crit); }
+  #waze-jump {
+    position: absolute; top: 14px; right: 14px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(14, 20, 29, 0.92);
+    border: 1px solid var(--hairline); border-radius: 999px;
+    color: var(--text); font: inherit; font-size: 0.8rem; font-weight: 600;
+    padding: 9px 16px; cursor: pointer; backdrop-filter: blur(6px);
+  }
+  #waze-jump:hover { border-color: var(--accent); color: var(--accent); }
+  #waze-jump svg { width: 16px; height: 16px; }
+
+  /* ---------- Music ---------- */
+  #view-music { align-items: stretch; padding: clamp(16px, 3vw, 40px); gap: clamp(16px, 4vw, 48px); }
+  #art {
+    flex: none; align-self: center;
+    width: min(34vw, 46vh, 320px); aspect-ratio: 1;
+    border-radius: 22px;
+    border: 1px solid var(--hairline);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    position: relative; overflow: hidden;
+  }
+  #art .disc { position: absolute; inset: 0; }
+  #music-main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px; min-width: 0; }
+  #trk-title { font-size: clamp(1.4rem, 3.2vw, 2.1rem); font-weight: 800; text-wrap: balance; }
+  #trk-artist { color: var(--muted); font-size: 1rem; margin-top: 4px; }
+  #seek { display: flex; flex-direction: column; gap: 6px; }
+  #seek .rail { height: 6px; border-radius: 3px; background: var(--panel); border: 1px solid var(--hairline); overflow: hidden; cursor: pointer; }
+  #seek .rail i { display: block; height: 100%; background: var(--accent); width: 0%; }
+  #seek .times { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.72rem; }
+  #transport { display: flex; align-items: center; gap: 20px; }
+  .tbtn {
+    background: transparent; border: none; color: var(--text); cursor: pointer;
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tbtn svg { width: 30px; height: 30px; }
+  .tbtn:hover { background: var(--panel); }
+  .tbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tbtn.play { width: 72px; height: 72px; background: var(--accent); color: #062226; }
+  .tbtn.play:hover { background: #6BE2EA; }
+  .tbtn.play svg { width: 34px; height: 34px; }
+  #music-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--hairline); border-radius: 999px;
+    background: var(--panel); color: var(--text);
+    font: inherit; font-size: 0.78rem; font-weight: 600;
+    padding: 8px 14px; cursor: pointer;
+  }
+  .chip-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .chip-btn svg { width: 15px; height: 15px; }
+  #queue { list-style: none; display: flex; flex-direction: column; gap: 2px; margin-top: 6px; max-height: 60dvh; overflow-y: auto; }
+  #queue li {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 9px 12px; border-radius: 10px; cursor: pointer;
+    color: var(--muted); font-size: 0.85rem;
+  }
+  #queue li:hover { background: var(--panel); }
+  #queue li.now { color: var(--accent); background: var(--accent-dim); }
+  #queue li .tt { color: inherit; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #queue li.now .tt::before { content: "▶ "; font-size: 0.7em; }
+
+  /* ---------- Settings ---------- */
+  #view-settings { flex-direction: column; padding: clamp(16px, 3vw, 36px); gap: 16px; overflow-y: auto; }
+  #view-settings h2 { font-size: 1.3rem; font-weight: 700; }
+  .set-group { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--panel); overflow: hidden; }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px; }
+  .set-row + .set-row { border-top: 1px solid var(--hairline); }
+  .set-row .k { font-weight: 600; font-size: 0.92rem; }
+  .set-row .hint { color: var(--muted); font-size: 0.75rem; margin-top: 3px; max-width: 52ch; }
+  .seg { display: flex; border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; flex: none; }
+  .seg button {
+    background: var(--panel-2); border: none; color: var(--muted);
+    font: inherit; font-size: 0.8rem; font-weight: 600;
+    padding: 8px 16px; cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid var(--hairline); }
+  .seg button.on { background: var(--accent-dim); color: var(--accent); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  #obdStatus, #gpsStatus { font-size: 0.75rem; color: var(--muted); }
+
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--panel); border: 1px solid var(--hairline); border-radius: 12px;
+    color: var(--text); padding: 10px 18px; font-size: 0.85rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+    z-index: 99; max-width: min(90vw, 480px); text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-aspect-ratio: 1/1) {
+    #gauges { flex-direction: column; }
+    #view-music { flex-direction: column; overflow-y: auto; }
+    #queue { max-height: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="shell">
+  <nav id="dock" aria-label="App dock">
+    <div class="clock" aria-hidden="true"><div class="t num" id="clockT">–:–</div><div class="d" id="clockD"></div></div>
+    <button class="dock-btn active" data-view="home" aria-label="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    </button>
+    <button class="dock-btn" data-view="nav" aria-label="Navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 19-7-4-7 4z"/></svg>
+    </button>
+    <button class="dock-btn" data-view="dash" aria-label="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13a9 9 0 1 0-18 0"/><path d="M12 13l4-5"/><path d="M3 13h2M19 13h2M12 4v2"/></svg>
+    </button>
+    <button class="dock-btn" data-view="music" aria-label="Music">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="3"/><circle cx="17" cy="15" r="3"/><path d="M10 18V5l10-2v12"/></svg>
+    </button>
+    <button class="dock-btn" data-view="settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+    </button>
+    <div class="spacer"></div>
+    <div id="dockSpeed" aria-label="Current speed">
+      <div class="v num" id="dockSpeedV">0</div>
+      <div class="u" id="dockSpeedU">mph</div>
+    </div>
+    <div id="srcDot" title="Data source status"></div>
+  </nav>
+
+  <main id="stage">
+
+    <!-- HOME -->
+    <section class="view active" id="view-home" aria-label="Home">
+      <div id="home-status">
+        <div class="greet" id="greet">Good evening</div>
+        <div class="cond num">
+          <span>Range <b id="hRange">—</b></span>
+          <span>Fuel <b id="hFuel">—</b></span>
+          <span>Trip <b id="hTrip">—</b></span>
+        </div>
+      </div>
+      <div id="app-grid">
+        <button class="app-tile" data-view="nav">
+          <span class="icon ic-maps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 19-7-4-7 4z"/></svg></span>
+          <span><span class="name">Maps</span><span class="sub" style="display:block">Turn-by-turn navigation</span></span>
+        </button>
+        <button class="app-tile" data-ext="waze">
+          <span class="icon ic-waze"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-14.9 4H3.5a1 1 0 0 0-.7 1.7C4.6 18.6 7 20 12 20a8 8 0 0 0 8-9z"/><circle cx="9.5" cy="10.5" r="0.6" fill="currentColor"/><circle cx="14.5" cy="10.5" r="0.6" fill="currentColor"/><path d="M9.5 13.5c1.5 1.2 3.5 1.2 5 0"/></svg></span>
+          <span><span class="name">Waze</span><span class="sub" style="display:block">Opens the Waze app</span></span>
+        </button>
+        <button class="app-tile" data-ext="music">
+          <span class="icon ic-music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="3"/><circle cx="17" cy="15" r="3"/><path d="M10 18V5l10-2v12"/></svg></span>
+          <span><span class="name">Apple Music</span><span class="sub" style="display:block">Opens the Music app</span></span>
+        </button>
+        <button class="app-tile" data-view="dash">
+          <span class="icon ic-dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13a9 9 0 1 0-18 0"/><path d="M12 13l4-5"/></svg></span>
+          <span><span class="name">Dashboard</span><span class="sub" style="display:block">Speed · fuel · engine</span></span>
+        </button>
+        <button class="app-tile" data-view="music">
+          <span class="icon ic-phone" style="background: linear-gradient(135deg,#3B3F8C,#23255C); color:#C7CBFF;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-3v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="15" r="3"/></svg></span>
+          <span><span class="name">Now Playing</span><span class="sub" style="display:block" id="tileNP">Nothing playing</span></span>
+        </button>
+        <button class="app-tile" data-ext="phone">
+          <span class="icon ic-phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.9z"/></svg></span>
+          <span><span class="name">Phone</span><span class="sub" style="display:block">Opens the dialer</span></span>
+        </button>
+        <button class="app-tile" data-view="settings">
+          <span class="icon ic-set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></span>
+          <span><span class="name">Settings</span><span class="sub" style="display:block">Units · data source</span></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="view" id="view-dash" aria-label="Vehicle dashboard">
+      <div id="gauges">
+        <div class="gauge-wrap speed"><canvas id="gSpeed"></canvas></div>
+        <div class="gauge-wrap"><canvas id="gRpm"></canvas></div>
+      </div>
+      <div id="tiles">
+        <div class="tile" id="tFuel">
+          <div class="label"><span>Fuel</span><span class="num" id="fuelPct">—</span></div>
+          <div class="value num" id="fuelRange">— <small>range</small></div>
+          <div class="bar"><i id="fuelBar" style="width:0%"></i></div>
+        </div>
+        <div class="tile" id="tTemp">
+          <div class="label"><span>Coolant</span></div>
+          <div class="value num" id="tempV">— <small id="tempU">°F</small></div>
+          <div class="bar"><i id="tempBar" style="width:0%"></i></div>
+        </div>
+        <div class="tile" id="tBatt">
+          <div class="label"><span>Battery</span></div>
+          <div class="value num" id="battV">— <small>V</small></div>
+          <div class="bar"><i id="battBar" style="width:0%"></i></div>
+        </div>
+        <div class="tile">
+          <div class="label"><span>Trip</span></div>
+          <div class="value num" id="tripV">0.0 <small id="tripU">mi</small></div>
+          <div class="label"><span>Avg <span class="num" id="avgEcon">—</span></span></div>
+        </div>
+        <div class="tile">
+          <div class="label"><span>Odometer</span></div>
+          <div class="value num" id="odoV">— <small id="odoU">mi</small></div>
+          <div class="label"><span>Gear <span id="gearV" style="color:var(--text)">D</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAVIGATION -->
+    <section class="view" id="view-nav" aria-label="Navigation">
+      <canvas id="navCanvas"></canvas>
+      <div id="turn-banner">
+        <svg id="turnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9a3 3 0 0 1 3-3h4"/><path d="M16 3l3 3-3 3"/></svg>
+        <div>
+          <div class="dist num" id="turnDist">—</div>
+          <div class="street" id="turnStreet">Calculating route…</div>
+        </div>
+      </div>
+      <button id="waze-jump" data-ext="waze" title="Continue this drive in Waze">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        Open in Waze
+      </button>
+      <div id="eta-bar" class="num">
+        <div><b id="etaTime">—</b><br><span>arrival</span></div>
+        <div><b id="etaMin">—</b><br><span>min</span></div>
+        <div><b id="etaDist">—</b><br><span id="etaDistU">mi</span></div>
+      </div>
+      <div id="nav-speed"><b class="num" id="navSpeedV">0</b><span id="navSpeedU">mph</span></div>
+    </section>
+
+    <!-- MUSIC -->
+    <section class="view" id="view-music" aria-label="Music">
+      <div id="art"><canvas class="disc" id="artCanvas"></canvas></div>
+      <div id="music-main">
+        <div>
+          <div id="trk-title">—</div>
+          <div id="trk-artist">—</div>
+        </div>
+        <div id="seek">
+          <div class="rail" id="seekRail" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i id="seekFill"></i></div>
+          <div class="times num"><span id="tCur">0:00</span><span id="tDur">0:00</span></div>
+        </div>
+        <div id="transport">
+          <button class="tbtn" id="btnPrev" aria-label="Previous track"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6l-10 6 10 6z"/></svg></button>
+          <button class="tbtn play" id="btnPlay" aria-label="Play or pause"><svg id="icPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><svg id="icPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+          <button class="tbtn" id="btnNext" aria-label="Next track"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6l10 6-10 6z"/></svg></button>
+        </div>
+        <div id="music-links">
+          <button class="chip-btn" data-ext="music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>Open Apple Music</button>
+          <button class="chip-btn" data-ext="musicSearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Find this track</button>
+        </div>
+        <ul id="queue"></ul>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings" aria-label="Settings">
+      <h2>Settings</h2>
+      <div class="set-group">
+        <div class="set-row">
+          <div><div class="k">Units</div><div class="hint">Applies to speed, distance, and temperature everywhere.</div></div>
+          <div class="seg" id="segUnits" role="group" aria-label="Units">
+            <button data-u="imperial" class="on">mph · °F</button>
+            <button data-u="metric">km/h · °C</button>
+          </div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-row">
+          <div><div class="k">Vehicle data source</div><div class="hint">Demo simulates a drive. GPS reads real speed from this device. OBD-II connects to a Bluetooth LE ELM327 adapter plugged into your car's OBD port and reads live speed, RPM, fuel, coolant, and battery.</div></div>
+          <div class="seg" id="segSource" role="group" aria-label="Data source">
+            <button data-s="sim" class="on">Demo</button>
+            <button data-s="gps">GPS</button>
+            <button data-s="obd">OBD-II</button>
+          </div>
+        </div>
+        <div class="set-row"><div><div class="k">GPS</div><div class="hint" id="gpsStatus">Not active</div></div></div>
+        <div class="set-row"><div><div class="k">OBD-II adapter</div><div class="hint" id="obdStatus">Not connected. Requires a Bluetooth LE ELM327 adapter (e.g. Vgate iCar Pro BLE) and a browser with Web Bluetooth (Chrome/Edge on Android or desktop).</div></div></div>
+      </div>
+      <div class="set-group">
+        <div class="set-row">
+          <div><div class="k">Speed warning</div><div class="hint">Speed ring on the map turns red above this.</div></div>
+          <div class="seg" id="segLimit" role="group" aria-label="Speed warning threshold">
+            <button data-l="65">65</button><button data-l="75" class="on">75</button><button data-l="85">85</button><button data-l="0">Off</button>
+          </div>
+        </div>
+      </div>
+      <div class="set-group">
+        <div class="set-row">
+          <div><div class="k">About</div><div class="hint">NightDrive is a browser-based CarPlay-style head unit. Real CarPlay apps require Apple entitlements; this runs anywhere with a browser — mount the device, tap fullscreen, and drive. Waze, Apple Music, and Phone tiles deep-link into the native apps on your phone.</div></div>
+          <button class="chip-btn" id="btnFullscreen">Fullscreen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   NightDrive — browser-based CarPlay-style head unit
+   Views: Home / Dashboard / Navigation / Music / Settings
+   Vehicle data: Demo simulation, device GPS, or Web Bluetooth OBD-II
+   ===================================================================== */
+
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ---------- Global state ---------- */
+const S = {
+  view: "home",
+  units: "imperial",           // imperial | metric
+  source: "sim",               // sim | gps | obd
+  speedLimit: 75,              // mph, 0 = off
+  // Canonical vehicle metrics (SI-ish: mph internally for speed, °F temp)
+  speed: 0, rpm: 0, fuelPct: 62, coolantF: 0, battV: 12.4,
+  gear: "P", odoMi: 48213.4, tripMi: 0,
+  heading: 0,
+  gpsOk: false, obdOk: false,
+};
+
+const TANK_GAL = 14.5, MPG = 29;
+
+const fmt = {
+  speed: (mph) => S.units === "metric" ? Math.round(mph * 1.60934) : Math.round(mph),
+  speedU: () => S.units === "metric" ? "km/h" : "mph",
+  dist:  (mi) => S.units === "metric" ? (mi * 1.60934) : mi,
+  distU: () => S.units === "metric" ? "km" : "mi",
+  shortDist(mi) { // for turn banner
+    if (S.units === "metric") {
+      const m = mi * 1609.34;
+      return m < 950 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1)} km`;
+    }
+    const ft = mi * 5280;
+    return ft < 950 ? `${Math.round(ft / 50) * 50} ft` : `${mi.toFixed(1)} mi`;
+  },
+  temp: (f) => S.units === "metric" ? Math.round((f - 32) * 5 / 9) : Math.round(f),
+  tempU: () => S.units === "metric" ? "°C" : "°F",
+  clock: (d) => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+};
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._h);
+  toast._h = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+/* ---------- View switching ---------- */
+function show(view) {
+  S.view = view;
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + view));
+  document.querySelectorAll(".dock-btn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  resizeCanvases();
+}
+document.querySelectorAll("[data-view]").forEach(el =>
+  el.addEventListener("click", () => show(el.dataset.view)));
+
+/* ---------- External app deep links ---------- */
+const EXT = {
+  waze:  { app: "waze://?navigate=yes", web: "https://waze.com/ul?navigate=yes" },
+  music: { app: "music://", web: "https://music.apple.com" },
+  phone: { app: "tel:", web: null },
+  musicSearch: {
+    get app() { const t = TRACKS[music.i]; return "music://music.apple.com/search?term=" + encodeURIComponent(t.artist + " " + t.title); },
+    get web() { const t = TRACKS[music.i]; return "https://music.apple.com/search?term=" + encodeURIComponent(t.artist + " " + t.title); },
+  },
+};
+function openExt(key) {
+  const target = EXT[key];
+  if (!target) return;
+  const t0 = Date.now();
+  location.href = target.app;
+  // If the app scheme didn't take us away, fall back to the web link.
+  if (target.web) setTimeout(() => { if (Date.now() - t0 < 1600 && !document.hidden) window.open(target.web, "_blank"); }, 1200);
+}
+document.querySelectorAll("[data-ext]").forEach(el =>
+  el.addEventListener("click", () => openExt(el.dataset.ext)));
+
+/* ---------- Clock & greeting ---------- */
+function tickClock() {
+  const d = new Date();
+  $("clockT").textContent = fmt.clock(d);
+  $("clockD").textContent = d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  const h = d.getHours();
+  $("greet").textContent = h < 5 ? "Night drive" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+tickClock(); setInterval(tickClock, 15000);
+
+/* =====================================================================
+   VEHICLE DATA SOURCES
+   ===================================================================== */
+
+/* --- Demo simulation: a plausible city/highway drive --- */
+const sim = { target: 0, phaseT: 0 };
+sim.step = function (dt) {
+  this.phaseT -= dt;
+  if (this.phaseT <= 0) {
+    const phases = [
+      { v: 0, t: 5 }, { v: 27, t: 10 }, { v: 44, t: 12 },
+      { v: 66, t: 18 }, { v: 74, t: 15 }, { v: 33, t: 8 },
+    ];
+    const p = phases[Math.floor(Math.random() * phases.length)];
+    this.target = Math.max(0, p.v + (Math.random() * 6 - 3));
+    this.phaseT = p.t;
+  }
+  const diff = this.target - S.speed;
+  const rate = diff > 0 ? 6.5 : 11;                    // accelerate gently, brake harder
+  S.speed = clamp(S.speed + clamp(diff, -rate * dt, rate * dt), 0, 160);
+  // Derived metrics
+  const gearRatios = [0, 12, 21, 33, 47, 62, 999];     // upshift speeds
+  let g = 1; while (S.speed > gearRatios[g] && g < 6) g++;
+  S.gear = S.speed < 0.5 ? "P" : "D" + g;
+  const idle = 750;
+  S.rpm = S.speed < 0.5 ? idle + Math.sin(perf * 2) * 30
+        : clamp(idle + (S.speed - gearRatios[g - 1]) / (gearRatios[g] - gearRatios[g - 1] || 1) * 2400 + S.speed * 14, idle, 6500);
+  S.coolantF = lerp(S.coolantF || 120, 198, dt * 0.02) + Math.sin(perf * 0.3) * 0.2;
+  S.battV = 14.1 + Math.sin(perf * 0.5) * 0.12 - (S.speed < 0.5 ? 0.9 : 0);
+  S.fuelPct = Math.max(3, S.fuelPct - (S.speed / MPG) * dt / 3600 / TANK_GAL * 100);
+  S.heading += (S.speed > 1 ? nav.turnRate : 0) * dt;
+};
+
+/* --- GPS: real speed & heading from this device --- */
+const gps = {
+  watchId: null,
+  start() {
+    if (!("geolocation" in navigator)) { $("gpsStatus").textContent = "Geolocation not supported in this browser."; return; }
+    $("gpsStatus").textContent = "Requesting location…";
+    this.watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        S.gpsOk = true;
+        const spd = pos.coords.speed;                  // m/s or null
+        if (spd != null && !Number.isNaN(spd)) S.speed = clamp(spd * 2.23694, 0, 200);
+        if (pos.coords.heading != null && !Number.isNaN(pos.coords.heading)) S.heading = pos.coords.heading * Math.PI / 180;
+        $("gpsStatus").textContent = `Live · ±${Math.round(pos.coords.accuracy)} m accuracy`;
+      },
+      (err) => { S.gpsOk = false; $("gpsStatus").textContent = "GPS error: " + err.message; toast("GPS: " + err.message); },
+      { enableHighAccuracy: true, maximumAge: 500 }
+    );
+  },
+  stop() {
+    if (this.watchId != null) navigator.geolocation.clearWatch(this.watchId);
+    this.watchId = null; S.gpsOk = false;
+    $("gpsStatus").textContent = "Not active";
+  },
+};
+
+/* --- OBD-II over Web Bluetooth (ELM327 BLE adapters) --- */
+const obd = {
+  device: null, writeChar: null, buf: "", pollTimer: null, cmdQueue: [], busy: false,
+  // Known BLE UART layouts used by common ELM327 clones (Vgate iCar Pro, Veepeak BLE+, …)
+  PROFILES: [
+    { service: 0xFFF0, notify: 0xFFF1, write: 0xFFF2 },
+    { service: "0000ffe0-0000-1000-8000-00805f9b34fb", notify: "0000ffe1-0000-1000-8000-00805f9b34fb", write: "0000ffe1-0000-1000-8000-00805f9b34fb" },
+    { service: "e7810a71-73ae-499d-8c15-faa9aef0c3f2", notify: "bef8d6c9-9c21-4c9e-b632-bd58c1009f9f", write: "bef8d6c9-9c21-4c9e-b632-bd58c1009f9f" },
+  ],
+  async connect() {
+    if (!navigator.bluetooth) { $("obdStatus").textContent = "Web Bluetooth is not available in this browser. Use Chrome or Edge on Android/desktop."; toast("Web Bluetooth not available"); return false; }
+    try {
+      $("obdStatus").textContent = "Choose your adapter in the picker…";
+      this.device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: this.PROFILES.map(p => p.service),
+      });
+      this.device.addEventListener("gattserverdisconnected", () => this.onDisconnect());
+      $("obdStatus").textContent = "Connecting to " + (this.device.name || "adapter") + "…";
+      const server = await this.device.gatt.connect();
+      let profile = null, service = null;
+      for (const p of this.PROFILES) {
+        try { service = await server.getPrimaryService(p.service); profile = p; break; } catch (_) { /* try next */ }
+      }
+      if (!profile) throw new Error("No known UART service on this device");
+      const notifyChar = await service.getCharacteristic(profile.notify);
+      this.writeChar = await service.getCharacteristic(profile.write);
+      await notifyChar.startNotifications();
+      notifyChar.addEventListener("characteristicvaluechanged", (e) => this.onData(e.target.value));
+      // ELM327 init: reset, echo off, linefeeds off, spaces off, auto protocol
+      for (const c of ["ATZ", "ATE0", "ATL0", "ATS0", "ATSP0"]) { await this.send(c); await this.waitPrompt(2500); }
+      S.obdOk = true;
+      $("obdStatus").textContent = "Connected to " + (this.device.name || "adapter") + " · polling live data";
+      toast("OBD-II connected");
+      this.startPolling();
+      return true;
+    } catch (err) {
+      $("obdStatus").textContent = "Connection failed: " + err.message;
+      toast("OBD: " + err.message);
+      this.disconnect();
+      return false;
+    }
+  },
+  onDisconnect() {
+    S.obdOk = false;
+    clearInterval(this.pollTimer);
+    $("obdStatus").textContent = "Adapter disconnected.";
+    if (S.source === "obd") toast("OBD-II adapter disconnected");
+  },
+  disconnect() {
+    clearInterval(this.pollTimer);
+    try { this.device?.gatt?.disconnect(); } catch (_) {}
+    this.device = null; this.writeChar = null; S.obdOk = false;
+  },
+  async send(cmd) {
+    if (!this.writeChar) return;
+    const bytes = new TextEncoder().encode(cmd + "\r");
+    if (this.writeChar.writeValueWithoutResponse) await this.writeChar.writeValueWithoutResponse(bytes);
+    else await this.writeChar.writeValue(bytes);
+  },
+  waitPrompt(ms) {  // ELM327 signals ready with '>'
+    return new Promise((res) => {
+      const t0 = Date.now();
+      const iv = setInterval(() => {
+        if (this.buf.includes(">") || Date.now() - t0 > ms) { clearInterval(iv); this.buf = ""; res(); }
+      }, 40);
+    });
+  },
+  onData(dataView) {
+    this.buf += new TextDecoder().decode(dataView);
+    if (!this.buf.includes(">")) return;
+    const resp = this.buf; this.buf = "";
+    this.parse(resp.replace(/[\r\n>]/g, " "));
+    this.busy = false;
+  },
+  parse(line) {
+    const hex = line.replace(/\s+/g, "").toUpperCase();
+    let m;
+    if ((m = hex.match(/410D([0-9A-F]{2})/)))       S.speed = parseInt(m[1], 16) * 0.621371;            // km/h → mph
+    else if ((m = hex.match(/410C([0-9A-F]{4})/)))  S.rpm = parseInt(m[1], 16) / 4;
+    else if ((m = hex.match(/412F([0-9A-F]{2})/)))  S.fuelPct = parseInt(m[1], 16) * 100 / 255;
+    else if ((m = hex.match(/4105([0-9A-F]{2})/)))  S.coolantF = (parseInt(m[1], 16) - 40) * 9 / 5 + 32;
+    else if ((m = line.match(/(\d{1,2}\.\d)V/)))    S.battV = parseFloat(m[1]);                         // ATRV
+  },
+  startPolling() {
+    clearInterval(this.pollTimer);
+    const pids = ["010D", "010C", "012F", "0105", "ATRV"];
+    let i = 0;
+    this.pollTimer = setInterval(async () => {
+      if (this.busy || !this.writeChar || S.source !== "obd") return;
+      this.busy = true;
+      try { await this.send(pids[i++ % pids.length]); } catch (_) { this.busy = false; }
+      setTimeout(() => { this.busy = false; }, 900);   // failsafe unlock
+    }, 250);
+  },
+};
+
+function setSource(src) {
+  S.source = src;
+  document.querySelectorAll("#segSource button").forEach(b => b.classList.toggle("on", b.dataset.s === src));
+  gps.stop();
+  if (src === "gps") gps.start();
+  if (src === "obd" && !S.obdOk) obd.connect();
+  if (src !== "obd") { /* keep adapter connected but idle */ }
+  toast(src === "sim" ? "Demo drive" : src === "gps" ? "Using device GPS" : "Connecting to OBD-II…");
+}
+
+/* =====================================================================
+   CANVAS HELPERS
+   ===================================================================== */
+function fitCanvas(cv) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+  if (cv.width !== w * dpr || cv.height !== h * dpr) {
+    cv.width = w * dpr; cv.height = h * dpr;
+    cv.style.width = w + "px"; cv.style.height = h + "px";
+  }
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w, h };
+}
+function resizeCanvases() {
+  requestAnimationFrame(() => { drawGauges(true); drawNav(true); drawArt(); });
+}
+window.addEventListener("resize", resizeCanvases);
+
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+/* =====================================================================
+   DASHBOARD GAUGES
+   ===================================================================== */
+let dispSpeed = 0, dispRpm = 0; // eased needles
+
+function drawDial(cv, opts) {
+  const { ctx, w, h } = fitCanvas(cv);
+  ctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2 + h * 0.03;
+  const R = Math.min(w, h) * 0.42;
+  const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25;   // 270° sweep
+  const frac = clamp(opts.value / opts.max, 0, 1);
+
+  // track
+  ctx.lineCap = "round";
+  ctx.beginPath(); ctx.arc(cx, cy, R, a0, a1);
+  ctx.strokeStyle = css("--hairline"); ctx.lineWidth = R * 0.075; ctx.stroke();
+
+  // redline zone
+  if (opts.redFrom) {
+    ctx.beginPath(); ctx.arc(cx, cy, R, a0 + (a1 - a0) * (opts.redFrom / opts.max), a1);
+    ctx.strokeStyle = "rgba(255,98,89,0.35)"; ctx.lineWidth = R * 0.075; ctx.stroke();
+  }
+
+  // value arc
+  const over = opts.redFrom && opts.value >= opts.redFrom;
+  ctx.beginPath(); ctx.arc(cx, cy, R, a0, a0 + (a1 - a0) * frac);
+  ctx.strokeStyle = over ? css("--crit") : css("--accent");
+  ctx.lineWidth = R * 0.075; ctx.stroke();
+
+  // ticks + numerals
+  ctx.fillStyle = css("--muted");
+  ctx.strokeStyle = css("--muted");
+  ctx.font = `600 ${Math.max(10, R * 0.11)}px -apple-system, "Segoe UI", Roboto, sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (let v = 0; v <= opts.max; v += opts.tick) {
+    const a = a0 + (a1 - a0) * (v / opts.max);
+    const x1 = cx + Math.cos(a) * R * 0.86, y1 = cy + Math.sin(a) * R * 0.86;
+    const x2 = cx + Math.cos(a) * R * 0.80, y2 = cy + Math.sin(a) * R * 0.80;
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    const lx = cx + Math.cos(a) * R * 0.68, ly = cy + Math.sin(a) * R * 0.68;
+    ctx.fillText(String(opts.tickLabel ? opts.tickLabel(v) : v), lx, ly);
+  }
+
+  // needle
+  const na = a0 + (a1 - a0) * frac;
+  ctx.strokeStyle = over ? css("--crit") : css("--text");
+  ctx.lineWidth = Math.max(2.5, R * 0.028); ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx + Math.cos(na) * R * 0.30, cy + Math.sin(na) * R * 0.30);
+  ctx.lineTo(cx + Math.cos(na) * R * 0.78, cy + Math.sin(na) * R * 0.78);
+  ctx.stroke();
+
+  // digital center
+  ctx.fillStyle = over ? css("--crit") : css("--text");
+  ctx.font = `800 ${R * 0.42}px -apple-system, "SF Pro Display", "Segoe UI", Roboto, sans-serif`;
+  ctx.fillText(String(opts.center), cx, cy - R * 0.02);
+  ctx.fillStyle = css("--muted");
+  ctx.font = `600 ${Math.max(9, R * 0.10)}px -apple-system, "Segoe UI", Roboto, sans-serif`;
+  ctx.fillText(opts.unit.toUpperCase(), cx, cy + R * 0.24);
+  if (opts.sub) { ctx.fillText(opts.sub, cx, cy + R * 0.40); }
+}
+
+function drawGauges(force) {
+  if (S.view !== "dash" && !force) return;
+  const maxSpeed = S.units === "metric" ? 240 : 160;
+  drawDial($("gSpeed"), {
+    value: fmt.speed(dispSpeed), max: maxSpeed, tick: S.units === "metric" ? 30 : 20,
+    center: fmt.speed(dispSpeed), unit: fmt.speedU(), sub: "GEAR " + S.gear,
+  });
+  drawDial($("gRpm"), {
+    value: dispRpm, max: 7000, tick: 1000, tickLabel: (v) => v / 1000,
+    center: (dispRpm / 1000).toFixed(1), unit: "rpm ×1000", redFrom: 5800,
+  });
+}
+
+function updateTiles() {
+  const rangeMi = (S.fuelPct / 100) * TANK_GAL * MPG;
+  $("fuelPct").textContent = Math.round(S.fuelPct) + "%";
+  $("fuelRange").innerHTML = `${Math.round(fmt.dist(rangeMi))} <small>${fmt.distU()} range</small>`;
+  $("fuelBar").style.width = S.fuelPct + "%";
+  $("tFuel").className = "tile" + (S.fuelPct < 10 ? " crit" : S.fuelPct < 20 ? " warn" : "");
+
+  $("tempV").innerHTML = `${fmt.temp(S.coolantF)} <small>${fmt.tempU()}</small>`;
+  $("tempBar").style.width = clamp((S.coolantF - 100) / 160 * 100, 0, 100) + "%";
+  $("tTemp").className = "tile" + (S.coolantF > 240 ? " crit" : S.coolantF > 225 ? " warn" : "");
+
+  $("battV").innerHTML = `${S.battV.toFixed(1)} <small>V</small>`;
+  $("battBar").style.width = clamp((S.battV - 10) / 5 * 100, 0, 100) + "%";
+  $("tBatt").className = "tile" + (S.battV < 11.8 ? " crit" : S.battV < 12.2 ? " warn" : "");
+
+  $("tripV").innerHTML = `${fmt.dist(S.tripMi).toFixed(1)} <small>${fmt.distU()}</small>`;
+  $("odoV").innerHTML = `${Math.round(fmt.dist(S.odoMi)).toLocaleString()} <small>${fmt.distU()}</small>`;
+  $("gearV").textContent = S.gear;
+  $("avgEcon").textContent = S.units === "metric" ? (235.2 / MPG).toFixed(1) + " L/100km" : MPG + " mpg";
+
+  $("hRange").textContent = Math.round(fmt.dist(rangeMi)) + " " + fmt.distU();
+  $("hFuel").textContent = Math.round(S.fuelPct) + "%";
+  $("hTrip").textContent = fmt.dist(S.tripMi).toFixed(1) + " " + fmt.distU();
+}
+
+/* =====================================================================
+   NAVIGATION — canvas map with a simulated route
+   World units: meters. Camera follows the car, heading-up.
+   ===================================================================== */
+const STREETS_NS = ["Cedar Ave", "Maple St", "Harbor Blvd", "5th Ave", "Lakeview Dr", "Granite Way"];
+const STREETS_EW = ["Pine St", "Oak Ave", "Mission Rd", "Foothill Pkwy", "Juniper Ln", "Summit St"];
+const GRID = 320; // meters between streets
+
+const ROUTE = [
+  [0, 0], [0, -960], [640, -960], [640, -2240], [-320, -2240],
+  [-320, -3520], [960, -3520], [960, -4800], [320, -4800], [320, -6080],
+];
+const routeLegs = [];
+{
+  let total = 0;
+  for (let i = 0; i < ROUTE.length - 1; i++) {
+    const [x1, y1] = ROUTE[i], [x2, y2] = ROUTE[i + 1];
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    routeLegs.push({ x1, y1, x2, y2, len, start: total });
+    total += len;
+  }
+  routeLegs.total = total;
+}
+const nav = {
+  progress: 0,       // meters along route
+  turnRate: 0,       // rad/s fed back into sim heading (cosmetic)
+  carX: 0, carY: 0, carA: -Math.PI / 2,
+  leg: routeLegs[0], legT: 0,
+  step(dt) {
+    const mps = S.speed * 0.44704;
+    this.progress += mps * dt;
+    if (this.progress >= routeLegs.total - 1) this.progress = 0; // loop the demo route
+    // locate current leg
+    let leg = routeLegs[0];
+    for (const l of routeLegs) { if (this.progress >= l.start) leg = l; else break; }
+    const t = clamp((this.progress - leg.start) / leg.len, 0, 1);
+    this.carX = lerp(leg.x1, leg.x2, t);
+    this.carY = lerp(leg.y1, leg.y2, t);
+    const targetA = Math.atan2(leg.y2 - leg.y1, leg.x2 - leg.x1);
+    let da = targetA - this.carA;
+    while (da > Math.PI) da -= 2 * Math.PI;
+    while (da < -Math.PI) da += 2 * Math.PI;
+    this.carA += da * clamp(dt * 4, 0, 1);
+    this.turnRate = da * 0.5;
+    this.leg = leg;
+    this.legT = t;
+  },
+  nextTurn() {
+    const i = routeLegs.indexOf(this.leg);
+    const distToEnd = this.leg.start + this.leg.len - this.progress;
+    if (i >= routeLegs.length - 1) return { dist: distToEnd, dir: "arrive", street: "your destination" };
+    const cur = this.leg, nxt = routeLegs[i + 1];
+    const cross = (cur.x2 - cur.x1) * (nxt.y2 - nxt.y1) - (cur.y2 - cur.y1) * (nxt.x2 - nxt.x1);
+    const vertical = Math.abs(nxt.y2 - nxt.y1) > Math.abs(nxt.x2 - nxt.x1);
+    const names = vertical ? STREETS_NS : STREETS_EW;
+    const idx = Math.abs(Math.round((vertical ? nxt.x1 : nxt.y1) / GRID)) % names.length;
+    return { dist: distToEnd, dir: cross > 0 ? "right" : "left", street: names[idx] };
+  },
+};
+
+const TURN_ICONS = {
+  left:  '<path d="M12 21V9a3 3 0 0 0-3-3H5"/><path d="M8 3L5 6l3 3"/>',
+  right: '<path d="M12 21V9a3 3 0 0 1 3-3h4"/><path d="M16 3l3 3-3 3"/>',
+  arrive:'<circle cx="12" cy="9" r="3"/><path d="M12 21c-4-5-7-8.5-7-12a7 7 0 0 1 14 0c0 3.5-3 7-7 12z"/>',
+};
+
+function drawNav(force) {
+  if (S.view !== "nav" && !force) return;
+  const { ctx, w, h } = fitCanvas($("navCanvas"));
+  ctx.fillStyle = "#0B1118";
+  ctx.fillRect(0, 0, w, h);
+
+  const scale = Math.min(w, h) / 950;   // px per meter-ish
+  const cx = w / 2, cy = h * 0.62;
+  const rot = -nav.carA - Math.PI / 2;  // heading-up
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.translate(-nav.carX * scale, -nav.carY * scale);
+
+  const world = (x, y) => [x * scale, y * scale];
+  const viewR = Math.hypot(w, h) / scale * 0.7;
+
+  // street grid
+  ctx.lineWidth = 14 * scale;
+  ctx.strokeStyle = "#16202C";
+  ctx.lineCap = "round";
+  const x0 = Math.floor((nav.carX - viewR) / GRID) * GRID, x1 = nav.carX + viewR;
+  const y0 = Math.floor((nav.carY - viewR) / GRID) * GRID, y1 = nav.carY + viewR;
+  ctx.beginPath();
+  for (let gx = x0; gx <= x1; gx += GRID) { ctx.moveTo(...world(gx, y0)); ctx.lineTo(...world(gx, y1)); }
+  for (let gy = y0; gy <= y1; gy += GRID) { ctx.moveTo(...world(x0, gy)); ctx.lineTo(...world(x1, gy)); }
+  ctx.stroke();
+  // center lines
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#223040";
+  ctx.beginPath();
+  for (let gx = x0; gx <= x1; gx += GRID) { ctx.moveTo(...world(gx, y0)); ctx.lineTo(...world(gx, y1)); }
+  for (let gy = y0; gy <= y1; gy += GRID) { ctx.moveTo(...world(x0, gy)); ctx.lineTo(...world(x1, gy)); }
+  ctx.stroke();
+
+  // blocks (subtle fills so the grid reads as a city)
+  ctx.fillStyle = "#0E1520";
+  for (let gx = x0; gx <= x1; gx += GRID) for (let gy = y0; gy <= y1; gy += GRID) {
+    const [bx, by] = world(gx + 22, gy + 22);
+    ctx.fillRect(bx, by, (GRID - 44) * scale, (GRID - 44) * scale);
+  }
+
+  // route: remaining in accent, traveled dimmed
+  ctx.lineWidth = 9 * scale; ctx.lineJoin = "round";
+  ctx.strokeStyle = "rgba(69,214,224,0.28)";
+  ctx.beginPath(); ctx.moveTo(...world(ROUTE[0][0], ROUTE[0][1]));
+  for (const [rx, ry] of ROUTE) ctx.lineTo(...world(rx, ry));
+  ctx.stroke();
+  ctx.strokeStyle = css("--accent");
+  ctx.beginPath(); ctx.moveTo(...world(nav.carX, nav.carY));
+  const li = routeLegs.indexOf(nav.leg);
+  ctx.lineTo(...world(nav.leg.x2, nav.leg.y2));
+  for (let i = li + 1; i < routeLegs.length; i++) ctx.lineTo(...world(routeLegs[i].x2, routeLegs[i].y2));
+  ctx.stroke();
+
+  // destination pin
+  const dest = ROUTE[ROUTE.length - 1];
+  const [dx, dy] = world(dest[0], dest[1]);
+  ctx.save(); ctx.translate(dx, dy); ctx.rotate(-rot);
+  ctx.fillStyle = css("--crit");
+  ctx.beginPath(); ctx.arc(0, 0, 8 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#0B1118";
+  ctx.beginPath(); ctx.arc(0, 0, 3.5 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+
+  // car chevron (fixed at screen anchor, pointing up)
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = css("--accent");
+  ctx.strokeStyle = "#06282C";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, -16); ctx.lineTo(11, 12); ctx.lineTo(0, 6); ctx.lineTo(-11, 12);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // HUD overlays
+  const turn = nav.nextTurn();
+  $("turnDist").textContent = fmt.shortDist(turn.dist / 1609.34);
+  $("turnStreet").textContent = turn.dir === "arrive" ? "Arrive at " + turn.street
+    : (turn.dir === "right" ? "Turn right onto " : "Turn left onto ") + turn.street;
+  $("turnIcon").innerHTML = TURN_ICONS[turn.dir] || TURN_ICONS.right;
+
+  const remainMi = (routeLegs.total - nav.progress) / 1609.34;
+  const avg = Math.max(S.speed, 18);
+  const mins = remainMi / avg * 60;
+  $("etaMin").textContent = Math.max(1, Math.round(mins));
+  $("etaDist").textContent = fmt.dist(remainMi).toFixed(1);
+  $("etaDistU").textContent = fmt.distU();
+  $("etaTime").textContent = fmt.clock(new Date(Date.now() + mins * 60000));
+
+  const sv = fmt.speed(S.speed);
+  $("navSpeedV").textContent = sv;
+  $("navSpeedU").textContent = fmt.speedU();
+  $("nav-speed").classList.toggle("over", S.speedLimit > 0 && S.speed > S.speedLimit);
+}
+
+/* =====================================================================
+   MUSIC
+   ===================================================================== */
+const TRACKS = [
+  { title: "Midnight on the 405",  artist: "Neon Coast",      dur: 254, hue: 197 },
+  { title: "Taillights",           artist: "Vera Solano",     dur: 221, hue: 340 },
+  { title: "Coastline Static",     artist: "The Mile Markers",dur: 305, hue: 158 },
+  { title: "Full Tank",            artist: "Dusty Reyes",     dur: 189, hue: 38  },
+  { title: "Overpass Glow",        artist: "Neon Coast",      dur: 276, hue: 265 },
+  { title: "Late Exit",            artist: "Camille Ostrer",  dur: 243, hue: 210 },
+];
+const music = { i: 0, t: 0, playing: false };
+
+function fmtTime(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+
+function drawArt() {
+  const cv = $("artCanvas");
+  const { ctx, w, h } = fitCanvas(cv);
+  const tr = TRACKS[music.i];
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, `hsl(${tr.hue} 60% 26%)`);
+  g.addColorStop(1, `hsl(${(tr.hue + 40) % 360} 70% 12%)`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  // concentric "record" rings, offset like a spinning disc
+  ctx.strokeStyle = `hsla(${tr.hue} 80% 70% / 0.25)`;
+  for (let r = w * 0.08; r < w * 0.75; r += w * 0.075) {
+    ctx.lineWidth = 1 + (r / w) * 2;
+    ctx.beginPath(); ctx.arc(w * 0.72, h * 0.3, r, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.fillStyle = `hsla(${tr.hue} 90% 78% / 0.9)`;
+  ctx.beginPath(); ctx.arc(w * 0.72, h * 0.3, w * 0.035, 0, Math.PI * 2); ctx.fill();
+}
+
+function renderMusic() {
+  const tr = TRACKS[music.i];
+  $("trk-title").textContent = tr.title;
+  $("trk-artist").textContent = tr.artist;
+  $("tDur").textContent = fmtTime(tr.dur);
+  $("tCur").textContent = fmtTime(music.t);
+  const pct = (music.t / tr.dur) * 100;
+  $("seekFill").style.width = pct + "%";
+  $("seekRail").setAttribute("aria-valuenow", String(Math.round(pct)));
+  $("icPlay").style.display = music.playing ? "none" : "";
+  $("icPause").style.display = music.playing ? "" : "none";
+  $("tileNP").textContent = music.playing ? tr.title + " — " + tr.artist : "Paused · " + tr.title;
+  document.querySelectorAll("#queue li").forEach((li, i) => li.classList.toggle("now", i === music.i));
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: tr.artist, album: "NightDrive" });
+    navigator.mediaSession.playbackState = music.playing ? "playing" : "paused";
+  }
+}
+function selectTrack(i, autoplay) {
+  music.i = (i + TRACKS.length) % TRACKS.length;
+  music.t = 0;
+  if (autoplay) music.playing = true;
+  drawArt(); renderMusic();
+}
+function buildQueue() {
+  const ul = $("queue");
+  ul.innerHTML = "";
+  TRACKS.forEach((tr, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="tt"></span><span class="num">${fmtTime(tr.dur)}</span>`;
+    li.querySelector(".tt").textContent = tr.title + " · " + tr.artist;
+    li.addEventListener("click", () => selectTrack(i, true));
+    ul.appendChild(li);
+  });
+}
+$("btnPlay").addEventListener("click", () => { music.playing = !music.playing; renderMusic(); });
+$("btnNext").addEventListener("click", () => selectTrack(music.i + 1, music.playing));
+$("btnPrev").addEventListener("click", () => music.t > 4 ? (music.t = 0) : selectTrack(music.i - 1, music.playing));
+$("seekRail").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  music.t = TRACKS[music.i].dur * clamp((e.clientX - r.left) / r.width, 0, 1);
+  renderMusic();
+});
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("play", () => { music.playing = true; renderMusic(); });
+  navigator.mediaSession.setActionHandler("pause", () => { music.playing = false; renderMusic(); });
+  navigator.mediaSession.setActionHandler("nexttrack", () => selectTrack(music.i + 1, true));
+  navigator.mediaSession.setActionHandler("previoustrack", () => selectTrack(music.i - 1, true));
+}
+
+/* =====================================================================
+   SETTINGS
+   ===================================================================== */
+$("segUnits").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.units = b.dataset.u;
+  document.querySelectorAll("#segUnits button").forEach(x => x.classList.toggle("on", x === b));
+  $("dockSpeedU").textContent = fmt.speedU();
+  $("tripU").textContent = fmt.distU(); $("odoU").textContent = fmt.distU(); $("tempU").textContent = fmt.tempU();
+  updateTiles();
+});
+$("segSource").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  setSource(b.dataset.s);
+});
+$("segLimit").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.speedLimit = Number(b.dataset.l);
+  document.querySelectorAll("#segLimit button").forEach(x => x.classList.toggle("on", x === b));
+});
+$("btnFullscreen").addEventListener("click", () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen?.().catch(() => toast("Fullscreen not available"));
+});
+
+/* =====================================================================
+   MAIN LOOP
+   ===================================================================== */
+let perf = 0, lastT = performance.now(), acc = 0;
+function loop(now) {
+  const dt = Math.min(0.1, (now - lastT) / 1000);
+  lastT = now; perf += dt;
+
+  if (S.source === "sim") sim.step(dt);
+  // trip/odometer accrue from whatever speed source is live
+  const miles = S.speed * dt / 3600;
+  S.tripMi += miles; S.odoMi += miles;
+
+  nav.step(dt);
+
+  // eased gauge needles
+  dispSpeed = lerp(dispSpeed, S.speed, clamp(dt * 6, 0, 1));
+  dispRpm = lerp(dispRpm, S.rpm, clamp(dt * 6, 0, 1));
+
+  if (music.playing) {
+    music.t += dt;
+    if (music.t >= TRACKS[music.i].dur) selectTrack(music.i + 1, true);
+  }
+
+  // per-frame draws for active view
+  if (S.view === "dash") drawGauges();
+  if (S.view === "nav") drawNav();
+
+  // throttled DOM updates
+  acc += dt;
+  if (acc > 0.25) {
+    acc = 0;
+    $("dockSpeedV").textContent = fmt.speed(S.speed);
+    $("srcDot").className = (S.source === "gps" && S.gpsOk) || (S.source === "obd" && S.obdOk) ? "live" : "";
+    updateTiles();
+    if (S.view === "music" || music.playing) renderMusic();
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Boot ---------- */
+S.coolantF = 120;
+buildQueue();
+selectTrack(0, false);
+updateTiles();
+resizeCanvases();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
