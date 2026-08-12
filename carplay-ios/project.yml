@@ -1,0 +1,26 @@
+# XcodeGen project definition — run `xcodegen generate` in this folder
+# (brew install xcodegen), then open NightDrive.xcodeproj.
+name: NightDrive
+options:
+  bundleIdPrefix: com.example        # change to your own reverse-DNS prefix
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+targets:
+  NightDrive:
+    type: application
+    platform: iOS
+    sources:
+      - NightDrive
+    info:
+      path: NightDrive/Info.plist
+    entitlements:
+      path: NightDrive/NightDrive.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.nightdrive   # must match your CarPlay entitlement request
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: NightDrive/NightDrive.entitlements
