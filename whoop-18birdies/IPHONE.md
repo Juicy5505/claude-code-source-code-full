@@ -188,6 +188,48 @@ A follow-through registers as a second spike moments after the swing, so
 detections are gated by a 3-second refractory window; that suppression is
 verified against a synthetic trace.
 
+### Shot distance
+
+Distance is **measured, not modelled**. You walk to your ball, so the
+straight-line GPS distance from one swing to the next *is* how far the ball
+went — the same method Arccos and Shot Scope use. At the end of a round the
+logger prints each shot's distance and fits your peak swing g against your
+measured carry, so over time it learns what your swing is worth in yards.
+
+The last swing of a round has no successor and gets no distance, and any swing
+without a GPS fix is skipped rather than guessed.
+
+### Ball flight animation
+
+```
+python ball_flight.py
+```
+
+Animates your longest logged shot. Tap to replay.
+
+**Be clear on what is real here:**
+
+| | |
+|---|---|
+| **Measured** | carry distance (GPS), swing peak g |
+| **Assumed** | launch angle (13°) and backspin (2700 rpm) |
+
+The ball lands where yours landed. *How* it got there — the height and
+steepness of the arc — is a plausible driver flight, not your flight. A phone
+on your arm cannot measure launch angle or spin, and nothing that claims
+otherwise from wrist data is telling you the truth.
+
+The physics is drag plus Magnus lift from backspin, integrated numerically.
+Lift matters enormously: without it a 250 yd carry would demand ~250 mph of
+ball speed instead of ~165, and a 300 yd drive would be unreachable at any
+speed. `test_shot_model.py` pins the model against real golf numbers —
+ball speeds, apex height — precisely because an earlier drag-only version
+passed every internal-consistency check while being badly wrong.
+
+```
+python3 test_shot_model.py   # 26 tests, runs anywhere
+```
+
 ---
 
 ## Reachability off your home network

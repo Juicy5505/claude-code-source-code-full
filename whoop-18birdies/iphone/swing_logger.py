@@ -40,6 +40,8 @@ import console
 import location
 import motion
 
+from shot_model import fit_swings, shot_distances
+
 # --- Tuning ------------------------------------------------------------------
 
 # Peak user-acceleration magnitude, in g, that counts as a swing. A full swing
@@ -195,11 +197,18 @@ def detect():
         location.stop_updates()
 
         elapsed = max(1e-6, time.time() - started)
+
+        # Distance is measured, not modelled: you walk to your ball, so the
+        # straight line from one swing to the next is how far the ball went.
+        shot_distances(swings)
+        fit = fit_swings(swings)
+
         with open(LOG_PATH, "w") as handle:
             json.dump(
                 {
                     "threshold_g": SWING_THRESHOLD_G,
                     "sample_rate_hz": round(samples / elapsed),
+                    "fit": fit,
                     "swings": swings,
                 },
                 handle,
@@ -211,7 +220,36 @@ def detect():
                 len(swings), elapsed / 60, samples / elapsed
             )
         )
-        print("Saved to {}".format(LOG_PATH))
+
+        measured = [s for s in swings if s.get("distance_yd") is not None]
+        if measured:
+            print("\nShot distances (GPS, swing to swing):")
+            for swing in measured:
+                print(
+                    "  swing {:>3}  {:5.1f} g  {:6.1f} yd".format(
+                        swing["index"], swing["peak_g"], swing["distance_yd"]
+                    )
+                )
+            longest = max(measured, key=lambda s: s["distance_yd"])
+            print("  longest: {:.1f} yd".format(longest["distance_yd"]))
+        else:
+            print("\nNo shot distances — needs GPS fixes on consecutive swings.")
+
+        if fit:
+            print(
+                "\nSwing-to-distance fit: {:.1f} yd per g, r2={:.2f} over {} shots.".format(
+                    fit["slope"], fit["r2"], fit["n"]
+                )
+            )
+            if fit["r2"] < 0.3:
+                print(
+                    "  Weak fit — peak g is not tracking your distance yet.\n"
+                    "  More shots will help; so will a consistent phone position."
+                )
+        else:
+            print("\nNot enough measured shots yet to fit swing strength to distance.")
+
+        print("\nSaved to {}".format(LOG_PATH))
         post_round(swings)
 
 
