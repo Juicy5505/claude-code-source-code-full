@@ -23,8 +23,11 @@ start it on a full battery.
 
 USAGE
 -----
-    python swing_logger.py            # detect and log
-    python swing_logger.py calibrate  # 30s of peak magnitudes, to pick a threshold
+Tap the run button in Pythonista and pick a mode when prompted. Pythonista runs
+scripts with no command-line arguments, so the mode is chosen from a dialog
+rather than argv — though argv still works if you invoke it from a shell:
+
+    python swing_logger.py calibrate
 
 Tune SWING_THRESHOLD_G from the calibrate output before trusting a round.
 """
@@ -33,6 +36,7 @@ import json
 import os
 import time
 
+import console
 import location
 import motion
 
@@ -211,10 +215,30 @@ def detect():
         post_round(swings)
 
 
-if __name__ == "__main__":
+def choose_mode():
+    """Mode picker. Pythonista's run button passes no argv, so ask on screen."""
     import sys
 
-    if len(sys.argv) > 1 and sys.argv[1] == "calibrate":
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+
+    choice = console.alert(
+        "Swing Logger",
+        "Calibrate first if you have not tuned the threshold for this phone position.",
+        "Calibrate (30s)",
+        "Detect swings",
+        hide_cancel_button=False,
+    )
+    return "calibrate" if choice == 1 else "detect"
+
+
+if __name__ == "__main__":
+    try:
+        mode = choose_mode()
+    except KeyboardInterrupt:  # console.alert raises this on cancel
+        raise SystemExit(0)
+
+    if mode == "calibrate":
         calibrate()
     else:
         detect()
