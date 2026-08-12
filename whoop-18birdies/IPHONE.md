@@ -232,6 +232,36 @@ python3 test_shot_model.py   # 26 tests, runs anywhere
 
 ---
 
+## Live WHOOP heart rate during a session (experimental)
+
+Your WHOOP cannot be the swing sensor — its raw accelerometer never leaves
+WHOOP's own pipeline — but it can stream one live signal: heart rate, over the
+standard Bluetooth Heart Rate Profile.
+
+Enable it once in the WHOOP app: **Menu → Device Settings → HR Broadcast → ON**.
+The logger then scans for the strap at session start (12 s) and, if found,
+attaches your heart rate to every swing and reports cardio drift across the
+session:
+
+```
+swing   7   10.9 g  tempo 2.9:1 (26/9)  112 bpm
+
+Heart rate (WHOOP, live): 111 bpm avg over 12 swings
+  second half: up 16.8% (102 -> 120 bpm)
+```
+
+Rising HR at the same workload is the cardio face of fatigue — read it against
+the tempo and distance drift in the same summary. If the strap's broadcast
+includes RR intervals, a live rMSSD estimate is printed too (a session
+estimate, not WHOOP's overnight HRV score). No strap found → the session simply
+runs without heart rate.
+
+The BLE packet parsing and HRV math are tested off-device; the Bluetooth shell
+itself (Pythonista's `cb` module) is written to the documented API but, like
+the other sensor code, first runs on your hardware.
+
+---
+
 ## Reachability off your home network
 
 The server binds `0.0.0.0` and speaks plain HTTP, which is fine on your own

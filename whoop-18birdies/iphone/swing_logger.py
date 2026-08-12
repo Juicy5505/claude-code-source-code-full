@@ -85,6 +85,11 @@ LIVE_STATS_EVERY = 10
 # dropped silently rather than taking the session down.
 SOUND_CUE = True
 
+# Read live heart rate from a WHOOP strap over Bluetooth. Needs HR Broadcast
+# enabled once in the WHOOP app (Menu -> Device Settings -> HR Broadcast). If
+# no strap is found within the scan timeout, the session runs without it.
+WHOOP_HR = True
+
 # Optional: POST each round to `wb serve`. Leave URL empty to log locally.
 INGEST_URL = ""      # e.g. "http://192.168.1.24:8790/rounds"
 INGEST_TOKEN = ""
@@ -266,6 +271,24 @@ def run_session(mode):
     buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
     detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
 
+    hr = None
+    if WHOOP_HR:
+        try:
+            from hr_monitor import HeartRateMonitor
+
+            print("Scanning for a broadcasting WHOOP (12s)...")
+            candidate = HeartRateMonitor()
+            if candidate.start(timeout=12):
+                hr = candidate
+                print("WHOOP connected — live heart rate on every swing.")
+            else:
+                print(
+                    "No WHOOP found. Check HR Broadcast is ON in the WHOOP app\n"
+                    "(Menu -> Device Settings). Continuing without heart rate."
+                )
+        except Exception as exc:
+            print("Heart rate unavailable ({}). Continuing without it.".format(exc))
+
     motion.start_updates()
     if use_gps:
         location.start_updates()
@@ -305,6 +328,8 @@ def run_session(mode):
             elif now - trip_time >= POST_PEAK_SECONDS:
                 swing = resolve_swing(buffer, trip_time, len(swings) + 1, use_gps)
                 if swing:
+                    if hr:
+                        swing["hr_bpm"] = hr.current_bpm()
                     swings.append(swing)
                     play_cue()
                     tempo = swing.get("tempo_ratio")
@@ -317,12 +342,14 @@ def run_session(mode):
                             if loc and loc.get("latitude") is not None
                             else "  no GPS fix"
                         )
+                    bpm = swing.get("hr_bpm")
                     print(
-                        "swing {:>3}  {:5.1f} g  tempo {}{}{}".format(
+                        "swing {:>3}  {:5.1f} g  tempo {}{}{}{}".format(
                             swing["index"],
                             swing["peak_g"],
                             "{:.1f}:1".format(tempo) if tempo else "-",
                             " ({})".format(frames) if frames else "",
+                            "  {} bpm".format(bpm) if bpm else "",
                             where,
                         )
                     )
@@ -340,6 +367,9 @@ def run_session(mode):
         motion.stop_updates()
         if use_gps:
             location.stop_updates()
+        live_hrv = hr.live_hrv_ms() if hr else None
+        if hr:
+            hr.stop()
 
         elapsed = max(1e-6, time.time() - started)
         fit = None
@@ -354,6 +384,7 @@ def run_session(mode):
             print_round_summary(swings, elapsed, samples, fit)
         else:
             print_range_summary(swings, elapsed, samples)
+        print_hr_block(swings, live_hrv)
         print("\nSaved to {}".format(log_path))
         if use_gps:
             post_round(swings)
@@ -481,6 +512,33 @@ def _print_tempo_block(swings):
         print("  Reasonably repeatable.")
     else:
         print("  Scattered — tempo is varying a lot swing to swing.")
+
+
+def print_hr_block(swings, live_hrv):
+    """Heart-rate read-out for the session, if a WHOOP was streaming."""
+    stats = consistency(swings, "hr_bpm")
+    if not stats:
+        return
+    print(
+        "\nHeart rate (WHOOP, live): {:.0f} bpm avg over {} swings".format(
+            stats["mean"], stats["n"]
+        )
+    )
+    drift = fatigue_split(swings, "hr_bpm")
+    if drift:
+        direction = "up" if drift["change"] > 0 else "down"
+        print(
+            "  second half: {} {:.1f}% ({:.0f} -> {:.0f} bpm)".format(
+                direction, abs(drift["change_pct"]),
+                drift["early_mean"], drift["late_mean"],
+            )
+        )
+        if drift["change_pct"] > 5:
+            print("  Rising HR at the same workload is the cardio face of fatigue —")
+            print("  worth reading against tempo and distance drift above.")
+    if live_hrv is not None:
+        print("  live HRV (rMSSD from broadcast RR): {:.0f} ms".format(live_hrv))
+        print("  (session estimate; not WHOOP's overnight HRV score)")
 
 
 def post_round(swings):
