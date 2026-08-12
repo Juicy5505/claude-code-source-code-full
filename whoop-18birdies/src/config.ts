@@ -43,6 +43,9 @@ export const paths = {
   tokens: () => join(dataDir(), "tokens.json"),
   whoopCache: () => join(dataDir(), "whoop-cache.json"),
   rounds: () => join(dataDir(), "rounds.json"),
+  /** Watch swing sessions land here, one file per session. */
+  watchSessions: () => join(dataDir(), "watch-sessions"),
+  watchSession: (name: string) => join(dataDir(), "watch-sessions", `${name}.json`),
 };
 
 export interface OAuthAppConfig {

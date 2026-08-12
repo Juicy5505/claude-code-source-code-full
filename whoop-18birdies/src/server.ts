@@ -2,7 +2,13 @@ import { timingSafeEqual } from "node:crypto";
 import { indexPhysiology, linkRounds, summarise } from "./link/correlate.ts";
 import { computeReadiness } from "./link/readiness.ts";
 import { roundsFromPayload } from "./rounds/ingest.ts";
-import { loadRounds, loadSnapshot, saveRounds } from "./store.ts";
+import {
+  loadRounds,
+  loadSnapshot,
+  saveRounds,
+  saveWatchSession,
+  type WatchSession,
+} from "./store.ts";
 
 /**
  * Ingest server for Apple Shortcuts.
@@ -45,6 +51,19 @@ function bearerFrom(req: Request): string | null {
 
 export interface HandlerOptions {
   token: string;
+}
+
+/**
+ * Validates a watch-posted session shape: an object with a string `mode` and a
+ * non-empty `swings` array. Returns null for anything else so a malformed
+ * upload is rejected rather than written as a corrupt session file.
+ */
+function asWatchSession(payload: unknown): WatchSession | null {
+  if (payload === null || typeof payload !== "object") return null;
+  const obj = payload as Record<string, unknown>;
+  if (typeof obj.mode !== "string") return null;
+  if (!Array.isArray(obj.swings) || obj.swings.length === 0) return null;
+  return obj as unknown as WatchSession;
 }
 
 export function createHandler(opts: HandlerOptions) {
@@ -94,6 +113,35 @@ export function createHandler(opts: HandlerOptions) {
         accepted: rounds.length,
         stored: all.length,
         dates: rounds.map((r) => r.date),
+      });
+    }
+
+    if (url.pathname === "/swings" && req.method === "POST") {
+      const raw = await req.text();
+      if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) {
+        return json({ error: "payload too large" }, 413);
+      }
+
+      let payload: unknown;
+      try {
+        payload = JSON.parse(raw);
+      } catch {
+        return json({ error: "body must be JSON" }, 400);
+      }
+
+      const session = asWatchSession(payload);
+      if (!session) {
+        return json(
+          { error: "no swings in payload", hint: "expected { mode, swings: [...] }" },
+          400,
+        );
+      }
+
+      const saved = await saveWatchSession(session);
+      return json({
+        accepted: session.swings.length,
+        savedAs: saved.name,
+        path: saved.path,
       });
     }
 

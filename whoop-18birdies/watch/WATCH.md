@@ -1,0 +1,125 @@
+# Apple Watch swing tracker (Series 5 and up)
+
+The honest best version of what you asked for: the swing sensor lives on your
+**lead wrist**, always on you, and — unlike the phone — it runs in the
+**background** with the screen off, because a watchOS workout session keeps it
+alive. Motion, tempo, GPS shot distance, and live heart rate, with nothing in
+your hands during the round.
+
+**WHOOP still matters, and this is the "together" setup:**
+
+| Device | Job |
+|---|---|
+| **Apple Watch** | swing detection, tempo, GPS distance, live HR — during play |
+| **WHOOP** | recovery, sleep, strain → readiness — overnight, via the TypeScript toolkit |
+
+The watch tells you *how you swung and scored*; WHOOP tells you *whether your
+body was ready and what the round cost you*. Both on your body.
+
+---
+
+## What you need
+
+- A **Mac with Xcode** (free from the App Store). This is the one hard
+  requirement — watchOS has no on-device coding app like Pythonista, so custom
+  watch apps are built in Xcode and installed over the paired iPhone/Wi-Fi.
+- An **Apple ID**. The free tier works; the only cost is that a free-provisioned
+  app **expires after 7 days** and must be rebuilt onto the watch. A paid
+  Apple Developer account ($99/yr) lifts that to a year.
+- Your **Series 5** paired to your iPhone. It runs up to watchOS 9, which has
+  everything this uses (Core Motion device-motion at 100 Hz, HealthKit workout
+  sessions, GPS).
+
+The swing-detection maths is a faithful port of the Python in
+`../iphone/swing_metrics.py`, which is the tested reference (93 tests). If you
+ever change the algorithm, change it there first, then mirror it into
+`SwingDetector.swift`.
+
+---
+
+## Build it (about 15 minutes, once)
+
+1. **New project** in Xcode → **watchOS** → **App**. Name it `WhoopGolf`,
+   interface **SwiftUI**, language **Swift**. Uncheck test targets if you like.
+2. In the Watch App target's folder, **delete** the auto-generated
+   `ContentView.swift` and the `App` file, then **drag in** all the `.swift`
+   files from `WhoopGolfWatchApp/` here:
+   - `WhoopGolfApp.swift`  (app entry + mode picker)
+   - `SessionView.swift`  (the live dashboard + wiring)
+   - `SwingDetector.swift`  (detection + tempo — the ported logic)
+   - `MotionManager.swift`  (100 Hz Core Motion loop)
+   - `WorkoutManager.swift`  (background execution + live HR)
+   - `LocationManager.swift`  (GPS for shot distance)
+   - `SessionModel.swift`  (records swings, saves, uploads)
+
+   When dragging, tick **Copy items if needed** and add them to the Watch App
+   target.
+3. **Signing & Capabilities** (Watch App target):
+   - **Signing** → pick your Apple ID team. Xcode auto-manages the profile.
+   - **+ Capability → HealthKit**.
+   - **+ Capability → Background Modes** → tick **Workout processing**.
+4. **Info.plist** (Watch App target) — add these usage strings, or the app
+   crashes the first time it asks for access:
+   - `NSHealthShareUsageDescription` → "Reads heart rate during a round."
+   - `NSHealthUpdateUsageDescription` → "Records the round as a workout."
+   - `NSMotionUsageDescription` → "Detects your golf swings."
+   - `NSLocationWhenInUseUsageDescription` → "Measures shot distances by GPS."
+5. **Run**: select the Watch App scheme and your watch as the destination, press
+   ▶. The first install, unlock the watch and, in **Settings → General → VPN &
+   Device Management** on the *watch* (or via the prompt), **trust** your
+   developer certificate.
+
+That's it. The app appears on the watch; launch it from the app grid.
+
+---
+
+## Using it
+
+Open **WhoopGolf** on the watch, pick **Range** or **Play a round**, allow the
+health/motion/location prompts once. Detection self-calibrates — no threshold to
+set. Each swing buzzes your wrist and updates the readout: force, tempo (ratio
+and Tour Tempo frames), swing count, live HR, and running consistency. Tap
+**Stop & Save** to finish.
+
+The session is written on the watch as `swings.json` / `range_session.json` — the
+**same format** the phone logger produces, so `../iphone/analyze.py` and
+`round_report.py` read it identically.
+
+## Getting the data off the watch
+
+Set two fields at the top of `SessionModel.swift` before building:
+
+```swift
+var ingestURL = "http://192.168.1.24:8790/swings"   // your `wb serve` host
+var ingestToken = "your-token"
+```
+
+On **Stop & Save** the watch POSTs the session to the `/swings` endpoint (added
+to `wb serve` for exactly this), which stores it under
+`~/.whoop-18birdies/watch-sessions/<mode>-<date>.json`. Then on that machine:
+
+```bash
+python3 iphone/analyze.py ~/.whoop-18birdies/watch-sessions/range-2026-08-12.json
+# or several, for the trend:
+python3 iphone/analyze.py ~/.whoop-18birdies/watch-sessions/*.json
+```
+
+Leave `ingestURL` empty to keep sessions on the watch only and pull them off
+another way.
+
+---
+
+## Honest limits
+
+- **Not compiled here.** This Swift was written on Linux with no Xcode, so it
+  has never been built. The detection *logic* it ports is fully tested in
+  Python and the *output format* is verified to round-trip through `/swings`
+  into `analyze.py`, but the watchOS API calls (HealthKit, Core Motion,
+  SwiftUI) get their first compile on your Mac. Expect to fix a small thing or
+  two — API signature nits are normal on first build. Paste me any Xcode error
+  and I will correct it.
+- **Still no swing path / face angle / club speed.** One wrist sensor measures
+  *when* and *how hard*, not where the clubface points. That is a launch-monitor
+  measurement, on the watch exactly as on the phone.
+- **The 7-day free-provisioning expiry** is Apple's rule, not this app's. Rebuild
+  from Xcode when it lapses, or use a paid account.

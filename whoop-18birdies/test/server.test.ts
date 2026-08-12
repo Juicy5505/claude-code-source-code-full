@@ -201,6 +201,64 @@ describe("ingest server", () => {
     expect(body.summary).toMatch(/Golf readiness \d+\/100/);
   });
 
+
+  test("stores a watch swing session and names it by date", async () => {
+    const res = await handle(
+      new Request("http://localhost/swings", {
+        method: "POST",
+        headers: { authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({
+          mode: "range",
+          auto_threshold: true,
+          sample_rate_hz: 100,
+          swings: [
+            { index: 1, timestamp: "2026-08-12T09:10:00", peak_g: 11.2, tempo_ratio: 2.9 },
+            { index: 2, timestamp: "2026-08-12T09:11:00", peak_g: 10.8, tempo_ratio: 3.0 },
+          ],
+        }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { accepted: number; savedAs: string };
+    expect(body.accepted).toBe(2);
+    expect(body.savedAs).toBe("range-2026-08-12");
+  });
+
+  test("a second same-day session does not overwrite the first", async () => {
+    const post = () =>
+      handle(
+        new Request("http://localhost/swings", {
+          method: "POST",
+          headers: { authorization: `Bearer ${TOKEN}` },
+          body: JSON.stringify({
+            mode: "round",
+            swings: [{ index: 1, timestamp: "2026-08-12T09:10:00", peak_g: 9 }],
+          }),
+        }),
+      );
+    const first = (await (await post()).json()) as { savedAs: string };
+    const second = (await (await post()).json()) as { savedAs: string };
+    expect(first.savedAs).toBe("round-2026-08-12");
+    expect(second.savedAs).toBe("round-2026-08-12-2");
+  });
+
+  test("rejects a swing payload with no swings", async () => {
+    const res = await handle(
+      new Request("http://localhost/swings", {
+        method: "POST",
+        headers: { authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({ mode: "range", swings: [] }),
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: "no swings in payload" });
+  });
+
+  test("swings endpoint needs auth", async () => {
+    const res = await handle(new Request("http://localhost/swings", { method: "POST" }));
+    expect(res.status).toBe(401);
+  });
+
   test("unknown routes 404", async () => {
     const res = await handle(new Request(`http://localhost/nope?token=${TOKEN}`));
     expect(res.status).toBe(404);

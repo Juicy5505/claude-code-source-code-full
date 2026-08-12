@@ -59,3 +59,45 @@ export function loadSnapshot(): Promise<WhoopSnapshot> {
 export function saveSnapshot(snapshot: WhoopSnapshot): Promise<void> {
   return writeJson(paths.whoopCache(), snapshot);
 }
+
+/** A swing session posted by the watch app, matching the logger's file wrapper. */
+export interface WatchSession {
+  mode: string;
+  swings: Array<{ timestamp?: string; [key: string]: unknown }>;
+  [key: string]: unknown;
+}
+
+/**
+ * Persists a watch session under a filename derived from its first swing's
+ * date, so repeat uploads on different days do not overwrite each other. A
+ * second session on the same date is suffixed rather than clobbering the first.
+ */
+export async function saveWatchSession(
+  session: WatchSession,
+): Promise<{ path: string; name: string }> {
+  const first = session.swings[0]?.timestamp;
+  const date =
+    typeof first === "string" && /^\d{4}-\d{2}-\d{2}/.test(first)
+      ? first.slice(0, 10)
+      : "undated";
+
+  // Avoid overwriting an earlier session that shares the date.
+  let name = `${session.mode}-${date}`;
+  let candidate = paths.watchSession(name);
+  for (let n = 2; await exists(candidate); n++) {
+    name = `${session.mode}-${date}-${n}`;
+    candidate = paths.watchSession(name);
+  }
+
+  await writeJson(candidate, session);
+  return { path: candidate, name };
+}
+
+async function exists(file: string): Promise<boolean> {
+  try {
+    await readFile(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
