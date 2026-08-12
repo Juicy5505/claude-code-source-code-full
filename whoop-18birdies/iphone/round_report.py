@@ -11,6 +11,7 @@ it worse on days you turned up under-recovered.
 import json
 import sys
 
+from club_model import analyze_clubs, format_club_report
 from swing_metrics import consistency, fatigue_split, tempo_verdict
 
 # --- Loading -----------------------------------------------------------------
@@ -131,6 +132,12 @@ def report(swings, cache_path=None):
         spread = consistency(measured, "distance_yd")
         if spread:
             print("  spread         : {:.0f} yd stdev".format(spread["stdev"]))
+
+        club_report = analyze_clubs([s["distance_yd"] for s in measured])
+        if len(club_report["bands"]) >= 2:
+            print("")
+            for line in format_club_report(club_report):
+                print("  " + line)
     else:
         print("  none — distance needs GPS on two consecutive swings.")
 
