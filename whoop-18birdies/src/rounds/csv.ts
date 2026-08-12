@@ -107,7 +107,13 @@ export function normaliseDate(value: string): string | null {
 
   const parsed = Date.parse(t);
   if (!Number.isFinite(parsed)) return null;
-  return new Date(parsed).toISOString().slice(0, 10);
+  // Format from LOCAL components, not toISOString (UTC). A format V8 parses as
+  // local midnight (e.g. "2026/05/04") would otherwise shift to the previous
+  // day on a positive-offset host, silently breaking the WHOOP join.
+  const d = new Date(parsed);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
 }
 
 export function roundsFromCsv(text: string): Round[] {

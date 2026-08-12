@@ -218,5 +218,31 @@ class TestTourTempoFrames(unittest.TestCase):
         from swing_metrics import tour_tempo_frames
         self.assertIsNone(tour_tempo_frames(None, 0.3))
 
+
+
+class TestNoAddressReturnsNone(unittest.TestCase):
+    """A swing with no quiet address must yield tempo None, not fabricated."""
+
+    def test_motion_start_none_without_quiet_run(self):
+        from swing_metrics import find_motion_start
+        # Continuous motion, never below the quiet threshold: no address.
+        samples = [(i / 100.0, 5.0, None) for i in range(300)]
+        peak = 250
+        self.assertIsNone(find_motion_start(samples, peak))
+
+    def test_tempo_none_for_swing_out_of_motion(self):
+        from swing_metrics import analyse_swing
+        # Busy the whole window, spike at the end. No quiet lead-in.
+        samples = [(i / 100.0, 4.0 + (8.0 if i == 260 else 0.0), None) for i in range(280)]
+        result = analyse_swing(samples, 260)
+        self.assertEqual(result["peak_g"], 12.0)      # peak still reported
+        self.assertIsNone(result["tempo_ratio"])       # tempo honestly absent
+
+    def test_real_swing_still_resolves(self):
+        # A proper quiet-then-swing window must still produce a tempo.
+        from swing_metrics import analyse_swing
+        samples, peak = synth_swing(backswing_s=0.9, downswing_s=0.3, quiet_s=1.0)
+        self.assertIsNotNone(analyse_swing(samples, peak)["tempo_ratio"])
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

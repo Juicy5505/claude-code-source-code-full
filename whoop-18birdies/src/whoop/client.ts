@@ -26,6 +26,16 @@ export interface Range {
 const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 5;
 
+/**
+ * Coerces an id to a string. The types declare ids as opaque strings, but WHOOP
+ * returns cycle ids as JSON numbers and the response is cast with `as T`, which
+ * does not convert — so without this the runtime value is a number and every
+ * string-keyed join silently misses. Applied at the parse boundary.
+ */
+function idString(id: unknown): string {
+  return String(id);
+}
+
 export class WhoopClient {
   private readonly getToken: () => Promise<string>;
   private readonly fetchImpl: typeof fetch;
@@ -93,20 +103,30 @@ export class WhoopClient {
     return this.request<WhoopProfile>("/v2/user/profile/basic", new URLSearchParams());
   }
 
-  cycles(range?: Range): Promise<WhoopCycle[]> {
-    return this.collect<WhoopCycle>("/v2/cycle", range);
+  async cycles(range?: Range): Promise<WhoopCycle[]> {
+    const rows = await this.collect<WhoopCycle>("/v2/cycle", range);
+    return rows.map((c) => ({ ...c, id: idString(c.id) }));
   }
 
-  recoveries(range?: Range): Promise<WhoopRecovery[]> {
-    return this.collect<WhoopRecovery>("/v2/recovery", range);
+  async recoveries(range?: Range): Promise<WhoopRecovery[]> {
+    const rows = await this.collect<WhoopRecovery>("/v2/recovery", range);
+    // cycle_id and sleep_id are the join keys; coerce both so a numeric id from
+    // WHOOP matches the string-keyed cycles/sleeps despite the `as T` cast.
+    return rows.map((r) => ({
+      ...r,
+      cycle_id: idString(r.cycle_id),
+      sleep_id: idString(r.sleep_id),
+    }));
   }
 
-  sleeps(range?: Range): Promise<WhoopSleep[]> {
-    return this.collect<WhoopSleep>("/v2/activity/sleep", range);
+  async sleeps(range?: Range): Promise<WhoopSleep[]> {
+    const rows = await this.collect<WhoopSleep>("/v2/activity/sleep", range);
+    return rows.map((s) => ({ ...s, id: idString(s.id) }));
   }
 
-  workouts(range?: Range): Promise<WhoopWorkout[]> {
-    return this.collect<WhoopWorkout>("/v2/activity/workout", range);
+  async workouts(range?: Range): Promise<WhoopWorkout[]> {
+    const rows = await this.collect<WhoopWorkout>("/v2/activity/workout", range);
+    return rows.map((w) => ({ ...w, id: idString(w.id) }));
   }
 
   /**

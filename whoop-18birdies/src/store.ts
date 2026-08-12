@@ -1,20 +1,44 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { paths } from "./config.ts";
 import { type Round, dedupeRounds } from "./rounds/types.ts";
 import { type WhoopSnapshot, emptySnapshot } from "./whoop/types.ts";
 
+/**
+ * Reads a JSON store, returning `fallback` only when the file does not yet
+ * exist. A corrupt or unreadable file throws instead: silently treating a
+ * truncated store as empty would let the next save overwrite it with just the
+ * incoming data, destroying every prior round. Failing loud keeps the damaged
+ * file intact for recovery.
+ */
 async function readJson<T>(file: string, fallback: T): Promise<T> {
+  let text: string;
   try {
-    return JSON.parse(await readFile(file, "utf8")) as T;
-  } catch {
-    return fallback;
+    text = await readFile(file, "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return fallback;
+    throw err;
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch (err) {
+    throw new Error(
+      `Store at ${file} is not valid JSON — refusing to overwrite it. ` +
+        `Move it aside to start fresh. (${(err as Error).message})`,
+    );
   }
 }
 
+/**
+ * Writes JSON atomically: a temp file in the same directory, then a rename.
+ * An interrupted write can only damage the temp file, so the previous good
+ * store always survives a crash mid-save.
+ */
 async function writeJson(file: string, value: unknown): Promise<void> {
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, JSON.stringify(value, null, 2));
+  const tmp = `${file}.tmp`;
+  await writeFile(tmp, JSON.stringify(value, null, 2));
+  await rename(tmp, file);
 }
 
 export function loadRounds(): Promise<Round[]> {

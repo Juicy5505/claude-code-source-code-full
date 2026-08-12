@@ -50,11 +50,18 @@ QUIET_RUN_S = 0.15
 def find_motion_start(samples, peak_index):
     """First sample of the backswing, walking back from impact.
 
-    Returns the point after the last sustained stretch of stillness. The run
-    requirement matters: at the top of the backswing the club momentarily stops
-    and acceleration dips below the quiet threshold, so a naive "first quiet
-    sample" search would mistake the transition for the start of the swing and
-    throw the backswing away entirely.
+    Returns the point after the last sustained stretch of stillness, or None
+    when no such address pause exists in the window. The run requirement
+    matters: at the top of the backswing the club momentarily stops and
+    acceleration dips below the quiet threshold, so a naive "first quiet sample"
+    search would mistake the transition for the start of the swing and throw the
+    backswing away entirely.
+
+    Returning None when there is no resolvable address is the load-bearing part:
+    a swing taken straight out of walking has no quiet lead-in, and fabricating
+    a start inside that motion produces a nonsense tempo (a 0.06 s backswing
+    against a 1.9 s downswing) that then poisons the round's tempo stats without
+    tripping the missing-data warning. Honest None keeps it out.
     """
     if peak_index <= 0:
         return None
@@ -67,7 +74,9 @@ def find_motion_start(samples, peak_index):
         i -= 1
         t, mag = samples[i][0], samples[i][1]
         if t_peak - t > MAX_BACKSWING_S:
-            return i + 1
+            # Reached the lookback bound with no sustained quiet stretch: no
+            # address to anchor to, so report none rather than guess.
+            return None
 
         if mag < QUIET_G:
             quiet_run += 1
@@ -78,7 +87,8 @@ def find_motion_start(samples, peak_index):
         else:
             quiet_run = 0
 
-    return 0
+    # Ran out of window before any sustained quiet stretch — same story.
+    return None
 
 
 def find_transition(samples, peak_index, start_index=None):

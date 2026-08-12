@@ -76,12 +76,21 @@ def whoop_day(cache_path, date):
         }
 
         sleep = sleeps.get(recovery.get("sleep_id"))
-        stages = (sleep or {}).get("score", {}).get("stage_summary")
-        if stages:
-            asleep_ms = (
-                stages["total_in_bed_time_milli"] - stages["total_awake_time_milli"]
-            )
-            out["sleep_hours"] = round(asleep_ms / 3_600_000, 1)
+        # `.get("score", {})` returns None when the key is present-but-null,
+        # which WHOOP does for PENDING_SCORE/UNSCORABLE records — so coerce with
+        # `or {}`. Gate on SCORED to mirror the TypeScript indexer exactly.
+        if sleep and sleep.get("score_state") == "SCORED":
+            score = sleep.get("score") or {}
+            stages = score.get("stage_summary")
+            if stages:
+                asleep_ms = (
+                    stages["total_in_bed_time_milli"]
+                    - stages["total_awake_time_milli"]
+                )
+                # Only surface a positive figure; the TS returns null for ms<=0
+                # rather than printing a nonsensical negative sleep total.
+                if asleep_ms > 0:
+                    out["sleep_hours"] = round(asleep_ms / 3_600_000, 1)
         return out
 
     return None

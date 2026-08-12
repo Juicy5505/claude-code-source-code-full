@@ -64,7 +64,10 @@ export function createHandler(opts: HandlerOptions) {
 
     if (url.pathname === "/rounds" && req.method === "POST") {
       const raw = await req.text();
-      if (raw.length > MAX_BODY_BYTES) {
+      // Measure bytes, not string length: a multi-byte body (accented course
+      // names) has fewer UTF-16 code units than bytes and would slip past a
+      // .length check that is named and valued in bytes.
+      if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) {
         return json({ error: "payload too large" }, 413);
       }
 
@@ -110,15 +113,31 @@ export function createHandler(opts: HandlerOptions) {
         day,
         summarise(linkRounds(rounds, snapshot)).correlations,
       );
+
+      // A cached-but-unscored day (WHOOP returns records before scoring
+      // finishes) yields score = NaN. Treat that as not-yet-available rather
+      // than dropping the literal text "NaN/100" into a phone notification.
+      if (!Number.isFinite(readiness.score)) {
+        return json(
+          {
+            date,
+            available: false,
+            message: `WHOOP data for ${date} is not scored yet. Try again after it syncs.`,
+          },
+          404,
+        );
+      }
+
+      const score = Math.round(readiness.score);
       return json({
         date,
         available: true,
-        score: Number.isFinite(readiness.score) ? Math.round(readiness.score) : null,
+        score,
         verdict: readiness.verdict,
         personalised: readiness.personalised,
         advice: readiness.advice,
         // Pre-formatted so a Shortcut can drop it straight into a notification.
-        summary: `Golf readiness ${Math.round(readiness.score)}/100 (${readiness.verdict}). ${readiness.advice[0] ?? ""}`.trim(),
+        summary: `Golf readiness ${score}/100 (${readiness.verdict}). ${readiness.advice[0] ?? ""}`.trim(),
       });
     }
 

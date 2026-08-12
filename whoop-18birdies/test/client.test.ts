@@ -91,3 +91,23 @@ describe("WhoopClient", () => {
     expect(snap.cycles).toEqual([]);
   });
 });
+
+describe("id coercion (audit fix)", () => {
+  test("numeric cycle ids from WHOOP become strings", async () => {
+    const client = clientWith([
+      jsonResponse({ records: [{ id: 12345, timezone_offset: "-07:00", score_state: "SCORED" }], next_token: null }),
+    ]);
+    const cycles = await client.cycles();
+    expect(typeof cycles[0]!.id).toBe("string");
+    expect(cycles[0]!.id).toBe("12345");
+  });
+
+  test("recovery join keys are coerced so they match string cycle ids", async () => {
+    const client = clientWith([
+      jsonResponse({ records: [{ cycle_id: 12345, sleep_id: 999, score_state: "SCORED" }], next_token: null }),
+    ]);
+    const recoveries = await client.recoveries();
+    expect(recoveries[0]!.cycle_id).toBe("12345");
+    expect(recoveries[0]!.sleep_id).toBe("999");
+  });
+});

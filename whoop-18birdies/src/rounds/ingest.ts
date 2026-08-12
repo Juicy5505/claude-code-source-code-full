@@ -68,8 +68,11 @@ export function roundFromLoose(input: Record<string, unknown>): Round | null {
 
   const startedAt = toIso(rec.startedAt);
   // Fall back to the tee time's calendar date so a Shortcut that only sends a
-  // workout's start/end still produces a joinable round.
-  const rawDate = toText(rec.date) ?? startedAt;
+  // workout's start/end still produces a joinable round. Derive it from the RAW
+  // local timestamp, never from `startedAt` — that has been converted to UTC,
+  // which shifts an evening tee time in a western zone onto the next day and
+  // breaks the WHOOP join. `date` is documented as the LOCAL calendar date.
+  const rawDate = toText(rec.date) ?? toText(rec.startedAt);
   if (!rawDate) return null;
   const date = normaliseDate(rawDate);
   if (!date) return null;

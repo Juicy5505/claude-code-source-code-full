@@ -205,6 +205,49 @@ describe("ingest server", () => {
     const res = await handle(new Request(`http://localhost/nope?token=${TOKEN}`));
     expect(res.status).toBe(404);
   });
+
+  test("a cached-but-unscored day is unavailable, never 'NaN/100'", async () => {
+    // A cycle exists for the date but its recovery is PENDING_SCORE, so
+    // computeReadiness returns NaN. The response must be a clean 404, and the
+    // summary must never carry the literal 'NaN'.
+    writeFileSync(
+      join(dir, "whoop-cache.json"),
+      JSON.stringify({
+        fetchedAt: new Date().toISOString(),
+        cycles: [
+          {
+            id: "c1",
+            start: "2026-05-04T13:00:00.000Z",
+            end: null,
+            timezone_offset: "-07:00",
+            score_state: "PENDING_SCORE",
+          },
+        ],
+        recoveries: [
+          { cycle_id: "c1", sleep_id: "s1", score_state: "PENDING_SCORE" },
+        ],
+        sleeps: [],
+        workouts: [],
+      }),
+    );
+    const res = await handle(
+      new Request(`http://localhost/readiness?date=2026-05-04&token=${TOKEN}`),
+    );
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { available: boolean; message?: string };
+    expect(body.available).toBe(false);
+    expect(JSON.stringify(body)).not.toContain("NaN");
+  });
+
+  test("a truncated store fails loud instead of clobbering it", async () => {
+    // A corrupt rounds.json must not be silently treated as empty and
+    // overwritten — that would destroy every prior round.
+    const { saveRounds } = await import("../src/store.ts");
+    writeFileSync(join(dir, "rounds.json"), "{ this is not valid json");
+    await expect(
+      saveRounds([{ id: "x", date: "2026-05-04", holes: 18, source: "manual" }]),
+    ).rejects.toThrow(/not valid JSON/);
+  });
 });
 
 describe("token comparison", () => {

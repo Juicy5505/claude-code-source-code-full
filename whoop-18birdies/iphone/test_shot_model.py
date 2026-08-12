@@ -184,5 +184,17 @@ class TestAgainstRealGolf(unittest.TestCase):
             self.assertGreater(speed, 0)
 
 
+
+
+class TestLonGuard(unittest.TestCase):
+    def test_present_lat_none_lon_is_skipped_not_crashed(self):
+        from shot_model import shot_distances
+        swings = [
+            {"location": {"latitude": 32.9, "longitude": None}},
+            {"location": {"latitude": 33.0, "longitude": -117.2}},
+        ]
+        shot_distances(swings)  # must not raise
+        self.assertIsNone(swings[0]["distance_yd"])
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

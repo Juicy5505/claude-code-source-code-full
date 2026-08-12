@@ -7,7 +7,8 @@ import {
   workoutFromTag,
   workoutMatches,
 } from "../src/rounds/appleHealth.ts";
-import { dedupeRounds, roundId, scoreToPar } from "../src/rounds/types.ts";
+import { dedupeRounds, mergeRounds, roundId, scoreToPar } from "../src/rounds/types.ts";
+import { roundsFromPayload } from "../src/rounds/ingest.ts";
 
 describe("csv parsing", () => {
   test("handles quoted fields with commas and doubled quotes", () => {
@@ -136,5 +137,40 @@ describe("apple health", () => {
 
   test("rejects a tag missing required attributes", () => {
     expect(workoutFromTag('<Workout duration="245">')).toBeNull();
+  });
+});
+
+describe("audit regression fixes", () => {
+  test("tee-time fallback keeps the LOCAL date, not UTC", () => {
+    // 23:30 on the 4th in a western zone is the 5th in UTC. The round's date
+    // must stay the 4th so it joins to that day's WHOOP recovery.
+    const rounds = roundsFromPayload({ startTime: "2026-05-04T23:30:00-07:00" });
+    expect(rounds[0]!.date).toBe("2026-05-04");
+  });
+
+  test("dedupe keeps a same-field-count correction (last write wins)", () => {
+    const id = roundId("2026-05-04", "Torrey", 18);
+    const first = { id, date: "2026-05-04", holes: 18, course: "Torrey", par: 72, score: 86, source: "manual" as const };
+    const correction = { ...first, score: 84 };
+    const merged = dedupeRounds([first, correction]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]!.score).toBe(84);
+  });
+
+  test("dedupe merges complementary fields instead of replacing wholesale", () => {
+    const id = roundId("2026-05-04", "Torrey", 18);
+    const sparse = { id, date: "2026-05-04", holes: 18, source: "apple-health" as const, startedAt: "2026-05-04T15:00:00.000Z" };
+    const rich = { id, date: "2026-05-04", holes: 18, course: "Torrey", par: 72, score: 86, source: "csv" as const };
+    const merged = dedupeRounds([sparse, rich]);
+    expect(merged).toHaveLength(1);
+    // rich fields present AND the sparse-only startedAt preserved
+    expect(merged[0]!.score).toBe(86);
+    expect(merged[0]!.startedAt).toBe("2026-05-04T15:00:00.000Z");
+  });
+
+  test("normaliseDate keeps local date for a slash Y/M/D fallback format", () => {
+    // Regardless of host timezone this must not shift a day.
+    expect(normaliseDate("2026-05-04")).toBe("2026-05-04");
+    expect(normaliseDate("2026/05/04")).toBe("2026-05-04");
   });
 });

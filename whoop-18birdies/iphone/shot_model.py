@@ -40,7 +40,16 @@ def shot_distances(swings):
         nxt = swings[i + 1].get("location") if i + 1 < len(swings) else None
         if not here or not nxt:
             continue
-        if here.get("latitude") is None or nxt.get("latitude") is None:
+        # Guard both coordinates on both fixes. latitude and longitude are read
+        # independently from the GPS dict, so one can be present while the other
+        # is None; a lat-only guard would then pass None longitude into
+        # haversine and crash the whole round's distance computation.
+        if (
+            here.get("latitude") is None
+            or here.get("longitude") is None
+            or nxt.get("latitude") is None
+            or nxt.get("longitude") is None
+        ):
             continue
 
         metres = haversine_m(

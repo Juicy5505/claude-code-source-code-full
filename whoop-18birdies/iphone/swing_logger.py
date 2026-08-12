@@ -231,23 +231,29 @@ def resolve_swing(buffer, trip_time, index, use_gps):
 
 
 def autosave(path, mode, swings, detector, started, samples):
-    """Writes the log now. Called after every swing: a crash mid-session then
-    costs at most the swing in flight, never the session."""
+    """Writes the log now, atomically. Called after every swing: a crash
+    mid-session costs at most the swing in flight, never the session.
+
+    The write goes to a temp file which is then renamed over the target.
+    Writing straight to `path` would truncate the existing good log the instant
+    it opens, so a kill during the write (iOS memory pressure, swipe-to-close,
+    dead battery) would leave a partial, unparseable file and lose the whole
+    round — the exact failure the per-swing save is meant to prevent.
+    """
     elapsed = max(1e-6, time.time() - started)
-    with open(path, "w") as handle:
-        json.dump(
-            {
-                "mode": mode,
-                "auto_threshold": AUTO_THRESHOLD,
-                "threshold_g": (
-                    round(detector.threshold(), 2) if detector else SWING_THRESHOLD_G
-                ),
-                "sample_rate_hz": round(samples / elapsed),
-                "swings": swings,
-            },
-            handle,
-            indent=2,
-        )
+    payload = {
+        "mode": mode,
+        "auto_threshold": AUTO_THRESHOLD,
+        "threshold_g": (
+            round(detector.threshold(), 2) if detector else SWING_THRESHOLD_G
+        ),
+        "sample_rate_hz": round(samples / elapsed),
+        "swings": swings,
+    }
+    tmp = path + ".tmp"
+    with open(tmp, "w") as handle:
+        json.dump(payload, handle, indent=2)
+    os.replace(tmp, path)
 
 
 def live_stats(swings):
