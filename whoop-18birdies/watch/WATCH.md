@@ -109,6 +109,44 @@ another way.
 
 ---
 
+## How the round reaches WHOOP
+
+You do not need a WHOOP write API — there isn't one. The path is Apple Health:
+
+```
+Apple Watch  ──HKWorkoutSession (golf)──▶  Apple Health  ──imports──▶  WHOOP
+```
+
+WHOOP automatically imports activities logged by other apps from Apple Health,
+using the activity's start/end window and classification alongside its own
+heart-rate data to log the round and compute strain. This app finishes its
+session as a **golf** workout, so the round shows up in WHOOP on its own.
+
+Two things to enable once, or it silently won't work:
+
+1. **WHOOP app** → More → App Settings → Integrations → **Apple Health** →
+   Connect, and allow workouts.
+2. On the **watch**, allow the Health and Location prompts the first time the
+   app runs. The app shares **Workout Routes**, which is the specific permission
+   WHOOP needs to import your GPS track — without it the round imports but the
+   map does not.
+
+Range mode deliberately records no route: standing still produces GPS noise, not
+a track.
+
+### What WHOOP does and does not get
+
+| | |
+|---|---|
+| **WHOOP receives** | the round as a golf activity, its time window, strain from WHOOP's own HR, and the GPS route |
+| **WHOOP does not receive** | swing count, tempo, shot distances — HealthKit workouts have no field for them, and WHOOP has no write API |
+
+That split is the point of this project rather than a shortcoming: WHOOP holds
+the physiology, the swing analytics live in the log this app writes, and
+`iphone/analyze.py` joins the two.
+
+---
+
 ## Honest limits
 
 - **Not compiled here.** This Swift was written on Linux with no Xcode, so it

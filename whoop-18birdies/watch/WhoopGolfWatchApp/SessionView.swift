@@ -66,6 +66,12 @@ struct SessionView: View {
         }
         .task { await begin() }
         .onReceive(workout.$heartRate) { hr in session.currentHR = hr }
+        // Feed each fix into the workout route so the finished golf workout
+        // carries its GPS track — that is what WHOOP imports alongside the
+        // activity window.
+        .onReceive(location.$latest.compactMap { $0 }) { fix in
+            if useGPS { workout.append(locations: [fix]) }
+        }
     }
 
     private var tempoLine: String {
@@ -108,7 +114,8 @@ struct SessionView: View {
             WKInterfaceDevice.current().play(.click)
         }
 
-        workout.start()          // background execution + live HR
+        // Route tracking only in round mode; at a range you never move.
+        workout.start(trackRoute: useGPS)
         motion.start()           // 100 Hz detection
         session.status = motion.isAvailable
             ? "watching — self-calibrating"

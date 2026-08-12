@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 import HealthKit
 
@@ -10,6 +11,13 @@ import HealthKit
 ///  2. Live heart rate — from the watch's own sensor, delivered per sample,
 ///     with no dependency on a WHOOP being in Bluetooth range.
 ///
+/// Saving the workout as a GOLF activity is also how the round reaches WHOOP.
+/// WHOOP imports activities from Apple Health — using the start/end window and
+/// classification alongside its own heart-rate data — so finishing this session
+/// makes the round appear in WHOOP with strain, with no write API involved.
+/// WHOOP only picks up the GPS track if the workout carries a route, hence the
+/// route builder below.
+///
 /// Requires the HealthKit capability and, in Info.plist, the workout-processing
 /// background mode plus the health usage-description keys (see WATCH.md).
 @MainActor
@@ -17,13 +25,18 @@ final class WorkoutManager: NSObject, ObservableObject {
     private let healthStore = HKHealthStore()
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
+    private var routeBuilder: HKWorkoutRouteBuilder?
 
     /// Latest heart rate in bpm, or nil until the first sample arrives.
     @Published var heartRate: Int?
 
     func requestAuthorization() async -> Bool {
         guard HKHealthStore.isHealthDataAvailable() else { return false }
-        let share: Set = [HKQuantityType.workoutType()]
+        // workoutRoute must be shareable or WHOOP cannot import the GPS track.
+        let share: Set<HKSampleType> = [
+            HKQuantityType.workoutType(),
+            HKSeriesType.workoutRoute(),
+        ]
         let read: Set<HKObjectType> = [
             HKQuantityType(.heartRate),
             HKQuantityType(.activeEnergyBurned),
@@ -37,7 +50,13 @@ final class WorkoutManager: NSObject, ObservableObject {
         }
     }
 
-    func start() {
+    /// Feed GPS fixes in as they arrive so the finished workout carries a route.
+    func append(locations: [CLLocation]) {
+        guard let routeBuilder, !locations.isEmpty else { return }
+        routeBuilder.insertRouteData(locations) { _, _ in }
+    }
+
+    func start(trackRoute: Bool) {
         let config = HKWorkoutConfiguration()
         config.activityType = .golf
         config.locationType = .outdoor
@@ -50,6 +69,10 @@ final class WorkoutManager: NSObject, ObservableObject {
             builder.delegate = self
             self.session = session
             self.builder = builder
+            // Range mode never moves, so a route there would be GPS noise.
+            self.routeBuilder = trackRoute
+                ? HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
+                : nil
 
             let start = Date()
             session.startActivity(with: start)
@@ -60,10 +83,16 @@ final class WorkoutManager: NSObject, ObservableObject {
         }
     }
 
+    /// Ends the session and saves the workout. The route is attached to the
+    /// finished workout — it must be finished AFTER the workout exists, or the
+    /// track is orphaned and WHOOP imports the round without its GPS.
     func stop() {
         session?.end()
         builder?.endCollection(withEnd: Date()) { [weak self] _, _ in
-            self?.builder?.finishWorkout { _, _ in }
+            self?.builder?.finishWorkout { workout, _ in
+                guard let self, let workout else { return }
+                self.routeBuilder?.finishRoute(with: workout, metadata: nil) { _, _ in }
+            }
         }
     }
 }
