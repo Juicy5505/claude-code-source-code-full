@@ -37,11 +37,17 @@ final class WorkoutManager: NSObject, ObservableObject {
             HKQuantityType.workoutType(),
             HKSeriesType.workoutRoute(),
         ]
-        let read: Set<HKObjectType> = [
-            HKQuantityType(.heartRate),
-            HKQuantityType(.activeEnergyBurned),
-            HKQuantityType(.distanceWalkingRunning),
-        ]
+        // Built with quantityType(forIdentifier:) rather than the shorter
+        // HKQuantityType(.heartRate) initialiser, which needs watchOS 9. An
+        // Apple Watch Series 5 tops out at watchOS 10 and may still be on 8,
+        // so the older call keeps the deployment floor as low as possible.
+        let read = Set(
+            [
+                HKQuantityTypeIdentifier.heartRate,
+                .activeEnergyBurned,
+                .distanceWalkingRunning,
+            ].compactMap { HKObjectType.quantityType(forIdentifier: $0) as HKObjectType? }
+        )
         do {
             try await healthStore.requestAuthorization(toShare: share, read: read)
             return true

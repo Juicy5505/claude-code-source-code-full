@@ -54,17 +54,27 @@ ever change the algorithm, change it there first, then mirror it into
 
    When dragging, tick **Copy items if needed** and add them to the Watch App
    target.
-3. **Signing & Capabilities** (Watch App target):
+3. **Set the deployment target — do not skip this.** Select the blue project
+   at the top of the sidebar → the **Watch App** target → **General** tab →
+   **Minimum Deployments** → set **watchOS 9.0**.
+
+   Xcode defaults new projects to the newest watchOS. An **Apple Watch Series 5
+   tops out at watchOS 10** (watchOS 11 dropped support for it), so a default
+   target builds cleanly and then refuses to install, with an unhelpful
+   "does not support the minimum OS version" error. The code's real floor is
+   watchOS 8.5, so 9.0 is a safe setting that still runs on a Series 5.
+
+4. **Signing & Capabilities** (Watch App target):
    - **Signing** → pick your Apple ID team. Xcode auto-manages the profile.
    - **+ Capability → HealthKit**.
    - **+ Capability → Background Modes** → tick **Workout processing**.
-4. **Info.plist** (Watch App target) — add these usage strings, or the app
+5. **Info.plist** (Watch App target) — add these usage strings, or the app
    crashes the first time it asks for access:
    - `NSHealthShareUsageDescription` → "Reads heart rate during a round."
    - `NSHealthUpdateUsageDescription` → "Records the round as a workout."
    - `NSMotionUsageDescription` → "Detects your golf swings."
    - `NSLocationWhenInUseUsageDescription` → "Measures shot distances by GPS."
-5. **Run**: select the Watch App scheme and your watch as the destination, press
+6. **Run**: select the Watch App scheme and your watch as the destination, press
    ▶. The first install, unlock the watch and, in **Settings → General → VPN &
    Device Management** on the *watch* (or via the prompt), **trust** your
    developer certificate.
@@ -161,3 +171,10 @@ the physiology, the swing analytics live in the log this app writes, and
   measurement, on the watch exactly as on the phone.
 - **The 7-day free-provisioning expiry** is Apple's rule, not this app's. Rebuild
   from Xcode when it lapses, or use a paid account.
+- **watchOS floor is 8.5**, verified by scanning every API used against its
+  availability: the newest requirements are the async `requestAuthorization`
+  (8.5) and a handful of SwiftUI modifiers (8.0). HealthKit types are built with
+  `quantityType(forIdentifier:)` rather than the `HKQuantityType(.heartRate)`
+  shorthand precisely because that shorthand needs watchOS 9. A Series 5 runs up
+  to watchOS 10, so it clears this comfortably — provided the deployment target
+  is set as in step 3.
