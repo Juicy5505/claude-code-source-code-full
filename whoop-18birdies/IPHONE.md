@@ -141,6 +141,55 @@ WHOOP metric.** WHOOP publishes no golf readiness score.
 
 ---
 
+## Part 5 — swing detection on the phone (experimental)
+
+`iphone/swing_logger.py` approximates what the 18Birdies watchOS app does on an
+Apple Watch: watch the accelerometer for the spike a golf swing produces, and
+tag each detection with GPS. It runs in **Pythonista** (App Store) — no Mac, no
+Xcode, no developer account.
+
+**Read the constraints before you bother:**
+
+- **Placement decides whether this works at all.** Strap the phone to your
+  **lead forearm** (left arm for a right-handed golfer). In a pocket the sensor
+  mostly sees hip rotation, which is too close to a practice swing or climbing
+  out of a cart to separate reliably. This is why 18Birdies built it for the
+  watch and tells you to wear it on the lead wrist.
+- **iOS only delivers motion updates to a foreground app.** The script must stay
+  on screen for the whole round — set Auto-Lock to Never and start on a full
+  battery. The Apple Watch gets a background workout entitlement a script never
+  will.
+- **It cannot write shots into 18Birdies.** No public API. You get a standalone
+  log to correlate afterwards.
+- **It detects that a swing happened and where you stood.** Not swing path, not
+  face angle, not club head speed — an arm-worn phone cannot measure those.
+- **Shortcuts cannot do any of this.** There is no motion or accelerometer
+  action in Shortcuts; sensor work needs Pythonista or a native app.
+
+**Calibrate first.** The threshold depends on your tempo and exactly where the
+phone sits, so the shipped default is a starting point, not a setting:
+
+```
+python swing_logger.py calibrate   # 30s: walk, then take a few full swings
+```
+
+It prints peak magnitudes per second. Set `SWING_THRESHOLD_G` comfortably above
+your walking peaks — usually around 60-70% of your swing peak — then:
+
+```
+python swing_logger.py
+```
+
+Each detection prints with its peak g and GPS fix, and the round is written to
+`~/Documents/swings.json`. Set `INGEST_URL` and `INGEST_TOKEN` at the top of the
+file to also POST the round to `wb serve`.
+
+A follow-through registers as a second spike moments after the swing, so
+detections are gated by a 3-second refractory window; that suppression is
+verified against a synthetic trace.
+
+---
+
 ## Reachability off your home network
 
 The server binds `0.0.0.0` and speaks plain HTTP, which is fine on your own
