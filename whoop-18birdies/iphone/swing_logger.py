@@ -255,6 +255,156 @@ def print_round_summary(swings, elapsed, samples, fit):
         print("\nNot enough measured shots yet to fit swing strength to distance.")
 
 
+RANGE_LOG_PATH = os.path.expanduser("~/Documents/range_session.json")
+
+
+def range_session():
+    """Bucket-of-balls mode: swing quality without distance.
+
+    At a range you never move, so shot-to-shot GPS is nothing but noise. This
+    drops location entirely and reports what a stationary session can actually
+    measure — tempo, how repeatable it is, and whether it drifts as you tire.
+    """
+    swings = []
+    buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
+
+    motion.start_updates()
+    print("Range mode. Threshold {:.1f} g. No GPS — distance is meaningless here.".format(
+        SWING_THRESHOLD_G
+    ))
+    print("Practice swings count as swings; keep them well clear of your real ones.")
+    print("Keep this screen on. Stop the script when the bucket is done.\n")
+
+    started = time.time()
+    samples = 0
+
+    try:
+        last_detection = 0.0
+        trip_time = None
+
+        while True:
+            now = time.time()
+            mag = magnitude(motion.get_user_acceleration())
+            buffer.append((now, mag, read_attitude()))
+            samples += 1
+
+            if trip_time is None:
+                if mag >= SWING_THRESHOLD_G and (now - last_detection) >= REFRACTORY_SECONDS:
+                    trip_time = now
+            elif now - trip_time >= POST_PEAK_SECONDS:
+                swing = resolve_swing_no_gps(buffer, trip_time, len(swings) + 1)
+                if swing:
+                    swings.append(swing)
+                    tempo = swing.get("tempo_ratio")
+                    print(
+                        "  {:>3}  {:5.1f} g   tempo {}".format(
+                            swing["index"],
+                            swing["peak_g"],
+                            "{:.2f}:1".format(tempo) if tempo else "  -  ",
+                        )
+                    )
+                last_detection = now
+                trip_time = None
+
+            time.sleep(1.0 / TARGET_HZ)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        motion.stop_updates()
+        elapsed = max(1e-6, time.time() - started)
+
+        with open(RANGE_LOG_PATH, "w") as handle:
+            json.dump(
+                {
+                    "mode": "range",
+                    "threshold_g": SWING_THRESHOLD_G,
+                    "sample_rate_hz": round(samples / elapsed),
+                    "swings": swings,
+                },
+                handle,
+                indent=2,
+            )
+
+        print_range_summary(swings, elapsed, samples)
+        print("\nSaved to {}".format(RANGE_LOG_PATH))
+
+
+def resolve_swing_no_gps(buffer, trip_time, index):
+    """Same window analysis as a round, minus the location lookup."""
+    samples = list(buffer)
+    candidates = [i for i, s in enumerate(samples) if s[0] >= trip_time]
+    if not candidates:
+        return None
+
+    peak_index = max(candidates, key=lambda i: samples[i][1])
+    swing = {
+        "index": index,
+        "timestamp": time.strftime(
+            "%Y-%m-%dT%H:%M:%S", time.localtime(samples[peak_index][0])
+        ),
+    }
+    swing.update(analyse_swing(samples, peak_index))
+    return swing
+
+
+def print_range_summary(swings, elapsed, samples):
+    print(
+        "\n{} swing(s) over {:.0f} min at ~{:.0f} Hz.".format(
+            len(swings), elapsed / 60, samples / elapsed
+        )
+    )
+    if not swings:
+        print("Nothing detected — lower SWING_THRESHOLD_G and try again.")
+        return
+
+    with_tempo = [s for s in swings if s.get("tempo_ratio") is not None]
+    print(
+        "Tempo derived on {} of {} swings.".format(len(with_tempo), len(swings))
+    )
+    if len(with_tempo) < len(swings) / 2:
+        print(
+            "  Over half missing — the phase finder needs a still moment at address.\n"
+            "  Pause a beat before each swing rather than raking ball to ball."
+        )
+
+    tempo = consistency(swings, "tempo_ratio")
+    if tempo:
+        print(
+            "\nTempo   {:.2f}:1   stdev {:.2f}   cv {:.3f}   ({} swings)".format(
+                tempo["mean"], tempo["stdev"], tempo["cv"], tempo["n"]
+            )
+        )
+        print("  {}".format(tempo_verdict(tempo["mean"])))
+        # Repeatability is the whole point of a range session.
+        if tempo["cv"] < 0.06:
+            print("  Very repeatable — that is a well-grooved tempo.")
+        elif tempo["cv"] < 0.12:
+            print("  Reasonably repeatable.")
+        else:
+            print("  Scattered — tempo is varying a lot swing to swing.")
+
+    force = consistency(swings, "peak_g")
+    if force:
+        print(
+            "\nPeak g  {:.2f}    stdev {:.2f}   cv {:.3f}".format(
+                force["mean"], force["stdev"], force["cv"]
+            )
+        )
+
+    for label, key in (("tempo", "tempo_ratio"), ("peak g", "peak_g")):
+        drift = fatigue_split(swings, key)
+        if not drift:
+            continue
+        direction = "down" if drift["change"] < 0 else "up"
+        print(
+            "\nSecond half {}: {} {:.1f}%  ({:.2f} -> {:.2f})".format(
+                label, direction, abs(drift["change_pct"]),
+                drift["early_mean"], drift["late_mean"],
+            )
+        )
+
+
 def detect():
     swings = []
     buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
@@ -346,10 +496,11 @@ def choose_mode():
         "Swing Logger",
         "Calibrate first if you have not tuned the threshold for this phone position.",
         "Calibrate (30s)",
-        "Detect swings",
+        "Range (no GPS)",
+        "Play a round",
         hide_cancel_button=False,
     )
-    return "calibrate" if choice == 1 else "detect"
+    return {1: "calibrate", 2: "range"}.get(choice, "detect")
 
 
 if __name__ == "__main__":
@@ -360,5 +511,7 @@ if __name__ == "__main__":
 
     if mode == "calibrate":
         calibrate()
+    elif mode == "range":
+        range_session()
     else:
         detect()
