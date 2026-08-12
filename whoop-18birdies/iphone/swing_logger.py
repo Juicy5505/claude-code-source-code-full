@@ -1,8 +1,10 @@
 """Golf swing detector and logger for iPhone, using Pythonista's motion sensors.
 
 Approximates what the 18Birdies watchOS app does on an Apple Watch: watch the
-accelerometer for the sharp spike a golf swing produces, tag each detection
-with GPS, and derive what mechanics a single arm-worn sensor can honestly give.
+accelerometer for the spike a golf swing produces, tag each detection with GPS,
+and derive what mechanics a single arm-worn sensor can honestly give — tempo
+above all, reported both as a ratio and in Tour Tempo's 30fps frame units so it
+reads directly against the published 21/7, 24/8, 27/9 elite groups.
 
 WHAT THIS IS NOT
 ----------------
@@ -15,16 +17,18 @@ WHAT THIS IS NOT
 PLACEMENT MATTERS MORE THAN THE CODE
 ------------------------------------
 Strap the phone to your LEAD forearm (left arm for a right-handed golfer).
-In a pocket the sensor mostly sees hip rotation, which is far too similar to a
-practice swing or getting out of a cart to separate reliably.
+In a pocket the swing is only ~3x your walking motion and detection gets
+marginal; on the forearm it is ~8x and easy.
 
 iOS only delivers motion updates to a FOREGROUND app, so this script must stay
-on screen for the whole round. Set Settings -> Display -> Auto-Lock to Never and
-start it on a full battery.
+on screen for the whole session. Set Settings -> Display -> Auto-Lock to Never
+and start on a full battery.
 
 USAGE
 -----
-Tap run in Pythonista and pick a mode. Calibrate before trusting a round.
+Tap run and pick a mode. Detection self-calibrates from your own motion, so no
+manual threshold is needed. The log autosaves after every swing — killing the
+app loses at most the swing in flight, not the session.
 """
 
 import json
@@ -43,14 +47,14 @@ from swing_metrics import (
     consistency,
     fatigue_split,
     tempo_verdict,
+    tour_tempo_frames,
 )
 
 # --- Tuning ------------------------------------------------------------------
 
 # Detection calibrates itself by default: it tracks a rolling median of your
-# own motion and fires on a multiple of it, so it adapts to wherever the phone
-# actually is instead of assuming. Set AUTO_THRESHOLD = False to go back to a
-# fixed number in g.
+# own motion and fires on a multiple of it, adapting to wherever the phone
+# actually is. Set AUTO_THRESHOLD = False to pin a fixed number in g instead.
 AUTO_THRESHOLD = True
 SWING_THRESHOLD_G = 6.0
 
@@ -58,12 +62,13 @@ SWING_THRESHOLD_G = 6.0
 # many samples, and the follow-through would otherwise register again.
 REFRACTORY_SECONDS = 3.0
 
-# Target sample rate. Pythonista polls rather than streams, so this is a
-# ceiling — the log records the rate actually achieved.
+# Target sample rate. The loop paces itself against the clock rather than
+# sleeping a fixed interval, so work time does not silently erode the rate;
+# the log records what was actually achieved.
 TARGET_HZ = 100
 
 # How much history to keep for mechanics. Must comfortably exceed a full
-# backswing plus downswing.
+# backswing plus downswing (tour swings run ~1.0-1.2 s in total).
 BUFFER_SECONDS = 2.5
 
 # The threshold trips on the RISING edge, before impact. Keep sampling this
@@ -71,11 +76,24 @@ BUFFER_SECONDS = 2.5
 # before it is analysed.
 POST_PEAK_SECONDS = 0.4
 
+# Print a rolling mini-summary every N swings, so a session gives feedback
+# while it runs instead of only at the end.
+LIVE_STATS_EVERY = 10
+
+# Play a short sound on each detection, so you know it registered without
+# looking at your arm. Best-effort: if the sound module misbehaves it is
+# dropped silently rather than taking the session down.
+SOUND_CUE = True
+
 # Optional: POST each round to `wb serve`. Leave URL empty to log locally.
 INGEST_URL = ""      # e.g. "http://192.168.1.24:8790/rounds"
 INGEST_TOKEN = ""
 
 LOG_PATH = os.path.expanduser("~/Documents/swings.json")
+RANGE_LOG_PATH = os.path.expanduser("~/Documents/range_session.json")
+
+
+# --- Sensor helpers ----------------------------------------------------------
 
 
 def magnitude(vec):
@@ -106,16 +124,52 @@ def read_attitude():
         return None
 
 
+def play_cue():
+    if not SOUND_CUE:
+        return
+    try:
+        import sound
+
+        sound.play_effect("arcade:Coin_2")
+    except Exception:
+        pass  # a missing sound must never cost a swing
+
+
+class PacedLoop:
+    """Keeps a polling loop at a target rate by pacing against the clock.
+
+    A bare sleep(1/hz) ignores how long the loop body took, so the achieved
+    rate quietly lands well under target. This schedules each tick absolutely
+    and, when the loop falls behind, resets rather than spiralling into a
+    backlog of overdue ticks.
+    """
+
+    def __init__(self, hz):
+        self.interval = 1.0 / hz
+        self.next_tick = time.monotonic()
+
+    def wait(self):
+        self.next_tick += self.interval
+        delay = self.next_tick - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        else:
+            self.next_tick = time.monotonic()
+
+
+# --- Calibration (optional; detection no longer requires it) ------------------
+
+
 def calibrate(seconds=30):
-    """Prints peak magnitudes so you can pick a threshold that fits you."""
+    """Prints peak magnitudes per second — useful for judging placement."""
     motion.start_updates()
     print("Calibrating. Walk around, then take a few full swings.\n")
     try:
         deadline = time.time() + seconds
-        peak = 0.0
-        window_peak = 0.0
+        peak = window_peak = 0.0
         next_report = time.time() + 1.0
         samples = 0
+        pacer = PacedLoop(TARGET_HZ)
 
         while time.time() < deadline:
             mag = magnitude(motion.get_user_acceleration())
@@ -128,17 +182,305 @@ def calibrate(seconds=30):
                 print("  peak this second: {:5.2f} g".format(window_peak))
                 window_peak = 0.0
                 next_report = now + 1.0
-
-            time.sleep(1.0 / TARGET_HZ)
+            pacer.wait()
     finally:
         motion.stop_updates()
 
     print("\nOverall peak: {:.2f} g over {} samples".format(peak, samples))
     print("Sample rate achieved: {:.0f} Hz".format(samples / seconds))
     print(
-        "\nSet SWING_THRESHOLD_G between your walking peaks and your swing peaks —\n"
-        "usually around 60-70% of the swing peak."
+        "\nDetection self-calibrates, so no number to set. These peaks tell you\n"
+        "about PLACEMENT: swing peaks 5x+ your walking peaks is a good spot."
     )
+
+
+# --- The session loop (shared by range and round) ------------------------------
+
+
+def resolve_swing(buffer, trip_time, index, use_gps):
+    """Turns a captured window into a swing record.
+
+    The peak is located at or after the threshold trip, not across the whole
+    buffer, so a previous shot's follow-through lingering in the window cannot
+    be mistaken for this swing's impact.
+    """
+    samples = list(buffer)
+    candidates = [i for i, s in enumerate(samples) if s[0] >= trip_time]
+    if not candidates:
+        return None
+
+    peak_index = max(candidates, key=lambda i: samples[i][1])
+    swing = {
+        "index": index,
+        "timestamp": time.strftime(
+            "%Y-%m-%dT%H:%M:%S", time.localtime(samples[peak_index][0])
+        ),
+    }
+    if use_gps:
+        swing["location"] = read_location()
+    swing.update(analyse_swing(samples, peak_index))
+    swing["tempo_frames"] = tour_tempo_frames(
+        swing.get("backswing_s"), swing.get("downswing_s")
+    )
+    return swing
+
+
+def autosave(path, mode, swings, detector, started, samples):
+    """Writes the log now. Called after every swing: a crash mid-session then
+    costs at most the swing in flight, never the session."""
+    elapsed = max(1e-6, time.time() - started)
+    with open(path, "w") as handle:
+        json.dump(
+            {
+                "mode": mode,
+                "auto_threshold": AUTO_THRESHOLD,
+                "threshold_g": (
+                    round(detector.threshold(), 2) if detector else SWING_THRESHOLD_G
+                ),
+                "sample_rate_hz": round(samples / elapsed),
+                "swings": swings,
+            },
+            handle,
+            indent=2,
+        )
+
+
+def live_stats(swings):
+    tempo = consistency(swings, "tempo_ratio")
+    if tempo:
+        print(
+            "  -- {} swings; tempo {:.2f}:1, spread {:.2f} --".format(
+                len(swings), tempo["mean"], tempo["stdev"]
+            )
+        )
+    else:
+        print("  -- {} swings; no tempo readings yet --".format(len(swings)))
+
+
+def run_session(mode):
+    """The detection loop. mode is 'round' (GPS + distances) or 'range'."""
+    use_gps = mode == "round"
+    log_path = LOG_PATH if use_gps else RANGE_LOG_PATH
+
+    swings = []
+    buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
+    detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
+
+    motion.start_updates()
+    if use_gps:
+        location.start_updates()
+    else:
+        print("Range mode: no GPS — distance is meaningless standing still.")
+        print("Practice swings count as swings; keep them clear of real ones.")
+
+    print(
+        "Watching for swings. Threshold: {}.".format(
+            "self-calibrating" if detector else "fixed {:.1f} g".format(SWING_THRESHOLD_G)
+        )
+    )
+    print("Keep this screen on. Stop the script to finish (log autosaves).\n")
+
+    started = time.time()
+    samples = 0
+    pacer = PacedLoop(TARGET_HZ)
+
+    try:
+        last_detection = 0.0
+        trip_time = None
+
+        while True:
+            now = time.time()
+            mag = magnitude(motion.get_user_acceleration())
+            buffer.append((now, mag, read_attitude()))
+            samples += 1
+            if detector:
+                detector.observe(mag)
+
+            if trip_time is None:
+                tripped = (
+                    detector.is_swing(mag) if detector else mag >= SWING_THRESHOLD_G
+                )
+                if tripped and (now - last_detection) >= REFRACTORY_SECONDS:
+                    trip_time = now
+            elif now - trip_time >= POST_PEAK_SECONDS:
+                swing = resolve_swing(buffer, trip_time, len(swings) + 1, use_gps)
+                if swing:
+                    swings.append(swing)
+                    play_cue()
+                    tempo = swing.get("tempo_ratio")
+                    frames = swing.get("tempo_frames")
+                    loc = swing.get("location")
+                    where = ""
+                    if use_gps:
+                        where = (
+                            "  {:.5f}, {:.5f}".format(loc["latitude"], loc["longitude"])
+                            if loc and loc.get("latitude") is not None
+                            else "  no GPS fix"
+                        )
+                    print(
+                        "swing {:>3}  {:5.1f} g  tempo {}{}{}".format(
+                            swing["index"],
+                            swing["peak_g"],
+                            "{:.1f}:1".format(tempo) if tempo else "-",
+                            " ({})".format(frames) if frames else "",
+                            where,
+                        )
+                    )
+                    autosave(log_path, mode, swings, detector, started, samples)
+                    if len(swings) % LIVE_STATS_EVERY == 0:
+                        live_stats(swings)
+                last_detection = now
+                trip_time = None
+
+            pacer.wait()
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        motion.stop_updates()
+        if use_gps:
+            location.stop_updates()
+
+        elapsed = max(1e-6, time.time() - started)
+        fit = None
+        if use_gps:
+            # Distance is measured, not modelled: you walk to your ball, so the
+            # line from one swing to the next is how far the ball went.
+            shot_distances(swings)
+            fit = fit_swings(swings)
+
+        autosave(log_path, mode, swings, detector, started, samples)
+        if use_gps:
+            print_round_summary(swings, elapsed, samples, fit)
+        else:
+            print_range_summary(swings, elapsed, samples)
+        print("\nSaved to {}".format(log_path))
+        if use_gps:
+            post_round(swings)
+
+
+# --- Summaries -----------------------------------------------------------------
+
+
+def print_round_summary(swings, elapsed, samples, fit):
+    print(
+        "\n{} swing(s) detected over {:.0f} min at ~{:.0f} Hz.".format(
+            len(swings), elapsed / 60, samples / elapsed
+        )
+    )
+
+    measured = [s for s in swings if s.get("distance_yd") is not None]
+    if measured:
+        print("\nShot distances (GPS, swing to swing):")
+        for swing in measured:
+            tempo = swing.get("tempo_ratio")
+            tempo_text = "{:4.1f}:1".format(tempo) if tempo else "   -  "
+            print(
+                "  {:>3}  {:5.1f} g  {}  {:6.1f} yd".format(
+                    swing["index"], swing["peak_g"], tempo_text, swing["distance_yd"]
+                )
+            )
+        longest = max(measured, key=lambda s: s["distance_yd"])
+        print("  longest: {:.1f} yd".format(longest["distance_yd"]))
+    else:
+        print("\nNo shot distances — needs GPS fixes on consecutive swings.")
+
+    _print_tempo_block(swings)
+
+    for label, key in (("distance", "distance_yd"), ("tempo", "tempo_ratio")):
+        drift = fatigue_split(swings, key)
+        if not drift:
+            continue
+        direction = "down" if drift["change"] < 0 else "up"
+        print(
+            "\nBack-half {}: {} {:.1f}% ({:.2f} -> {:.2f})".format(
+                label, direction, abs(drift["change_pct"]),
+                drift["early_mean"], drift["late_mean"],
+            )
+        )
+
+    if fit:
+        print(
+            "\nSwing-to-distance fit: {:.1f} yd per g, r2={:.2f} over {} shots.".format(
+                fit["slope"], fit["r2"], fit["n"]
+            )
+        )
+        if fit["r2"] < 0.3:
+            print("  Weak fit — more shots and a consistent phone position will help.")
+    else:
+        print("\nNot enough measured shots yet to fit swing strength to distance.")
+
+
+def print_range_summary(swings, elapsed, samples):
+    print(
+        "\n{} swing(s) over {:.0f} min at ~{:.0f} Hz.".format(
+            len(swings), elapsed / 60, samples / elapsed
+        )
+    )
+    if not swings:
+        print(
+            "Nothing detected. If the screen stayed on and the phone was on your\n"
+            "arm, run Calibrate and send the numbers — that should not happen."
+        )
+        return
+
+    with_tempo = [s for s in swings if s.get("tempo_ratio") is not None]
+    print("Tempo derived on {} of {} swings.".format(len(with_tempo), len(swings)))
+    if len(with_tempo) < len(swings) / 2:
+        print(
+            "  Over half missing — the phase finder needs a still moment at address.\n"
+            "  Pause a beat before each swing rather than raking ball to ball."
+        )
+
+    _print_tempo_block(swings)
+
+    force = consistency(swings, "peak_g")
+    if force:
+        print(
+            "\nPeak g  {:.2f}    stdev {:.2f}   cv {:.3f}".format(
+                force["mean"], force["stdev"], force["cv"]
+            )
+        )
+
+    for label, key in (("tempo", "tempo_ratio"), ("peak g", "peak_g")):
+        drift = fatigue_split(swings, key)
+        if not drift:
+            continue
+        direction = "down" if drift["change"] < 0 else "up"
+        print(
+            "\nSecond half {}: {} {:.1f}%  ({:.2f} -> {:.2f})".format(
+                label, direction, abs(drift["change_pct"]),
+                drift["early_mean"], drift["late_mean"],
+            )
+        )
+
+
+def _print_tempo_block(swings):
+    tempo = consistency(swings, "tempo_ratio")
+    if not tempo:
+        print("\nNo tempo readings — phases need a quiet-then-swing window.")
+        return
+
+    back = consistency(swings, "backswing_s")
+    down = consistency(swings, "downswing_s")
+    frames = ""
+    if back and down:
+        frames = "   (Tour Tempo {} — elite groups are 21/7, 24/8, 27/9)".format(
+            tour_tempo_frames(back["mean"], down["mean"])
+        )
+
+    print(
+        "\nTempo   {:.2f}:1   stdev {:.2f}   cv {:.3f}   ({} swings){}".format(
+            tempo["mean"], tempo["stdev"], tempo["cv"], tempo["n"], frames
+        )
+    )
+    print("  {}".format(tempo_verdict(tempo["mean"])))
+    if tempo["cv"] < 0.06:
+        print("  Very repeatable — that is a well-grooved tempo.")
+    elif tempo["cv"] < 0.12:
+        print("  Reasonably repeatable.")
+    else:
+        print("  Scattered — tempo is varying a lot swing to swing.")
 
 
 def post_round(swings):
@@ -170,357 +512,7 @@ def post_round(swings):
         print("Upload failed (log is still saved): {}".format(exc))
 
 
-def resolve_swing(buffer, trip_time, index):
-    """Turns a captured window into a swing record.
-
-    The peak is located at or after the threshold trip, not across the whole
-    buffer, so a previous shot's follow-through lingering in the window cannot
-    be mistaken for this swing's impact.
-    """
-    samples = list(buffer)
-    candidates = [i for i, s in enumerate(samples) if s[0] >= trip_time]
-    if not candidates:
-        return None
-
-    peak_index = max(candidates, key=lambda i: samples[i][1])
-    metrics = analyse_swing(samples, peak_index)
-
-    swing = {
-        "index": index,
-        "timestamp": time.strftime(
-            "%Y-%m-%dT%H:%M:%S", time.localtime(samples[peak_index][0])
-        ),
-        "location": read_location(),
-    }
-    swing.update(metrics)
-    return swing
-
-
-def print_round_summary(swings, elapsed, samples, fit):
-    print(
-        "\n{} swing(s) detected over {:.0f} min at ~{:.0f} Hz.".format(
-            len(swings), elapsed / 60, samples / elapsed
-        )
-    )
-
-    measured = [s for s in swings if s.get("distance_yd") is not None]
-    if measured:
-        print("\nShot distances (GPS, swing to swing):")
-        for swing in measured:
-            tempo = swing.get("tempo_ratio")
-            tempo_text = "{:4.1f}:1".format(tempo) if tempo else "   -  "
-            print(
-                "  {:>3}  {:5.1f} g  {}  {:6.1f} yd".format(
-                    swing["index"], swing["peak_g"], tempo_text, swing["distance_yd"]
-                )
-            )
-        longest = max(measured, key=lambda s: s["distance_yd"])
-        print("  longest: {:.1f} yd".format(longest["distance_yd"]))
-    else:
-        print("\nNo shot distances — needs GPS fixes on consecutive swings.")
-
-    tempo_stats = consistency(swings, "tempo_ratio")
-    if tempo_stats:
-        print(
-            "\nTempo: {:.2f}:1 average (spread {:.2f} over {} swings)".format(
-                tempo_stats["mean"], tempo_stats["stdev"], tempo_stats["n"]
-            )
-        )
-        print("  {}".format(tempo_verdict(tempo_stats["mean"])))
-    else:
-        print("\nNo tempo readings — the phases need a clean quiet-then-swing window.")
-
-    for label, key in (("distance", "distance_yd"), ("tempo", "tempo_ratio")):
-        drift = fatigue_split(swings, key)
-        if not drift:
-            continue
-        direction = "down" if drift["change"] < 0 else "up"
-        print(
-            "\nBack-half {}: {} {:.1f}% ({:.2f} -> {:.2f} across {} then {} shots)".format(
-                label,
-                direction,
-                abs(drift["change_pct"]),
-                drift["early_mean"],
-                drift["late_mean"],
-                drift["n_early"],
-                drift["n_late"],
-            )
-        )
-
-    if fit:
-        print(
-            "\nSwing-to-distance fit: {:.1f} yd per g, r2={:.2f} over {} shots.".format(
-                fit["slope"], fit["r2"], fit["n"]
-            )
-        )
-        if fit["r2"] < 0.3:
-            print(
-                "  Weak fit — peak g is not tracking your distance yet.\n"
-                "  More shots will help; so will a consistent phone position."
-            )
-    else:
-        print("\nNot enough measured shots yet to fit swing strength to distance.")
-
-
-RANGE_LOG_PATH = os.path.expanduser("~/Documents/range_session.json")
-
-
-def range_session():
-    """Bucket-of-balls mode: swing quality without distance.
-
-    At a range you never move, so shot-to-shot GPS is nothing but noise. This
-    drops location entirely and reports what a stationary session can actually
-    measure — tempo, how repeatable it is, and whether it drifts as you tire.
-    """
-    swings = []
-    buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
-    detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
-
-    motion.start_updates()
-    print("Range mode. No GPS — distance is meaningless standing still.")
-    print(
-        "Threshold: self-calibrating from your own motion."
-        if detector
-        else "Threshold: fixed at {:.1f} g.".format(SWING_THRESHOLD_G)
-    )
-    print("Practice swings count as swings; keep them well clear of your real ones.")
-    print("Keep this screen on. Stop the script when the bucket is done.\n")
-
-    started = time.time()
-    samples = 0
-
-    try:
-        last_detection = 0.0
-        trip_time = None
-
-        while True:
-            now = time.time()
-            mag = magnitude(motion.get_user_acceleration())
-            buffer.append((now, mag, read_attitude()))
-            samples += 1
-
-            if detector:
-                detector.observe(mag)
-
-            if trip_time is None:
-                tripped = (
-                    detector.is_swing(mag) if detector else mag >= SWING_THRESHOLD_G
-                )
-                if tripped and (now - last_detection) >= REFRACTORY_SECONDS:
-                    trip_time = now
-            elif now - trip_time >= POST_PEAK_SECONDS:
-                swing = resolve_swing_no_gps(buffer, trip_time, len(swings) + 1)
-                if swing:
-                    swings.append(swing)
-                    tempo = swing.get("tempo_ratio")
-                    print(
-                        "  {:>3}  {:5.1f} g   tempo {}".format(
-                            swing["index"],
-                            swing["peak_g"],
-                            "{:.2f}:1".format(tempo) if tempo else "  -  ",
-                        )
-                    )
-                last_detection = now
-                trip_time = None
-
-            time.sleep(1.0 / TARGET_HZ)
-
-    except KeyboardInterrupt:
-        pass
-    finally:
-        motion.stop_updates()
-        elapsed = max(1e-6, time.time() - started)
-
-        with open(RANGE_LOG_PATH, "w") as handle:
-            json.dump(
-                {
-                    "mode": "range",
-                    "auto_threshold": AUTO_THRESHOLD,
-                    "threshold_g": (
-                        round(detector.threshold(), 2)
-                        if detector
-                        else SWING_THRESHOLD_G
-                    ),
-                    "sample_rate_hz": round(samples / elapsed),
-                    "swings": swings,
-                },
-                handle,
-                indent=2,
-            )
-
-        print_range_summary(swings, elapsed, samples)
-        print("\nSaved to {}".format(RANGE_LOG_PATH))
-
-
-def resolve_swing_no_gps(buffer, trip_time, index):
-    """Same window analysis as a round, minus the location lookup."""
-    samples = list(buffer)
-    candidates = [i for i, s in enumerate(samples) if s[0] >= trip_time]
-    if not candidates:
-        return None
-
-    peak_index = max(candidates, key=lambda i: samples[i][1])
-    swing = {
-        "index": index,
-        "timestamp": time.strftime(
-            "%Y-%m-%dT%H:%M:%S", time.localtime(samples[peak_index][0])
-        ),
-    }
-    swing.update(analyse_swing(samples, peak_index))
-    return swing
-
-
-def print_range_summary(swings, elapsed, samples):
-    print(
-        "\n{} swing(s) over {:.0f} min at ~{:.0f} Hz.".format(
-            len(swings), elapsed / 60, samples / elapsed
-        )
-    )
-    if not swings:
-        print("Nothing detected — lower SWING_THRESHOLD_G and try again.")
-        return
-
-    with_tempo = [s for s in swings if s.get("tempo_ratio") is not None]
-    print(
-        "Tempo derived on {} of {} swings.".format(len(with_tempo), len(swings))
-    )
-    if len(with_tempo) < len(swings) / 2:
-        print(
-            "  Over half missing — the phase finder needs a still moment at address.\n"
-            "  Pause a beat before each swing rather than raking ball to ball."
-        )
-
-    tempo = consistency(swings, "tempo_ratio")
-    if tempo:
-        print(
-            "\nTempo   {:.2f}:1   stdev {:.2f}   cv {:.3f}   ({} swings)".format(
-                tempo["mean"], tempo["stdev"], tempo["cv"], tempo["n"]
-            )
-        )
-        print("  {}".format(tempo_verdict(tempo["mean"])))
-        # Repeatability is the whole point of a range session.
-        if tempo["cv"] < 0.06:
-            print("  Very repeatable — that is a well-grooved tempo.")
-        elif tempo["cv"] < 0.12:
-            print("  Reasonably repeatable.")
-        else:
-            print("  Scattered — tempo is varying a lot swing to swing.")
-
-    force = consistency(swings, "peak_g")
-    if force:
-        print(
-            "\nPeak g  {:.2f}    stdev {:.2f}   cv {:.3f}".format(
-                force["mean"], force["stdev"], force["cv"]
-            )
-        )
-
-    for label, key in (("tempo", "tempo_ratio"), ("peak g", "peak_g")):
-        drift = fatigue_split(swings, key)
-        if not drift:
-            continue
-        direction = "down" if drift["change"] < 0 else "up"
-        print(
-            "\nSecond half {}: {} {:.1f}%  ({:.2f} -> {:.2f})".format(
-                label, direction, abs(drift["change_pct"]),
-                drift["early_mean"], drift["late_mean"],
-            )
-        )
-
-
-def detect():
-    swings = []
-    buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
-    detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
-
-    motion.start_updates()
-    location.start_updates()
-
-    print(
-        "Watching for swings. Threshold: {}".format(
-            "self-calibrating" if detector else "{:.1f} g".format(SWING_THRESHOLD_G)
-        )
-    )
-    print("Keep this screen on and in front. Stop the script to finish.\n")
-
-    started = time.time()
-    samples = 0
-
-    try:
-        last_detection = 0.0
-        trip_time = None
-
-        while True:
-            now = time.time()
-            mag = magnitude(motion.get_user_acceleration())
-            buffer.append((now, mag, read_attitude()))
-            samples += 1
-
-            if detector:
-                detector.observe(mag)
-
-            if trip_time is None:
-                tripped = (
-                    detector.is_swing(mag) if detector else mag >= SWING_THRESHOLD_G
-                )
-                if tripped and (now - last_detection) >= REFRACTORY_SECONDS:
-                    trip_time = now
-            elif now - trip_time >= POST_PEAK_SECONDS:
-                swing = resolve_swing(buffer, trip_time, len(swings) + 1)
-                if swing:
-                    swings.append(swing)
-                    loc = swing.get("location")
-                    where = (
-                        "{:.5f}, {:.5f}".format(loc["latitude"], loc["longitude"])
-                        if loc and loc.get("latitude") is not None
-                        else "no GPS fix"
-                    )
-                    tempo = swing.get("tempo_ratio")
-                    print(
-                        "swing {:>3}  {:5.1f} g  tempo {}  {}".format(
-                            swing["index"],
-                            swing["peak_g"],
-                            "{:.1f}:1".format(tempo) if tempo else "-",
-                            where,
-                        )
-                    )
-                last_detection = now
-                trip_time = None
-
-            time.sleep(1.0 / TARGET_HZ)
-
-    except KeyboardInterrupt:
-        pass
-    finally:
-        motion.stop_updates()
-        location.stop_updates()
-
-        elapsed = max(1e-6, time.time() - started)
-
-        # Distance is measured, not modelled: you walk to your ball, so the
-        # straight line from one swing to the next is how far the ball went.
-        shot_distances(swings)
-        fit = fit_swings(swings)
-
-        with open(LOG_PATH, "w") as handle:
-            json.dump(
-                {
-                    "auto_threshold": AUTO_THRESHOLD,
-                    "threshold_g": (
-                        round(detector.threshold(), 2)
-                        if detector
-                        else SWING_THRESHOLD_G
-                    ),
-                    "sample_rate_hz": round(samples / elapsed),
-                    "fit": fit,
-                    "swings": swings,
-                },
-                handle,
-                indent=2,
-            )
-
-        print_round_summary(swings, elapsed, samples, fit)
-        print("\nSaved to {}".format(LOG_PATH))
-        post_round(swings)
+# --- Entry ---------------------------------------------------------------------
 
 
 def choose_mode():
@@ -532,13 +524,13 @@ def choose_mode():
 
     choice = console.alert(
         "Swing Logger",
-        "Calibrate first if you have not tuned the threshold for this phone position.",
-        "Calibrate (30s)",
+        "Detection self-calibrates. Calibrate mode just reports placement quality.",
         "Range (no GPS)",
         "Play a round",
+        "Calibrate (30s)",
         hide_cancel_button=False,
     )
-    return {1: "calibrate", 2: "range"}.get(choice, "detect")
+    return {1: "range", 2: "detect"}.get(choice, "calibrate")
 
 
 if __name__ == "__main__":
@@ -550,6 +542,6 @@ if __name__ == "__main__":
     if mode == "calibrate":
         calibrate()
     elif mode == "range":
-        range_session()
+        run_session("range")
     else:
-        detect()
+        run_session("round")

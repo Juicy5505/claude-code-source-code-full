@@ -180,5 +180,43 @@ class TestAcrossRound(unittest.TestCase):
         self.assertIsNone(fatigue_split(swings, "distance_yd"))
 
 
+
+
+class TestAdaptivePerf(unittest.TestCase):
+    def test_cached_median_matches_naive(self):
+        from swing_metrics import AdaptiveThreshold
+        import random
+        random.seed(7)
+        det = AdaptiveThreshold(sample_hz=100, recompute_every=25)
+        stream = [random.uniform(0.2, 3.0) for _ in range(5000)]
+        for i, m in enumerate(stream):
+            det.observe(m)
+            if i % 25 == 0 and det.window:
+                naive = sorted(det.window)
+                mid = len(naive) // 2
+                expect = naive[mid] if len(naive) % 2 else (naive[mid-1]+naive[mid])/2
+                # Cache may be up to recompute_every samples stale; on a
+                # recompute tick it must match exactly.
+                if det._since_recompute == 0:
+                    self.assertAlmostEqual(det.baseline(), expect, places=12)
+
+    def test_still_detects_after_caching(self):
+        from swing_metrics import AdaptiveThreshold
+        det = AdaptiveThreshold(sample_hz=100)
+        for _ in range(600):
+            det.observe(1.5)
+        self.assertTrue(det.is_swing(12.0))
+        self.assertFalse(det.is_swing(2.0))
+
+
+class TestTourTempoFrames(unittest.TestCase):
+    def test_hogan_is_21_7(self):
+        from swing_metrics import tour_tempo_frames
+        self.assertEqual(tour_tempo_frames(0.70, 0.233), "21/7")
+
+    def test_none_phases(self):
+        from swing_metrics import tour_tempo_frames
+        self.assertIsNone(tour_tempo_frames(None, 0.3))
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

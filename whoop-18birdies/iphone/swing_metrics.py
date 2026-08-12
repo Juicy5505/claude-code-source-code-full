@@ -201,11 +201,25 @@ class AdaptiveThreshold:
     genuinely marginal — a property of the placement, not of the threshold.
     """
 
-    def __init__(self, window_seconds=10.0, ratio=2.0, floor_g=1.5, sample_hz=100):
+    def __init__(
+        self,
+        window_seconds=10.0,
+        ratio=2.0,
+        floor_g=1.5,
+        sample_hz=100,
+        recompute_every=25,
+    ):
         self.ratio = ratio
         self.floor_g = floor_g
         self.window = []
         self.max_samples = max(32, int(window_seconds * sample_hz))
+        # The median is recomputed periodically rather than per sample. Sorting
+        # a thousand-sample window on every observation is O(n log n) at 100 Hz
+        # and measurably eats the phone's sample rate; the baseline drifts on a
+        # scale of seconds, so a quarter-second-stale median costs nothing.
+        self.recompute_every = max(1, recompute_every)
+        self._cached_median = None
+        self._since_recompute = 0
 
     def observe(self, magnitude):
         self.window.append(magnitude)
@@ -213,7 +227,12 @@ class AdaptiveThreshold:
             # Drop a chunk at a time; pop(0) on a list is O(n) per sample.
             del self.window[: len(self.window) - self.max_samples]
 
-    def baseline(self):
+        self._since_recompute += 1
+        if self._cached_median is None or self._since_recompute >= self.recompute_every:
+            self._cached_median = self._compute_median()
+            self._since_recompute = 0
+
+    def _compute_median(self):
         if not self.window:
             return None
         ordered = sorted(self.window)
@@ -221,6 +240,11 @@ class AdaptiveThreshold:
         if len(ordered) % 2:
             return ordered[mid]
         return (ordered[mid - 1] + ordered[mid]) / 2
+
+    def baseline(self):
+        if self._cached_median is None:
+            self._cached_median = self._compute_median()
+        return self._cached_median
 
     def ready(self):
         """True once there is enough history for the baseline to mean anything."""
@@ -239,8 +263,25 @@ class AdaptiveThreshold:
 
 # --- Across a round ----------------------------------------------------------
 
-# Tour players cluster tightly around 3:1 backswing-to-downswing.
+# Tour players cluster tightly around 3:1 backswing-to-downswing. Source:
+# John Novosel's Tour Tempo frame-count study of tour swings, independently
+# corroborated by a later Yale paper. Elite examples run ~0.7-0.9 s back and
+# ~0.23-0.3 s down regardless of overall speed.
 TOUR_TEMPO = 3.0
+
+# Tour Tempo expresses a swing in 30 fps video frames — the elite groups are
+# 21/7, 24/8 and 27/9. Reporting the same units makes a swing directly
+# comparable against those published numbers.
+TOUR_TEMPO_FPS = 30.0
+
+
+def tour_tempo_frames(backswing_s, downswing_s):
+    """A swing's phases in Tour Tempo's 30fps frame units, e.g. '24/8'."""
+    if backswing_s is None or downswing_s is None:
+        return None
+    return "{:.0f}/{:.0f}".format(
+        backswing_s * TOUR_TEMPO_FPS, downswing_s * TOUR_TEMPO_FPS
+    )
 
 
 def tempo_verdict(ratio):
