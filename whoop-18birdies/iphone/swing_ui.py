@@ -41,6 +41,7 @@ from swing_logger import (
     read_attitude,
     resolve_swing,
 )
+from shot_model import shot_distances
 from swing_metrics import AdaptiveThreshold, consistency, tempo_verdict
 
 # Palette — dark, high-contrast, one green accent.
@@ -95,49 +96,107 @@ class SwingDashboard(ui.View):
     # -- layout --
 
     def _build(self):
-        w, h = self.width or 400, self.height or 720
+        """Create the subviews. Positioning happens in layout(), not here.
 
+        A ui.View is 100x100 until it is presented, so reading self.width in
+        __init__ returns 100 — which put STOP & SAVE at y = 100 - 120 = -20,
+        off the top of the screen, with no way to end a session but killing the
+        script. Pythonista calls layout() once the view has a real size and again
+        on every rotation, so that is where geometry belongs.
+        """
         title = "RANGE" if not self.use_gps else "ROUND"
-        self.title = _label(self, (0, 40, w, 24), 15, DIM, bold=True)
+        self.title = _label(self, (0, 0, 10, 10), 15, DIM, bold=True)
         self.title.text = "SWING LOGGER · {}".format(title)
 
         # The hero readout: last swing force, then tempo under it.
-        self.big_g = _label(self, (0, 90, w, 90), 76, INK, bold=True)
+        self.big_g = _label(self, (0, 0, 10, 10), 76, INK, bold=True)
         self.big_g.text = "—"
-        self.big_tempo = _label(self, (0, 182, w, 40), 30, ACCENT, bold=True)
+        self.big_tempo = _label(self, (0, 0, 10, 10), 30, ACCENT, bold=True)
         self.big_tempo.text = "waiting for a swing"
 
         # Two stat tiles: swing count and live HR.
-        tile_w = (w - 60) / 2
-        self._tile(20, 250, tile_w, "SWINGS", "count_lab")
-        self._tile(40 + tile_w, 250, tile_w, "WHOOP HR", "hr_lab")
+        self.count_panel = self._tile("SWINGS", "count_lab")
+        self.hr_panel = self._tile("WHOOP HR", "hr_lab")
 
-        # Session tempo line.
-        self.session = _label(self, (20, 372, w - 40, 26), 16, DIM)
+        self.session = _label(self, (0, 0, 10, 10), 16, DIM)
         self.session.text = "session tempo —"
 
-        # Status / connection line.
-        self.status = _label(self, (20, 404, w - 40, 22), 13, DIM)
+        self.status = _label(self, (0, 0, 10, 10), 13, DIM)
         self.status.text = "starting…"
 
-        stop = ui.Button(frame=((w - 200) / 2, h - 120, 200, 54))
-        stop.title = "STOP & SAVE"
-        stop.font = ("<system-bold>", 18)
-        stop.background_color = ACCENT
-        stop.tint_color = BG
-        stop.corner_radius = 27
-        stop.action = self._on_stop
-        self.add_subview(stop)
+        self.stop_button = ui.Button(frame=(0, 0, 10, 10))
+        self.stop_button.title = "STOP & SAVE"
+        self.stop_button.font = ("<system-bold>", 18)
+        self.stop_button.background_color = ACCENT
+        self.stop_button.tint_color = BG
+        self.stop_button.corner_radius = 27
+        self.stop_button.action = self._on_stop
+        self.add_subview(self.stop_button)
 
-    def _tile(self, x, y, tw, caption, attr):
-        panel = ui.View(frame=(x, y, tw, 104))
+    def layout(self):
+        """Position everything against the real size.
+
+        Called by Pythonista once the view is presented and again on every size
+        change, which is the only time `self.width` means anything.
+
+        Everything is clamped to the view. The content stack has a natural
+        height and is compressed to fit when there is less room — a phone in
+        landscape is barely 390 points tall, and an un-clamped layout puts the
+        one control that ends a session below the bottom edge.
+        """
+        w = max(1.0, float(self.width or 400))
+        h = max(1.0, float(self.height or 720))
+        margin = 16.0
+        button_h = 54.0
+
+        # Reserve the bottom for STOP & SAVE, then fit the stack in the rest.
+        content_h = max(1.0, h - (button_h + 2 * margin))
+        scale = min(1.0, content_h / 440.0)   # 440 = the stack's natural height
+
+        def y(value):
+            return value * scale
+
+        def height(value):
+            return max(1.0, value * scale)
+
+        inner = max(1.0, w - 2 * margin)
+
+        self.title.frame = (0, y(40), w, height(24))
+        self.big_g.frame = (0, y(90), w, height(90))
+        self.big_tempo.frame = (0, y(182), w, height(40))
+
+        tile_w = max(1.0, (w - 60) / 2) if w > 80 else max(1.0, w / 2 - 2)
+        tile_h = height(104)
+        tile_x2 = w - margin - tile_w if w > 80 else tile_w + 2
+        self.count_panel.frame = (margin, y(250), tile_w, tile_h)
+        self.hr_panel.frame = (tile_x2, y(250), tile_w, tile_h)
+        for panel, attr in ((self.count_panel, "count_lab"), (self.hr_panel, "hr_lab")):
+            panel.subviews[0].frame = (0, tile_h * 0.115, tile_w, tile_h * 0.155)
+            getattr(self, attr).frame = (0, tile_h * 0.33, tile_w, tile_h * 0.54)
+
+        self.session.frame = (margin, y(372), inner, height(26))
+        self.status.frame = (margin, y(404), inner, height(22))
+
+        # Anchored to the bottom, and clamped so it can never leave the view —
+        # on a short one it simply sits as low as it fits.
+        button_w = min(200.0, inner)
+        self.stop_button.frame = (
+            max(0.0, (w - button_w) / 2),
+            max(0.0, min(h - button_h - margin, h - 120.0)),
+            button_w,
+            button_h,
+        )
+
+    def _tile(self, caption, attr):
+        panel = ui.View(frame=(0, 0, 10, 10))
         panel.background_color = PANEL
         panel.corner_radius = 14
         self.add_subview(panel)
-        _label(panel, (0, 12, tw, 16), 12, DIM, bold=True).text = caption
-        val = _label(panel, (0, 34, tw, 56), 46, INK, bold=True)
+        _label(panel, (0, 0, 10, 10), 12, DIM, bold=True).text = caption
+        val = _label(panel, (0, 0, 10, 10), 46, INK, bold=True)
         val.text = "—"
         setattr(self, attr, val)
+        return panel
 
     # -- lifecycle --
 
@@ -219,6 +278,11 @@ class SwingDashboard(ui.View):
         motion.stop_updates()
         if self.use_gps:
             location.stop_updates()
+            # Measure the shots. Without this the dashboard saves a GPS round
+            # with a location on every swing and a distance on none of them —
+            # the headline number of a round, silently absent. The console
+            # logger has always done this; the dashboard did not.
+            shot_distances(self.swings)
         if self.hr:
             self.hr.stop()
         autosave(self.log_path, self.mode, self.swings, detector, started, samples)
