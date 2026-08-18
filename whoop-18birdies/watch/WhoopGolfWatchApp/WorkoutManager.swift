@@ -62,7 +62,15 @@ final class WorkoutManager: NSObject, ObservableObject {
         routeBuilder.insertRouteData(locations) { _, _ in }
     }
 
-    func start(trackRoute: Bool) {
+    /// Returns false when the session could not start.
+    ///
+    /// The caller needs this. Without a running workout session watchOS
+    /// suspends the app as soon as the wrist drops, so detection stops a minute
+    /// into the round — and the failure used to be swallowed here while the UI
+    /// went on displaying "watching". The round then looked healthy right up
+    /// until the log came back with three swings in it.
+    @discardableResult
+    func start(trackRoute: Bool) -> Bool {
         let config = HKWorkoutConfiguration()
         config.activityType = .golf
         config.locationType = .outdoor
@@ -83,9 +91,12 @@ final class WorkoutManager: NSObject, ObservableObject {
             let start = Date()
             session.startActivity(with: start)
             builder.beginCollection(withStart: start) { _, _ in }
+            return true
         } catch {
             // Without a session the motion loop still runs while the app is in
-            // the foreground; it just loses background execution.
+            // the FOREGROUND; it loses background execution entirely, which on
+            // a watch means it stops when your wrist drops.
+            return false
         }
     }
 
@@ -102,9 +113,14 @@ final class WorkoutManager: NSObject, ObservableObject {
     /// locals rather than reading them back off `self` is the other half of the
     /// fix; they must outlive the object.
     func stop() async {
-        session?.end()
-        guard let builder else { return }
+        // Idempotent: clear the handles first so a second call returns at once
+        // rather than finishing an already-finished builder.
+        guard let builder = self.builder else { return }
         let route = routeBuilder
+        self.builder = nil
+        self.routeBuilder = nil
+        session?.end()
+        self.session = nil
 
         let workout: HKWorkout? = await withCheckedContinuation { continuation in
             builder.endCollection(withEnd: Date()) { _, _ in

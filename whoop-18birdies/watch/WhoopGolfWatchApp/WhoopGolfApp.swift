@@ -23,7 +23,10 @@ struct ModePicker: View {
 
     var body: some View {
         if let mode {
-            SessionView(mode: mode)
+            // onFinish sets this back to nil, which is what actually returns
+            // you to the picker. `dismiss()` cannot: this view is rendered
+            // inline at the root of a WindowGroup, with no presentation to end.
+            SessionView(mode: mode) { self.mode = nil }
         } else {
             VStack(spacing: 10) {
                 Text("Swing Logger")
@@ -33,7 +36,10 @@ struct ModePicker: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                 Button("Range (no GPS)") { mode = "range" }
-                    .buttonStyle(.borderedProminent)
+                    // .bordered is watchOS 8.0; .borderedProminent is 9.0 and
+                    // would break the documented 8.5 floor.
+                    .buttonStyle(.bordered)
+                    .tint(.green)
                 Button("Play a round (GPS)") { mode = "round" }
                     .buttonStyle(.bordered)
             }

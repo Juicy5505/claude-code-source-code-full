@@ -297,6 +297,58 @@ def frames_cases() -> list[dict]:
     return out
 
 
+def shot_distance_cases() -> list[dict]:
+    """Pins the watch's haversine port to the tested Python.
+
+    The watch now measures shots itself rather than only recording positions,
+    so the geodesy runs in two languages and has to agree. Includes the poles,
+    the antimeridian and identical points, because those are where a
+    hand-ported haversine goes wrong.
+    """
+    import shot_model as sm2
+
+    pairs = [
+        ("a drive, north", 32.8973, -117.2531, 32.89936, -117.2531),
+        ("a wedge, east", 32.8973, -117.2531, 32.8973, -117.25165),
+        ("a diagonal approach", 32.8973, -117.2531, 32.89836, -117.25215),
+        ("identical points", 32.8973, -117.2531, 32.8973, -117.2531),
+        ("across the antimeridian", 1.0, 179.9995, 1.0, -179.9995),
+        ("near the north pole", 89.999, 0.0, 89.999, 180.0),
+        ("southern hemisphere", -33.8688, 151.2093, -33.8700, 151.2093),
+        ("a full hole apart", 32.8973, -117.2531, 32.9010, -117.2531),
+    ]
+    out = []
+    for name, lat1, lon1, lat2, lon2 in pairs:
+        metres = sm2.haversine_m(lat1, lon1, lat2, lon2)
+        out.append({
+            "name": name,
+            "from": [lat1, lon1],
+            "to": [lat2, lon2],
+            "expect_m": round(metres, 4),
+            "expect_yd": round(sm2.metres_to_yards(metres), 4),
+        })
+
+    # And the full annotation pass, including the cases that must yield null.
+    swings = [
+        {"index": 1, "location": {"latitude": 32.8973, "longitude": -117.2531}},
+        {"index": 2, "location": {"latitude": 32.89936, "longitude": -117.2531}},
+        {"index": 3, "location": None},
+        {"index": 4, "location": {"latitude": 32.9010, "longitude": -117.2531}},
+        {"index": 5, "location": {"latitude": 32.9010, "longitude": None}},
+        {"index": 6, "location": {"latitude": 32.9020, "longitude": -117.2531}},
+    ]
+    sm2.shot_distances(swings)
+    out.append({
+        "name": "annotation pass with gaps",
+        "swings": [
+            {"index": s["index"], "location": s["location"],
+             "distance_yd": s["distance_yd"]}
+            for s in swings
+        ],
+    })
+    return out
+
+
 def threshold_cases() -> list[dict]:
     """AdaptiveThreshold state at each step, so a divergence is localised."""
     out = []
@@ -402,6 +454,7 @@ def build() -> dict:
         "transition": transition_cases(),
         "analyse": analyse_cases(),
         "frames": frames_cases(),
+        "shotDistance": shot_distance_cases(),
         "threshold": threshold_cases(),
         "consistency": consistency_cases(),
         "verdict": verdict_cases(),

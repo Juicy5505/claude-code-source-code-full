@@ -14,6 +14,10 @@ struct Swing: Codable, Identifiable {
     var tempo_frames: String?
     var hr_bpm: Int?
     var location: GeoPoint?
+    /// Distance to the NEXT swing, filled in when the session ends. Absent
+    /// until then, and on the final swing, which has no successor.
+    var distance_m: Double?
+    var distance_yd: Double?
 }
 
 struct GeoPoint: Codable {
@@ -82,6 +86,52 @@ final class SessionModel: ObservableObject {
         autosave()
     }
 
+    /// Great-circle distance in metres. A faithful port of `haversine_m` in
+    /// iphone/shot_model.py, which is the tested reference.
+    static func haversineMetres(_ lat1: Double, _ lon1: Double,
+                                _ lat2: Double, _ lon2: Double) -> Double {
+        let earthRadius = 6_371_008.8
+        let p1 = lat1 * .pi / 180
+        let p2 = lat2 * .pi / 180
+        let dp = (lat2 - lat1) * .pi / 180
+        let dl = (lon2 - lon1) * .pi / 180
+        let a = pow(sin(dp / 2), 2) + cos(p1) * cos(p2) * pow(sin(dl / 2), 2)
+        return 2 * earthRadius * asin(min(1, sqrt(a)))
+    }
+
+    /// Measures each shot as the distance from where you swung to where you
+    /// swung next — the Arccos/Shot Scope method.
+    ///
+    /// This has to happen on the watch, not only in the desktop analysis. The
+    /// watch already writes a session the Python tools read; if it ships
+    /// locations with no distances, the round shows a yardage of nothing on the
+    /// device you were wearing, and the number you actually wanted only appears
+    /// later, if you remember to run the analysis at all.
+    ///
+    /// Both coordinates are guarded on both fixes: latitude and longitude come
+    /// from the GPS independently, so one can be present while the other is not.
+    func computeShotDistances() {
+        for i in swings.indices {
+            swings[i].distance_m = nil
+            swings[i].distance_yd = nil
+            guard i + 1 < swings.count,
+                  let here = swings[i].location,
+                  let next = swings[i + 1].location
+            else { continue }
+            let metres = Self.haversineMetres(here.latitude, here.longitude,
+                                              next.latitude, next.longitude)
+            swings[i].distance_m = (metres * 10).rounded(.toNearestOrEven) / 10
+            swings[i].distance_yd = ((metres / 0.9144) * 10).rounded(.toNearestOrEven) / 10
+        }
+    }
+
+    /// Measured shots, for the on-watch summary.
+    var measuredDistances: [Double] {
+        swings.compactMap(\.distance_yd)
+    }
+
+    var longestYards: Double? { measuredDistances.max() }
+
     var tempoMean: Double? {
         let vals = swings.compactMap { $0.tempo_ratio }
         guard !vals.isEmpty else { return nil }
@@ -117,6 +167,11 @@ final class SessionModel: ObservableObject {
     /// silently lost every session: `replaceItemAt` requires the destination to
     /// already exist, so the very first save threw, the error was swallowed, and
     /// the file was therefore never created — on any save, ever.
+    /// The rate actually achieved, measured over the session. Reporting a
+    /// hardcoded 100 Hz makes a session that ran at 60 look like one that ran
+    /// clean, and the tempo derived from it correspondingly trustworthy.
+    var achievedRateHz: Int = 100
+
     func autosave(rateHz: Int = 100) {
         guard let data = encoded(rateHz: rateHz) else { return }
         do {

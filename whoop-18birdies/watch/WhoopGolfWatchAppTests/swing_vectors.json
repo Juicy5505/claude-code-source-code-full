@@ -17321,6 +17321,162 @@
       "expect": null
     }
   ],
+  "shotDistance": [
+    {
+      "name": "a drive, north",
+      "from": [
+        32.8973,
+        -117.2531
+      ],
+      "to": [
+        32.89936,
+        -117.2531
+      ],
+      "expect_m": 229.0619,
+      "expect_yd": 250.5051
+    },
+    {
+      "name": "a wedge, east",
+      "from": [
+        32.8973,
+        -117.2531
+      ],
+      "to": [
+        32.8973,
+        -117.25165
+      ],
+      "expect_m": 135.3784,
+      "expect_yd": 148.0517
+    },
+    {
+      "name": "a diagonal approach",
+      "from": [
+        32.8973,
+        -117.2531
+      ],
+      "to": [
+        32.89836,
+        -117.25215
+      ],
+      "expect_m": 147.511,
+      "expect_yd": 161.32
+    },
+    {
+      "name": "identical points",
+      "from": [
+        32.8973,
+        -117.2531
+      ],
+      "to": [
+        32.8973,
+        -117.2531
+      ],
+      "expect_m": 0.0,
+      "expect_yd": 0.0
+    },
+    {
+      "name": "across the antimeridian",
+      "from": [
+        1.0,
+        179.9995
+      ],
+      "to": [
+        1.0,
+        -179.9995
+      ],
+      "expect_m": 111.1781,
+      "expect_yd": 121.5859
+    },
+    {
+      "name": "near the north pole",
+      "from": [
+        89.999,
+        0.0
+      ],
+      "to": [
+        89.999,
+        180.0
+      ],
+      "expect_m": 222.3902,
+      "expect_yd": 243.2088
+    },
+    {
+      "name": "southern hemisphere",
+      "from": [
+        -33.8688,
+        151.2093
+      ],
+      "to": [
+        -33.87,
+        151.2093
+      ],
+      "expect_m": 133.4341,
+      "expect_yd": 145.9253
+    },
+    {
+      "name": "a full hole apart",
+      "from": [
+        32.8973,
+        -117.2531
+      ],
+      "to": [
+        32.901,
+        -117.2531
+      ],
+      "expect_m": 411.4218,
+      "expect_yd": 449.9363
+    },
+    {
+      "name": "annotation pass with gaps",
+      "swings": [
+        {
+          "index": 1,
+          "location": {
+            "latitude": 32.8973,
+            "longitude": -117.2531
+          },
+          "distance_yd": 250.5
+        },
+        {
+          "index": 2,
+          "location": {
+            "latitude": 32.89936,
+            "longitude": -117.2531
+          },
+          "distance_yd": null
+        },
+        {
+          "index": 3,
+          "location": null,
+          "distance_yd": null
+        },
+        {
+          "index": 4,
+          "location": {
+            "latitude": 32.901,
+            "longitude": -117.2531
+          },
+          "distance_yd": null
+        },
+        {
+          "index": 5,
+          "location": {
+            "latitude": 32.901,
+            "longitude": null
+          },
+          "distance_yd": null
+        },
+        {
+          "index": 6,
+          "location": {
+            "latitude": 32.902,
+            "longitude": -117.2531
+          },
+          "distance_yd": null
+        }
+      ]
+    }
+  ],
   "threshold": [
     {
       "name": "stillness then a swing",

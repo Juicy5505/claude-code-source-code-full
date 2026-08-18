@@ -283,6 +283,49 @@ final class SwingDetectorTests: XCTestCase {
         }
     }
 
+    // MARK: - Shot distance
+
+    /// The watch now measures shots itself rather than only recording where you
+    /// stood, so the geodesy runs in two languages and has to agree. The poles,
+    /// the antimeridian and identical points are included because those are
+    /// where a hand-ported haversine goes wrong.
+    ///
+    /// NOTE: add `SessionModel.swift` to the test target for this section, or
+    /// delete it — the rest of the file only needs `SwingDetector.swift`.
+    func testHaversineMatchesTheReference() {
+        for row in section("shotDistance") {
+            guard let from = row["from"] as? [NSNumber],
+                  let to = row["to"] as? [NSNumber],
+                  let expected = optionalDouble(row["expect_m"])
+            else { continue }   // the annotation-pass row has no from/to
+            let actual = SessionModel.haversineMetres(
+                from[0].doubleValue, from[1].doubleValue,
+                to[0].doubleValue, to[1].doubleValue
+            )
+            XCTAssertEqual(actual, expected, accuracy: 0.01, """
+                haversine diverged from the Python reference.
+                  case:     \(row["name"] as? String ?? "?")
+                  expected: \(expected) m
+                  actual:   \(actual) m
+                """)
+        }
+    }
+
+    func testYardConversionMatchesTheReference() {
+        for row in section("shotDistance") {
+            guard let from = row["from"] as? [NSNumber],
+                  let to = row["to"] as? [NSNumber],
+                  let expected = optionalDouble(row["expect_yd"])
+            else { continue }
+            let metres = SessionModel.haversineMetres(
+                from[0].doubleValue, from[1].doubleValue,
+                to[0].doubleValue, to[1].doubleValue
+            )
+            XCTAssertEqual(metres / 0.9144, expected, accuracy: 0.01,
+                           "yard conversion diverged")
+        }
+    }
+
     // MARK: - Sanity
 
     func testMagnitudeMatchesEuclideanNorm() {

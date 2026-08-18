@@ -39,6 +39,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+IS_WINDOWS = os.name == "nt"
+IS_MACOS = sys.platform == "darwin"
+
 HOME = Path.home()
 REGISTRY = HOME / ".brain" / "vaults.json"
 MARKER = ".brain.json"
@@ -123,21 +126,40 @@ class vault_lock:
 
     def __enter__(self):
         try:
-            import fcntl
-
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self.handle = self.path.open("w")
-            fcntl.flock(self.handle, fcntl.LOCK_EX)
+            if IS_WINDOWS:
+                # Windows has no flock. msvcrt.locking is the equivalent, and it
+                # blocks rather than failing, which is what we want here.
+                import msvcrt
+
+                self.handle.write(" ")
+                self.handle.flush()
+                self.handle.seek(0)
+                msvcrt.locking(self.handle.fileno(), msvcrt.LK_LOCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(self.handle, fcntl.LOCK_EX)
         except (ImportError, OSError):
+            # Best-effort: losing an entry is better than a hook that fails.
+            if self.handle is not None:
+                self.handle.close()
             self.handle = None
         return self
 
     def __exit__(self, *exc):
         if self.handle is not None:
             try:
-                import fcntl
+                if IS_WINDOWS:
+                    import msvcrt
 
-                fcntl.flock(self.handle, fcntl.LOCK_UN)
+                    self.handle.seek(0)
+                    msvcrt.locking(self.handle.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(self.handle, fcntl.LOCK_UN)
             except (ImportError, OSError):
                 pass
             self.handle.close()
@@ -1034,12 +1056,24 @@ def _which(name: str) -> str | None:
     found = shutil.which(name)
     if found:
         return found
-    # Hermes and Graphify both install to ~/.local/bin, which is missing from
-    # PATH in exactly the situation where someone reports "it isn't working".
-    for extra in (HOME / ".local" / "bin", Path("/opt/homebrew/bin"), Path("/usr/local/bin")):
-        candidate = extra / name
-        if candidate.exists() and os.access(candidate, os.X_OK):
-            return str(candidate)
+    # These install outside PATH in exactly the situation where someone reports
+    # "it isn't working", so look where they actually land per platform.
+    if IS_WINDOWS:
+        extras = [
+            Path(os.environ.get("LOCALAPPDATA", HOME)) / "Programs",
+            Path(os.environ.get("APPDATA", HOME)) / "npm",
+            HOME / ".local" / "bin",
+        ]
+        suffixes = ["", ".exe", ".cmd", ".bat"]
+    else:
+        extras = [HOME / ".local" / "bin", Path("/opt/homebrew/bin"), Path("/usr/local/bin")]
+        suffixes = [""]
+
+    for extra in extras:
+        for suffix in suffixes:
+            candidate = extra / (name + suffix)
+            if candidate.exists() and os.access(candidate, os.X_OK):
+                return str(candidate)
     return None
 
 

@@ -40,6 +40,21 @@ final class MotionManager: ObservableObject {
     private var lastDetection = 0.0
     private var tripTime: TimeInterval?
 
+    /// Samples actually delivered, and when counting began — so the session
+    /// records the rate it ACHIEVED rather than the rate it asked for. A run
+    /// that managed 60 Hz should not be filed as a clean 100, because the
+    /// tempo derived from it is correspondingly coarser.
+    private var sampleCount = 0
+    private var firstSampleTime: TimeInterval?
+    private var lastSampleTime: TimeInterval?
+
+    var achievedRateHz: Int {
+        guard let first = firstSampleTime, let last = lastSampleTime,
+              last > first, sampleCount > 1
+        else { return Int(targetHz) }
+        return Int((Double(sampleCount - 1) / (last - first)).rounded())
+    }
+
     /// Called on the main actor for each detected swing, with the analysed
     /// window and the sample index within it that is the impact peak.
     var onSwing: ((SwingMetrics) -> Void)?
@@ -65,6 +80,10 @@ final class MotionManager: ObservableObject {
     }
 
     private func ingest(_ sample: MotionSample) {
+        sampleCount += 1
+        if firstSampleTime == nil { firstSampleTime = sample.t }
+        lastSampleTime = sample.t
+
         buffer.append(sample)
         if buffer.count > bufferMax { buffer.removeFirst(buffer.count - bufferMax) }
         detector.observe(sample.mag)
@@ -92,5 +111,8 @@ final class MotionManager: ObservableObject {
 
     func stop() {
         motion.stopDeviceMotionUpdates()
+        // Release the closure. It captures the session graph, and leaving it
+        // set keeps every manager alive for the life of the process.
+        onSwing = nil
     }
 }

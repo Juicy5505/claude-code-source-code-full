@@ -26,9 +26,9 @@ body was ready and what the round cost you*. Both on your body.
 - An **Apple ID**. The free tier works; the only cost is that a free-provisioned
   app **expires after 7 days** and must be rebuilt onto the watch. A paid
   Apple Developer account ($99/yr) lifts that to a year.
-- Your **Series 5** paired to your iPhone. It runs up to watchOS 9, which has
-  everything this uses (Core Motion device-motion at 100 Hz, HealthKit workout
-  sessions, GPS).
+- Your **Series 5** paired to your iPhone. It runs up to **watchOS 10**, and
+  everything here needs at most 8.5 — Core Motion device-motion at 100 Hz,
+  HealthKit workout sessions, and its own built-in GPS.
 
 The swing-detection maths is a faithful port of the Python in
 `../iphone/swing_metrics.py`, which is the tested reference (93 tests). If you
@@ -67,13 +67,24 @@ ever change the algorithm, change it there first, then mirror it into
 4. **Signing & Capabilities** (Watch App target):
    - **Signing** → pick your Apple ID team. Xcode auto-manages the profile.
    - **+ Capability → HealthKit**.
-   - **+ Capability → Background Modes** → tick **Workout processing**.
+   - **+ Capability → Background Modes** → tick **BOTH**:
+     - **Workout processing** — keeps the motion loop alive with the wrist down
+     - **Location updates** — keeps GPS alive with the wrist down
+
+   **Both, not just the first.** `allowsBackgroundLocationUpdates` is what makes
+   watchOS keep delivering fixes once the app is suspended, and setting it
+   requires the Location background mode. Without it you get positions for the
+   first shot or two, then nothing — no error, no warning, just a round with
+   two yardages in it. This is the single easiest way to end up with a useless
+   round, so check the boxes before you build.
 5. **Info.plist** (Watch App target) — add these usage strings, or the app
    crashes the first time it asks for access:
    - `NSHealthShareUsageDescription` → "Reads heart rate during a round."
    - `NSHealthUpdateUsageDescription` → "Records the round as a workout."
    - `NSMotionUsageDescription` → "Detects your golf swings."
    - `NSLocationWhenInUseUsageDescription` → "Measures shot distances by GPS."
+   - `NSLocationAlwaysAndWhenInUseUsageDescription` → "Tracks your round with
+     the screen off." (needed alongside the Location background mode)
 6. **Run**: select the Watch App scheme and your watch as the destination, press
    ▶. The first install, unlock the watch and, in **Settings → General → VPN &
    Device Management** on the *watch* (or via the prompt), **trust** your
@@ -94,6 +105,11 @@ and Tour Tempo frames), swing count, live HR, and running consistency. Tap
 The session is written on the watch as `swings.json` / `range_session.json` — the
 **same format** the phone logger produces, so `../iphone/analyze.py` and
 `round_report.py` read it identically.
+
+**It does not reach your Mac by itself.** watchOS app storage is not exposed to
+Finder or iCloud Drive, and nothing syncs it automatically. Either set
+`ingestURL` below, or the session stays on the watch. This used to be described
+as syncing to the iPhone, which it does not.
 
 ## Getting the data off the watch
 
