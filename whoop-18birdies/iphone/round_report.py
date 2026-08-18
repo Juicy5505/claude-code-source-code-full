@@ -81,12 +81,16 @@ def whoop_day(cache_path, date):
         # `or {}`. Gate on SCORED to mirror the TypeScript indexer exactly.
         if sleep and sleep.get("score_state") == "SCORED":
             score = sleep.get("score") or {}
-            stages = score.get("stage_summary")
-            if stages:
-                asleep_ms = (
-                    stages["total_in_bed_time_milli"]
-                    - stages["total_awake_time_milli"]
-                )
+            stages = score.get("stage_summary") or {}
+            # Subscripting these would raise KeyError on a SCORED record whose
+            # stage summary is partial — which WHOOP does emit — and take the
+            # ENTIRE round report down over one missing sleep field. The round
+            # analysis does not depend on sleep; losing it should cost the sleep
+            # line, nothing else.
+            in_bed = stages.get("total_in_bed_time_milli")
+            awake = stages.get("total_awake_time_milli")
+            if isinstance(in_bed, (int, float)) and isinstance(awake, (int, float)):
+                asleep_ms = in_bed - awake
                 # Only surface a positive figure; the TS returns null for ms<=0
                 # rather than printing a nonsensical negative sleep total.
                 if asleep_ms > 0:
@@ -131,22 +135,36 @@ def report(swings, cache_path=None):
     print("{} swings detected".format(len(swings)))
 
     measured = [s for s in swings if s.get("distance_yd") is not None]
+    # Chips and putts are marked `short_shot` by the pocket detector. They are
+    # real shots and belong in the count, but not in the club analysis: a
+    # cluster of 40-yard pitches reads as "a club" and manufactures a hundred-
+    # yard gap between it and the wedges, which is a wedge-and-a-chip, not a
+    # hole in the bag. They drag the average down for the same reason.
+    full = [s for s in measured if not s.get("short_shot")]
+    short = [s for s in measured if s.get("short_shot")]
 
     section("Distance")
-    if measured:
-        dists = [s["distance_yd"] for s in measured]
+    if full:
+        dists = [s["distance_yd"] for s in full]
         print("  shots measured : {}".format(len(dists)))
         print("  longest        : {:.0f} yd".format(max(dists)))
         print("  average        : {:.0f} yd".format(sum(dists) / len(dists)))
-        spread = consistency(measured, "distance_yd")
+        spread = consistency(full, "distance_yd")
         if spread:
             print("  spread         : {:.0f} yd stdev".format(spread["stdev"]))
+        if short:
+            print(
+                "  short game     : {} shot(s) under the full-swing threshold, "
+                "excluded below".format(len(short))
+            )
 
-        club_report = analyze_clubs([s["distance_yd"] for s in measured])
+        club_report = analyze_clubs(dists)
         if len(club_report["bands"]) >= 2:
             print("")
             for line in format_club_report(club_report):
                 print("  " + line)
+    elif short:
+        print("  {} short shot(s) only — too few full swings to gap a bag.".format(len(short)))
     else:
         print("  none — distance needs GPS on two consecutive swings.")
 

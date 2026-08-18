@@ -34,12 +34,22 @@ import math
 from shot_model import haversine_m, metres_to_yards
 
 # A stop must last at least this long to be a shot. Addressing a ball takes
-# several seconds; a pause to let a group through takes far longer, which is why
-# there is an upper bound too.
+# several seconds; a glance at your phone does not.
 MIN_STOP_S = 8.0
 
-# Longer than this and you were not hitting a shot — waiting on a tee, looking
-# for a ball, or standing at the halfway hut.
+# Stops longer than this are FLAGGED as long waits — a tee backed up, a search
+# for a ball, the halfway hut — but they are still stops.
+#
+# An earlier version discarded them, and that was badly wrong. A stop is not
+# only a shot; it is a BOUNDARY between shots. Waiting five minutes on a tee and
+# then hitting a drive still produced a drive, and dropping the stop merged the
+# shot before it and the shot after it into one phantom measurement spanning
+# both. In testing, a five-minute tee wait between two 251-yard drives deleted
+# both of them: the surviving stops were 460 yards apart, which the transition
+# rule then discarded as a walk between holes.
+#
+# Keeping a suspicious stop costs at worst one spurious shot, which is visible
+# and flagged. Dropping one silently destroys real ones. Keep it.
 MAX_STOP_S = 240.0
 
 # Fixes within this radius of the running centre count as the same stop. Consumer
@@ -91,14 +101,17 @@ MAX_SHOT_YD = 450.0
 class Stop:
     """A place you stood still long enough to have hit a shot."""
 
-    __slots__ = ("start_t", "end_t", "lat", "lon", "n_fixes")
+    __slots__ = ("start_t", "end_t", "lat", "lon", "n_fixes", "long_wait")
 
-    def __init__(self, start_t, end_t, lat, lon, n_fixes):
+    def __init__(self, start_t, end_t, lat, lon, n_fixes, long_wait=False):
         self.start_t = start_t
         self.end_t = end_t
         self.lat = lat
         self.lon = lon
         self.n_fixes = n_fixes
+        # True when the stop ran past MAX_STOP_S. Still a stop, still a shot
+        # boundary — just one worth looking at twice.
+        self.long_wait = long_wait
 
     @property
     def duration_s(self):
@@ -112,6 +125,7 @@ class Stop:
             "latitude": self.lat,
             "longitude": self.lon,
             "n_fixes": self.n_fixes,
+            "long_wait": self.long_wait,
         }
 
     def __repr__(self):  # pragma: no cover - debugging aid
@@ -210,8 +224,8 @@ def find_stops(
         if not group:
             return
         duration = group[-1]["t"] - group[0]["t"]
-        if not (min_stop_s <= duration <= max_stop_s):
-            return
+        if duration < min_stop_s:
+            return  # too brief to be addressing a ball
         lat = sum(f["latitude"] for f in group) / len(group)
         lon = sum(f["longitude"] for f in group) / len(group)
         # A genuine stop is compact. A group that sprawls further than the
@@ -222,7 +236,10 @@ def find_stops(
         )
         if spread > radius_m:
             return
-        stops.append(Stop(group[0]["t"], group[-1]["t"], lat, lon, len(group)))
+        stops.append(
+            Stop(group[0]["t"], group[-1]["t"], lat, lon, len(group),
+                 long_wait=duration > max_stop_s)
+        )
 
     for fix, stationary in zip(usable, flags):
         if stationary:
@@ -281,17 +298,81 @@ def detect_shots(fixes, **kwargs):
     return shots_from_stops(find_stops(fixes, **stop_kwargs), **shot_kwargs)
 
 
+def to_session(shots, mode="pocket", sample_rate_hz=1.0):
+    """Convert detected shots into the shared session schema.
+
+    One schema, one pipeline: `round_report.py`, `club_model.py`, `trends.py`
+    and `analyze.py` all read a `{"swings": [...]}` wrapper, and the ingest
+    server stores one. Emitting a second, pocket-only shape would mean teaching
+    every one of them about it — and would quietly diverge the moment either
+    side changed.
+
+    The fields a pocket cannot measure (peak_g, tempo) are simply absent rather
+    than zero or null-filled. Every consumer already treats a missing metric as
+    "no reading", which is the truth here; a zero would be a lie that averages.
+    """
+    swings = []
+    for shot in shots:
+        if shot["kind"] == "transition":
+            continue  # a walk between holes is not a shot anyone played
+        record = {
+            "index": len(swings) + 1,
+            "timestamp": _iso_local(shot["start_t"]),
+            "source": "gps-stop",
+            "stop_duration_s": shot["duration_s"],
+            "location": {
+                "latitude": shot["latitude"],
+                "longitude": shot["longitude"],
+                "horizontal_accuracy": None,
+            },
+        }
+        if shot["distance_yd"] is not None:
+            record["distance_yd"] = shot["distance_yd"]
+        if shot["kind"] == "short":
+            record["short_shot"] = True
+        if shot.get("long_wait"):
+            # You stood here a long time before hitting. The shot is real, but
+            # a long wait is also how a halfway hut or a lost-ball search looks,
+            # so it is worth being able to see them.
+            record["long_wait"] = True
+        swings.append(record)
+
+    return {
+        "mode": mode,
+        "sample_rate_hz": sample_rate_hz,
+        "auto_threshold": False,
+        "detector": "gps-stop-detection",
+        "min_resolvable_yd": MIN_RESOLVABLE_YD,
+        "swings": swings,
+    }
+
+
+def _iso_local(epoch_seconds):
+    """Local-time ISO stamp, matching what the swing logger writes.
+
+    Local rather than UTC, deliberately: the ingest server files a session under
+    its first record's calendar date, and every WHOOP join is on the local date.
+    An evening round stamped in UTC lands on tomorrow and silently falls out of
+    both.
+    """
+    import time
+
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(epoch_seconds))
+
+
 def summarise(shots):
     """Round-level numbers from detected shots. None when there is nothing to say."""
     full = [s["distance_yd"] for s in shots if s["kind"] == "shot"]
     short = [s for s in shots if s["kind"] == "short"]
     transitions = [s for s in shots if s["kind"] == "transition"]
+    long_waits = [s for s in shots if s.get("long_wait")]
 
     if not full:
         return {
             "n_shots": 0,
             "n_short": len(short),
             "n_transitions": len(transitions),
+            "n_long_waits": len(long_waits),
             "longest_yd": None,
             "mean_yd": None,
             "total_yd": None,
@@ -301,6 +382,7 @@ def summarise(shots):
         "n_shots": len(full),
         "n_short": len(short),
         "n_transitions": len(transitions),
+        "n_long_waits": len(long_waits),
         "longest_yd": round(max(full), 1),
         "mean_yd": round(sum(full) / len(full), 1),
         "total_yd": round(sum(full), 1),
@@ -351,6 +433,12 @@ def format_report(shots):
             "{} gap(s) over {:.0f} yd treated as walks between holes, not shots.".format(
                 stats["n_transitions"], MAX_SHOT_YD
             )
+        )
+    if stats.get("n_long_waits"):
+        lines.append(
+            "{} stop(s) ran over {:.0f} min — a backed-up tee, a ball search, or the "
+            "halfway hut. Kept, because a stop is a shot BOUNDARY even when it is "
+            "not itself a shot.".format(stats["n_long_waits"], MAX_STOP_S / 60)
         )
 
     lines.append("")

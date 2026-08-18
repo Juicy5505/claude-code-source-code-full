@@ -40,7 +40,7 @@ import console
 import location
 import motion
 
-from shot_detect import detect_shots, format_report as format_pocket_report
+from shot_detect import detect_shots, format_report as format_pocket_report, to_session
 from shot_model import fit_swings, shot_distances
 from swing_metrics import (
     AdaptiveThreshold,
@@ -91,9 +91,18 @@ SOUND_CUE = True
 # no strap is found within the scan timeout, the session runs without it.
 WHOOP_HR = True
 
-# Optional: POST each round to `wb serve`. Leave URL empty to log locally.
-INGEST_URL = ""      # e.g. "http://192.168.1.24:8790/rounds"
+# Optional: POST each session to `wb serve`. Leave the URL empty to log locally.
+#
+# Use the host's TAILSCALE address, not its LAN address, if you want this to
+# work from a golf course: `tailscale ip -4` on the Mac. wb serve speaks plain
+# HTTP with a bearer token, and the tailnet supplies the encrypted transport it
+# does not have. Do not port-forward it to the open internet instead.
+INGEST_URL = ""            # e.g. "http://100.101.102.103:8790"
 INGEST_TOKEN = ""
+
+# A failed upload is never fatal: the session is already on disk, and this
+# retries it on the next run rather than losing it. Courses have dead spots.
+PENDING_UPLOAD_PATH = os.path.expanduser("~/Documents/pending_uploads.json")
 
 LOG_PATH = os.path.expanduser("~/Documents/swings.json")
 RANGE_LOG_PATH = os.path.expanduser("~/Documents/range_session.json")
@@ -114,6 +123,11 @@ def read_location():
     except Exception:
         return None
     if not loc:
+        return None
+    # A fix missing either coordinate is not a partial fix, it is not a fix.
+    # Passing one on means every consumer has to re-check, and the one that
+    # forgets crashes mid-round.
+    if loc.get("latitude") is None or loc.get("longitude") is None:
         return None
     return {
         "latitude": loc.get("latitude"),
@@ -344,9 +358,19 @@ def run_session(mode):
                     loc = swing.get("location")
                     where = ""
                     if use_gps:
+                        # BOTH coordinates must be present. Checking only
+                        # latitude and then formatting longitude raises
+                        # TypeError on a partial fix, which kills the detection
+                        # loop mid-round — the session survives on disk, but
+                        # every subsequent shot is lost.
+                        has_fix = (
+                            loc is not None
+                            and loc.get("latitude") is not None
+                            and loc.get("longitude") is not None
+                        )
                         where = (
                             "  {:.5f}, {:.5f}".format(loc["latitude"], loc["longitude"])
-                            if loc and loc.get("latitude") is not None
+                            if has_fix
                             else "  no GPS fix"
                         )
                     bpm = swing.get("hr_bpm")
@@ -404,6 +428,10 @@ POCKET_LOG_PATH = os.path.expanduser("~/Documents/pocket_round.json")
 # battery over a four-hour round.
 POCKET_HZ = 1.0
 
+# How often the track is written to disk. See the loop for why this is not
+# "every fix".
+POCKET_SAVE_EVERY_S = 30.0
+
 
 def run_pocket_session():
     """Yardage with the phone in your pocket. No arm strap, no swing detection.
@@ -426,16 +454,25 @@ def run_pocket_session():
     started = time.time()
     pacer = PacedLoop(POCKET_HZ)
     last_report = started
+    last_save = started
 
     try:
         while True:
             fix = read_location()
-            if fix and fix.get("latitude") is not None:
+            if fix and fix.get("latitude") is not None and fix.get("longitude") is not None:
                 fix["t"] = time.time()
                 fixes.append(fix)
-                _save_pocket(fixes, started)
 
             now = time.time()
+            # Save periodically, NOT on every fix. The whole track is rewritten
+            # each time, so saving at 1 Hz over four hours is O(n^2) — about a
+            # hundred million records written, tens of gigabytes of flash wear,
+            # and a loop that slows down as the round goes on. Every 30 s costs
+            # at most 30 s of track if the phone dies.
+            if now - last_save >= POCKET_SAVE_EVERY_S:
+                _save_pocket(fixes, started)
+                last_save = now
+
             if now - last_report >= 60.0:
                 shots = detect_shots(fixes)
                 measured = [s for s in shots if s.get("distance_yd") is not None]
@@ -452,12 +489,14 @@ def run_pocket_session():
     finally:
         location.stop_updates()
         shots = detect_shots(fixes)
-        _save_pocket(fixes, started, shots)
+        session = to_session(shots, sample_rate_hz=POCKET_HZ)
+        _save_pocket(fixes, started, shots, session)
         print("\n" + format_pocket_report(shots))
         print("\nSaved to {}".format(POCKET_LOG_PATH))
+        upload_session(session)
 
 
-def _save_pocket(fixes, started, shots=None):
+def _save_pocket(fixes, started, shots=None, session=None):
     """Atomic save, same temp-then-rename as the swing log.
 
     Written on every fix rather than at the end: a four-hour round is a long
@@ -472,10 +511,101 @@ def _save_pocket(fixes, started, shots=None):
     }
     if shots is not None:
         payload["shots"] = shots
+    if session is not None:
+        # The shared schema, so analyze.py and round_report.py read this file
+        # directly without knowing pocket mode exists.
+        payload["swings"] = session["swings"]
+        payload["min_resolvable_yd"] = session["min_resolvable_yd"]
     tmp = POCKET_LOG_PATH + ".tmp"
     with open(tmp, "w") as handle:
         json.dump(payload, handle, indent=2)
     os.replace(tmp, POCKET_LOG_PATH)
+
+
+def upload_session(session):
+    """POST a finished session to `wb serve`, queueing it if that fails.
+
+    Best-effort by design. The session is already saved locally before this
+    runs, so a failure costs nothing but a retry — and the retry happens on the
+    next run rather than never, which is the difference between "the course had
+    no signal" and "that round is gone".
+    """
+    _flush_pending()
+    if not INGEST_URL or not session.get("swings"):
+        return
+    if not _deliver_session(session):
+        _queue_pending(session)
+        print("Upload failed — queued; it will retry next run.")
+
+
+def _deliver_session(session):
+    """Attempt delivery. Returns True when the session is SETTLED.
+
+    Settled is deliberately not the same as delivered. A 4xx means the server
+    understood the request and refused it — a bad token, a malformed body — and
+    retrying it every run forever would just fill the queue with something that
+    can never succeed. So a 4xx settles the session (dropped from the queue,
+    still on disk) while a network error or a 5xx does not, because those are
+    the ones a better connection actually fixes.
+    """
+    try:
+        import requests
+    except ImportError:
+        print("requests unavailable; keeping the session queued.")
+        return False
+    url = INGEST_URL.rstrip("/")
+    if not url.endswith("/swings"):
+        url += "/swings"
+    headers = {"Content-Type": "application/json"}
+    if INGEST_TOKEN:
+        headers["Authorization"] = "Bearer " + INGEST_TOKEN
+    try:
+        res = requests.post(url, json=session, headers=headers, timeout=15)
+    except Exception as exc:
+        print("Upload error: {}".format(exc))
+        return False
+    if res.status_code == 200:
+        print("Uploaded to {}".format(url))
+        return True
+    print("Upload rejected: HTTP {} {}".format(res.status_code, res.text[:200]))
+    if 400 <= res.status_code < 500:
+        print("  Not retrying — check INGEST_TOKEN and the URL. Session kept on disk.")
+        return True
+    return False
+
+
+def _read_pending():
+    try:
+        with open(PENDING_UPLOAD_PATH) as handle:
+            data = json.load(handle)
+        return data if isinstance(data, list) else []
+    except (IOError, ValueError):
+        return []
+
+
+def _write_pending(pending):
+    tmp = PENDING_UPLOAD_PATH + ".tmp"
+    with open(tmp, "w") as handle:
+        json.dump(pending, handle)
+    os.replace(tmp, PENDING_UPLOAD_PATH)
+
+
+def _queue_pending(session):
+    pending = _read_pending()
+    pending.append(session)
+    # Keep the queue bounded; an unbounded one silently eats the phone's disk.
+    _write_pending(pending[-20:])
+
+
+def _flush_pending():
+    pending = _read_pending()
+    if not pending or not INGEST_URL:
+        return
+    print("Retrying {} queued session(s)...".format(len(pending)))
+    remaining = [s for s in pending if not _deliver_session(s)]
+    _write_pending(remaining)
+    if not remaining:
+        print("Queue cleared.")
 
 
 # --- Summaries -----------------------------------------------------------------
