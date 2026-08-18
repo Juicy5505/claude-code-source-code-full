@@ -117,13 +117,21 @@ def build_swing(
     return samples, peak_index
 
 
-def with_attitude(samples: list, sweep_rad: float = 1.4) -> list:
-    """Attach a monotonic yaw sweep so attitude_sweep has something to measure."""
+def with_attitude(samples: list, sweep_rad: float = 1.4, start_rad: float = 0.0) -> list:
+    """Attach a monotonic yaw sweep so attitude_sweep has something to measure.
+
+    `start_rad` offsets the sweep so it can be made to cross the +/-pi wrap,
+    which is where the naive max-minus-min reads a 45-degree turn as 359.
+    """
     n = len(samples)
     out = []
     for i, (t, mag, _) in enumerate(samples):
         frac = i / max(1, n - 1)
-        out.append((t, mag, (0.1 * frac, 0.2 * frac, sweep_rad * frac)))
+        yaw = start_rad + sweep_rad * frac
+        # Core Motion reports yaw in (-pi, pi]; reproduce that wrapping here so
+        # the fixture exercises the same values a device would deliver.
+        yaw = math.atan2(math.sin(yaw), math.cos(yaw))
+        out.append((t, mag, (0.1 * frac, 0.2 * frac, yaw)))
     return out
 
 
@@ -231,10 +239,17 @@ def analyse_cases() -> list[dict]:
          dict(address_n=60, backswing_n=70, top_n=6, downswing_n=25, follow_n=30, walking=True), False),
         ("no attitude data at all",
          dict(address_n=40, backswing_n=75, top_n=5, downswing_n=25, follow_n=30), False),
+        # The yaw wrap. A rotation crossing +/-pi must report its real size, not
+        # ~360 degrees. Which swings hit this depends only on the compass
+        # direction you are aimed at, so it comes and goes for no visible reason.
+        ("rotation crossing the +/-pi yaw wrap",
+         dict(address_n=40, backswing_n=75, top_n=5, downswing_n=25, follow_n=30), "wrap"),
     ]
     for name, kwargs, attitude in specs:
         samples, peak = build_swing(**kwargs)
-        if attitude:
+        if attitude == "wrap":
+            samples = with_attitude(samples, start_rad=2.6)
+        elif attitude:
             samples = with_attitude(samples)
         result = sm.analyse_swing(samples, peak)
         out.append({

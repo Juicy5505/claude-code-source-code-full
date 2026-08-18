@@ -115,6 +115,34 @@ def find_transition(samples, peak_index, start_index=None):
     return start_index + quietest
 
 
+def _unwrap(values):
+    """Undo the +/-pi wrap in an angle sequence, in place of the raw values.
+
+    Core Motion reports roll and yaw in (-pi, pi], so a body turn that crosses
+    pi jumps straight to -pi. Taking max-min across the raw values then reads
+    that 0.02 rad step as 6.26 rad: a measured 45-degree shoulder turn comes
+    back as 359 degrees, which looks like a complete rotation rather than an
+    obvious error. Which holes it strikes depends only on the compass direction
+    you happen to be aimed at, so it appears and disappears for no visible
+    reason.
+
+    Standard phase unwrapping: whenever consecutive samples differ by more than
+    pi, the smaller interpretation is the true one, so shift by 2pi.
+    """
+    if not values:
+        return []
+    out = [values[0]]
+    offset = 0.0
+    for previous, current in zip(values, values[1:]):
+        delta = current - previous
+        if delta > math.pi:
+            offset -= 2 * math.pi
+        elif delta < -math.pi:
+            offset += 2 * math.pi
+        out.append(current + offset)
+    return out
+
+
 def attitude_sweep(samples, start_index, end_index):
     """Peak-to-peak roll/pitch/yaw travel over a span, in degrees.
 
@@ -135,8 +163,11 @@ def attitude_sweep(samples, start_index, end_index):
         return None
 
     def span(values):
-        return round(math.degrees(max(values) - min(values)), 1)
+        unwrapped = _unwrap(values)
+        return round(math.degrees(max(unwrapped) - min(unwrapped)), 1)
 
+    # Pitch is reported in [-pi/2, pi/2] and does not wrap, so unwrapping it is
+    # a no-op; running it anyway keeps the three axes handled identically.
     return {"roll_deg": span(rolls), "pitch_deg": span(pitches), "yaw_deg": span(yaws)}
 
 

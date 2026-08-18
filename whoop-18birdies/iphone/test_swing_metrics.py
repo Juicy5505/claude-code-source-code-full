@@ -3,6 +3,8 @@
 import math
 import unittest
 
+import swing_metrics
+
 from swing_metrics import (
     analyse_swing,
     attitude_sweep,
@@ -243,6 +245,41 @@ class TestNoAddressReturnsNone(unittest.TestCase):
         from swing_metrics import analyse_swing
         samples, peak = synth_swing(backswing_s=0.9, downswing_s=0.3, quiet_s=1.0)
         self.assertIsNotNone(analyse_swing(samples, peak)["tempo_ratio"])
+
+
+
+class TestAngleUnwrapping(unittest.TestCase):
+    """A body turn that crosses the +/-pi yaw boundary must not read as 359 deg."""
+
+    @staticmethod
+    def wrapped(theta):
+        return math.atan2(math.sin(theta), math.cos(theta))
+
+    def sweep(self, start_rad, step_rad, n):
+        samples = [
+            (i * 0.01, 1.0, (0.0, 0.0, self.wrapped(start_rad + i * step_rad)))
+            for i in range(n)
+        ]
+        return swing_metrics.attitude_sweep(samples, 0, len(samples) - 1)["yaw_deg"]
+
+    def test_a_turn_crossing_pi_reports_its_real_size(self):
+        # 40 samples x 0.02 rad = 0.78 rad = 44.7 deg, crossing pi part way.
+        self.assertAlmostEqual(self.sweep(2.9, 0.02, 40), 44.7, delta=0.2)
+
+    def test_a_turn_nowhere_near_the_boundary_is_unchanged(self):
+        self.assertAlmostEqual(self.sweep(0.0, 0.02, 40), 44.7, delta=0.2)
+
+    def test_a_turn_crossing_minus_pi_the_other_way(self):
+        self.assertAlmostEqual(self.sweep(-2.9, -0.02, 40), 44.7, delta=0.2)
+
+    def test_unwrap_leaves_a_monotonic_sequence_alone(self):
+        values = [0.0, 0.1, 0.2, 0.3]
+        self.assertEqual(swing_metrics._unwrap(values), values)
+
+    def test_unwrap_handles_empty_and_single_values(self):
+        self.assertEqual(swing_metrics._unwrap([]), [])
+        self.assertEqual(swing_metrics._unwrap([1.5]), [1.5])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

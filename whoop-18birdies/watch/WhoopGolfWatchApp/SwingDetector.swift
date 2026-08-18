@@ -162,12 +162,38 @@ enum SwingAnalysis {
         return best
     }
 
+    /// Undo the +/-pi wrap in an angle sequence.
+    ///
+    /// Core Motion reports yaw in (-pi, pi], so a body turn crossing pi jumps
+    /// straight to -pi. Taking max-min across the raw values reads that 0.02 rad
+    /// step as 6.26 rad, and a measured 45-degree shoulder turn comes back as
+    /// 359 degrees — which looks like a complete rotation rather than an obvious
+    /// error. Which swings it strikes depends only on the compass direction you
+    /// are aimed at, so it appears and disappears for no visible reason.
+    static func unwrap(_ values: [Double]) -> [Double] {
+        guard let first = values.first else { return [] }
+        var out = [first]
+        var offset = 0.0
+        for (previous, current) in zip(values, values.dropFirst()) {
+            let delta = current - previous
+            if delta > .pi {
+                offset -= 2 * .pi
+            } else if delta < -.pi {
+                offset += 2 * .pi
+            }
+            out.append(current + offset)
+        }
+        return out
+    }
+
     static func yawSweep(_ s: [MotionSample], _ start: Int, _ end: Int) -> Double? {
+        guard start <= min(end, s.count - 1) else { return nil }
         var yaws: [Double] = []
         for i in start...min(end, s.count - 1) {
             if let a = s[i].attitude { yaws.append(a.yaw) }
         }
-        guard let lo = yaws.min(), let hi = yaws.max() else { return nil }
+        let unwrapped = unwrap(yaws)
+        guard let lo = unwrapped.min(), let hi = unwrapped.max() else { return nil }
         return round((hi - lo) * 180 / .pi, 1)
     }
 
