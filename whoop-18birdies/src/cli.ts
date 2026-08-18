@@ -7,7 +7,19 @@ import { startServer } from "./server.ts";
 import { CSV_TEMPLATE, roundsFromCsv } from "./rounds/csv.ts";
 import { roundsFromAppleHealthExport } from "./rounds/appleHealth.ts";
 import { scoreToPar } from "./rounds/types.ts";
-import { indexPhysiology, linkRounds, summarise } from "./link/correlate.ts";
+import {
+  buildGolfRound,
+  formatGolfRound,
+  golfWorkouts,
+  sportNames,
+  whoopCoverage,
+} from "./link/golfRound.ts";
+import {
+  indexPhysiology,
+  linkRounds,
+  summarise,
+  whoopLocalDate,
+} from "./link/correlate.ts";
 import { computeReadiness } from "./link/readiness.ts";
 import { loadRounds, loadSnapshot, saveRounds, saveSnapshot } from "./store.ts";
 import { WhoopClient } from "./whoop/client.ts";
@@ -24,6 +36,7 @@ const USAGE = `wb — link WHOOP physiology to 18Birdies golf rounds
   wb rounds                      List stored rounds
   wb report                      Correlate WHOOP metrics against scoring
   wb readiness [YYYY-MM-DD]      Golf readiness for a date (default: today)
+  wb golf [YYYY-MM-DD|--list]    The round as WHOOP alone recorded it
   wb serve [--port N]            Ingest server for the iPhone Shortcut
 
 Setup: create an app at developer.whoop.com, then export
@@ -271,6 +284,67 @@ async function cmdServe(args: string[]): Promise<void> {
   await new Promise<void>(() => {});
 }
 
+/**
+ * The round as WHOOP alone recorded it — no watch, no phone on your arm.
+ *
+ * WHOOP's own activity detection logs the round; this joins it to the recovery,
+ * sleep and day strain around it and prints the lot. It is the complete
+ * physiological picture of a round, and deliberately says out loud what it
+ * cannot include, because "swing path" and "yardage" are the two things people
+ * most expect a wrist strap to know and it knows neither.
+ */
+async function cmdGolf(arg: string | undefined): Promise<void> {
+  const snapshot = await loadSnapshot();
+
+  if (arg === "--list" || arg === "-l") {
+    const names = sportNames(snapshot);
+    if (!names.length) {
+      console.log("No workouts cached. Run `wb sync` first.");
+      return;
+    }
+    console.log("Activity names in your WHOOP data:\n");
+    for (const { sport, count } of names) {
+      const marker = sport.toLowerCase().includes("golf") ? "  <- matched as golf" : "";
+      console.log(`  ${String(count).padStart(4)}  ${sport}${marker}`);
+    }
+    return;
+  }
+
+  const rounds = golfWorkouts(snapshot);
+  if (!rounds.length) {
+    console.log("No golf activity found in your cached WHOOP data.\n");
+    console.log("Two things to check:");
+    console.log("  1. `wb sync` — the round may not be downloaded yet.");
+    console.log("  2. `wb golf --list` — WHOOP may have logged it under another");
+    console.log("     name (an unlabelled activity, or 'Walking').  Relabel it in");
+    console.log("     the WHOOP app as Golf, then sync again.");
+    return;
+  }
+
+  const target = arg
+    ? rounds.find((w) => w.start.slice(0, 10) === arg || whoopDateOf(w) === arg)
+    : rounds[0];
+
+  if (!target) {
+    console.log(`No golf activity on ${arg}. Rounds on record:\n`);
+    for (const w of rounds.slice(0, 10)) {
+      console.log(`  ${whoopDateOf(w)}`);
+    }
+    return;
+  }
+
+  console.log(formatGolfRound(buildGolfRound(snapshot, target)));
+
+  if (!arg && rounds.length > 1) {
+    console.log(`\n${rounds.length - 1} earlier round(s): wb golf <YYYY-MM-DD>`);
+  }
+}
+
+/** A workout's local calendar date, for matching against a user-typed date. */
+function whoopDateOf(workout: { start: string; timezone_offset: string }): string {
+  return whoopLocalDate(workout.start, workout.timezone_offset);
+}
+
 async function main(): Promise<void> {
   const [cmd, ...args] = process.argv.slice(2);
 
@@ -294,6 +368,8 @@ async function main(): Promise<void> {
       return cmdReport();
     case "readiness":
       return cmdReadiness(args[0]);
+    case "golf":
+      return cmdGolf(args[0]);
     case "serve":
       return cmdServe(args);
     default:

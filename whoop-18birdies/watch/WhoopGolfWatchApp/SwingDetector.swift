@@ -29,9 +29,17 @@ enum TempoBench {
     static let fps = 30.0
 
     /// A swing's phases in Tour Tempo's 30 fps frame units, e.g. "24/8".
+    ///
+    /// Rounds half-to-even, matching Python's `"{:.0f}".format`. Swift's plain
+    /// `.rounded()` rounds half-away-from-zero, and the difference is not
+    /// academic here: a 0.75 s backswing sits dead centre of the elite
+    /// 0.7-0.9 s range and 0.75 x 30 is exactly 22.5 frames — "22" on the
+    /// phone, "23" on the watch, for the same swing.
     static func frames(_ backswingS: Double?, _ downswingS: Double?) -> String? {
         guard let b = backswingS, let d = downswingS else { return nil }
-        return "\(Int((b * fps).rounded()))/\(Int((d * fps).rounded()))"
+        let back = Int((b * fps).rounded(.toNearestOrEven))
+        let down = Int((d * fps).rounded(.toNearestOrEven))
+        return "\(back)/\(down)"
     }
 
     static func verdict(_ ratio: Double?) -> String {
@@ -104,6 +112,17 @@ enum SwingAnalysis {
     static let maxBackswingS = 2.0
     static let quietRunS = 0.15
 
+    /// Rounds to `places` decimals half-to-even, matching Python's `round()`.
+    ///
+    /// Every rounded value this file produces is compared against the Python
+    /// reference by `SwingDetectorTests`, so the tie-breaking rule has to be the
+    /// same one. Swift's bare `.rounded()` is half-away-from-zero and silently
+    /// disagrees on exact halves.
+    static func round(_ value: Double, _ places: Int) -> Double {
+        let scale = pow(10.0, Double(places))
+        return (value * scale).rounded(.toNearestOrEven) / scale
+    }
+
     static func magnitude(x: Double, y: Double, z: Double) -> Double {
         (x * x + y * y + z * z).squareRoot()
     }
@@ -149,13 +168,13 @@ enum SwingAnalysis {
             if let a = s[i].attitude { yaws.append(a.yaw) }
         }
         guard let lo = yaws.min(), let hi = yaws.max() else { return nil }
-        return ((hi - lo) * 180 / .pi * 10).rounded() / 10
+        return round((hi - lo) * 180 / .pi, 1)
     }
 
     /// Derives mechanics from a motion window. Fields that need phases the window
     /// does not contain come back nil rather than guessed.
     static func analyse(_ samples: [MotionSample], peak peakIndex: Int) -> SwingMetrics {
-        var m = SwingMetrics(peakG: (samples[peakIndex].mag * 100).rounded() / 100,
+        var m = SwingMetrics(peakG: round(samples[peakIndex].mag, 2),
                              backswingS: nil, downswingS: nil,
                              tempoRatio: nil, tempoFrames: nil, yawSweepDeg: nil)
 
@@ -165,10 +184,10 @@ enum SwingAnalysis {
 
         let backswing = samples[transition].t - samples[start].t
         let downswing = samples[peakIndex].t - samples[transition].t
-        m.backswingS = (backswing * 1000).rounded() / 1000
-        m.downswingS = (downswing * 1000).rounded() / 1000
+        m.backswingS = round(backswing, 3)
+        m.downswingS = round(downswing, 3)
         if downswing > 0.01 && backswing > 0.01 {
-            m.tempoRatio = ((backswing / downswing) * 100).rounded() / 100
+            m.tempoRatio = round(backswing / downswing, 2)
         }
         m.tempoFrames = TempoBench.frames(m.backswingS, m.downswingS)
         m.yawSweepDeg = yawSweep(samples, start, peakIndex)

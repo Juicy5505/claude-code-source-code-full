@@ -40,6 +40,7 @@ import console
 import location
 import motion
 
+from shot_detect import detect_shots, format_report as format_pocket_report
 from shot_model import fit_swings, shot_distances
 from swing_metrics import (
     AdaptiveThreshold,
@@ -396,6 +397,87 @@ def run_session(mode):
             post_round(swings)
 
 
+POCKET_LOG_PATH = os.path.expanduser("~/Documents/pocket_round.json")
+
+# How often to take a GPS fix in pocket mode. 1 Hz is plenty: the stop detector
+# works on displacement over ten-second windows, and a faster rate only burns
+# battery over a four-hour round.
+POCKET_HZ = 1.0
+
+
+def run_pocket_session():
+    """Yardage with the phone in your pocket. No arm strap, no swing detection.
+
+    You walk to your ball, stand over it, hit, and walk after it. The distance
+    the ball went is the distance between where you stopped and where you
+    stopped next — the same measurement Arccos and Shot Scope make, and it needs
+    nothing on your arm.
+
+    What it gives up is real and worth knowing before you rely on it: no tempo,
+    no peak force, and no shot under about 33 yards, because a chip and the walk
+    after it are indistinguishable from standing still. See shot_detect.py.
+    """
+    fixes = []
+    location.start_updates()
+    print("Pocket mode. Phone anywhere on you; GPS only.")
+    print("Stand over each ball for a few seconds before you hit — that pause")
+    print("is what marks the shot. Stop the script to finish.\n")
+
+    started = time.time()
+    pacer = PacedLoop(POCKET_HZ)
+    last_report = started
+
+    try:
+        while True:
+            fix = read_location()
+            if fix and fix.get("latitude") is not None:
+                fix["t"] = time.time()
+                fixes.append(fix)
+                _save_pocket(fixes, started)
+
+            now = time.time()
+            if now - last_report >= 60.0:
+                shots = detect_shots(fixes)
+                measured = [s for s in shots if s.get("distance_yd") is not None]
+                print(
+                    "  {:.0f} min   {} fix(es)   {} shot(s) so far".format(
+                        (now - started) / 60, len(fixes), len(measured)
+                    )
+                )
+                last_report = now
+            pacer.wait()
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        location.stop_updates()
+        shots = detect_shots(fixes)
+        _save_pocket(fixes, started, shots)
+        print("\n" + format_pocket_report(shots))
+        print("\nSaved to {}".format(POCKET_LOG_PATH))
+
+
+def _save_pocket(fixes, started, shots=None):
+    """Atomic save, same temp-then-rename as the swing log.
+
+    Written on every fix rather than at the end: a four-hour round is a long
+    time to be one crash away from losing everything, and the whole point of
+    pocket mode is that you are not watching the screen.
+    """
+    payload = {
+        "mode": "pocket",
+        "started": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(started)),
+        "sample_rate_hz": POCKET_HZ,
+        "fixes": fixes,
+    }
+    if shots is not None:
+        payload["shots"] = shots
+    tmp = POCKET_LOG_PATH + ".tmp"
+    with open(tmp, "w") as handle:
+        json.dump(payload, handle, indent=2)
+    os.replace(tmp, POCKET_LOG_PATH)
+
+
 # --- Summaries -----------------------------------------------------------------
 
 
@@ -588,13 +670,14 @@ def choose_mode():
 
     choice = console.alert(
         "Swing Logger",
-        "Detection self-calibrates. Calibrate mode just reports placement quality.",
-        "Range (no GPS)",
-        "Play a round",
-        "Calibrate (30s)",
+        "Pocket mode needs nothing strapped on: GPS only, yardages, no tempo.\n"
+        "Range and Round need the phone on your lead forearm for swing detection.",
+        "Pocket round (GPS only)",
+        "Range (arm strap)",
+        "Round (arm strap + GPS)",
         hide_cancel_button=False,
     )
-    return {1: "range", 2: "detect"}.get(choice, "calibrate")
+    return {1: "pocket", 2: "range", 3: "round"}.get(choice, "pocket")
 
 
 if __name__ == "__main__":
@@ -605,6 +688,8 @@ if __name__ == "__main__":
 
     if mode == "calibrate":
         calibrate()
+    elif mode == "pocket":
+        run_pocket_session()
     elif mode == "range":
         run_session("range")
     else:
