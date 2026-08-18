@@ -48,6 +48,33 @@ final class MotionManager: ObservableObject {
     private var firstSampleTime: TimeInterval?
     private var lastSampleTime: TimeInterval?
 
+    /// Rolling evidence that the wearer is on the move.
+    ///
+    /// Used to catch the watch reporting somebody else's position. On a Series
+    /// 5 — and every model before the Series 8 — watchOS uses the PAIRED
+    /// IPHONE'S GPS whenever the phone is in range, to save the watch's much
+    /// smaller battery. With the phone sitting in a golf cart thirty yards
+    /// away, that means every shot gets tagged at the cart rather than at the
+    /// ball, and nothing anywhere reports it.
+    ///
+    /// There is no API to force the watch's own receiver, and no field on a fix
+    /// that says which radio produced it. But the disagreement is detectable:
+    /// if the wrist has been moving like a walk for a minute and the reported
+    /// position has barely changed, the position is not coming from the wrist.
+    private var movementSamples = 0
+    private var walkingSamples = 0
+
+    /// Fraction of recent samples that look like walking rather than standing.
+    var walkingFraction: Double {
+        guard movementSamples > 0 else { return 0 }
+        return Double(walkingSamples) / Double(movementSamples)
+    }
+
+    func resetMovementWindow() {
+        movementSamples = 0
+        walkingSamples = 0
+    }
+
     var achievedRateHz: Int {
         guard let first = firstSampleTime, let last = lastSampleTime,
               last > first, sampleCount > 1
@@ -80,6 +107,12 @@ final class MotionManager: ObservableObject {
     }
 
     private func ingest(_ sample: MotionSample) {
+        movementSamples += 1
+        // Walking swings the arm; standing over a ball does not. 0.12 g sits
+        // above the noise floor of a still wrist and well below a swing, so it
+        // reads gait without counting the shot itself.
+        if sample.mag > 0.12 { walkingSamples += 1 }
+
         sampleCount += 1
         if firstSampleTime == nil { firstSampleTime = sample.t }
         lastSampleTime = sample.t

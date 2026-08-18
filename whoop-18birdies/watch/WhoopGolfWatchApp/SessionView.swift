@@ -33,6 +33,11 @@ struct SessionView: View {
     /// from real data.
     @State private var ending = false
 
+    /// Catches the watch reporting the phone's position instead of the wrist's.
+    /// A Series 5 uses the paired iPhone's GPS whenever it is in range, so with
+    /// the phone in the cart every shot would be measured cart-to-cart.
+    @State private var gpsCheck = GPSSourceCheck()
+
     init(mode: String, onFinish: @escaping () -> Void) {
         self.mode = mode
         self.onFinish = onFinish
@@ -101,7 +106,14 @@ struct SessionView: View {
         // with the wrist down — so taking only the newest threw away most of
         // the walked track before the route builder ever saw it.
         .onReceive(location.$batch) { batch in
-            if useGPS && !batch.isEmpty { workout.append(locations: batch) }
+            guard useGPS, !batch.isEmpty else { return }
+            workout.append(locations: batch)
+            if let warning = gpsCheck.update(location: batch.last,
+                                             walkingFraction: motion.walkingFraction) {
+                session.status = warning
+                WKInterfaceDevice.current().play(.failure)
+                motion.resetMovementWindow()
+            }
         }
         .onReceive(location.$lastError.compactMap { $0 }) { message in
             session.status = message
@@ -179,6 +191,10 @@ struct SessionView: View {
         await workout.stop()
 
         if useGPS {
+            // Record the warning IN the session, not just on screen. A round
+            // whose yardages are really cart-to-cart must not read as a clean
+            // round three weeks later when nobody remembers the watch face.
+            session.gpsWarning = gpsCheck.warning
             // Measure the shots. Without this the round saves a location on
             // every swing and a distance on none — the number the round was
             // tracked for, absent from the device you were wearing.

@@ -43,6 +43,10 @@
 			isa = PBXBuildFile;
 			fileRef = 485ED6A72C4F8F9FF1A1F923;
 		};
+		C72EA7ED0420A278E8C81887 = {
+			isa = PBXBuildFile;
+			fileRef = 761B1151B226D58D3BC1EA38;
+		};
 		EF707FC10300853CA2CCEF3A = {
 			isa = PBXBuildFile;
 			fileRef = 17EF13179755266BB7BCA2C0;
@@ -99,6 +103,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = SwingDetector.swift;
+			sourceTree = "<group>";
+		};
+		761B1151B226D58D3BC1EA38 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = GPSSourceCheck.swift;
 			sourceTree = "<group>";
 		};
 		82932C7EB9085B313681BDD1 = {
@@ -171,6 +181,7 @@
 				13B9A600BCF8CFC1D38A6503,
 				32162ADB778303E5DADD330D,
 				FCB1EB3D1773C0956685EB37,
+				761B1151B226D58D3BC1EA38,
 			);
 			path = WhoopGolfWatchApp;
 			sourceTree = "<group>";
@@ -300,6 +311,7 @@
 				1270091260CD90F1D9F3DFA2,
 				7830A5E72955368A450F50DF,
 				65F60E10E2F4B909FFF21D8C,
+				C72EA7ED0420A278E8C81887,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -34,6 +34,10 @@ struct SessionLog: Codable {
     let auto_threshold: Bool
     let sample_rate_hz: Int
     var swings: [Swing]
+    /// Set when the watch appeared to be reporting the phone's position rather
+    /// than the wrist's, which makes every distance in this file cart-to-cart.
+    /// Present in the log so the warning outlives the watch face it appeared on.
+    var gps_warning: String?
 }
 
 /// Observable state the SwiftUI views bind to, plus persistence and upload.
@@ -152,7 +156,8 @@ final class SessionModel: ObservableObject {
 
     private func encoded(rateHz: Int) -> Data? {
         let log = SessionLog(mode: mode, auto_threshold: true,
-                             sample_rate_hz: rateHz, swings: swings)
+                             sample_rate_hz: rateHz, swings: swings,
+                             gps_warning: gpsWarning)
         let enc = JSONEncoder()
         enc.outputFormatting = [.prettyPrinted]
         return try? enc.encode(log)
@@ -182,6 +187,10 @@ final class SessionModel: ObservableObject {
     /// hardcoded 100 Hz makes a session that ran at 60 look like one that ran
     /// clean, and the tempo derived from it correspondingly trustworthy.
     var achievedRateHz: Int = 100
+
+    /// Carried into the saved log, so a round with suspect positions is
+    /// identifiable weeks later rather than silently averaged in.
+    var gpsWarning: String?
 
     // MARK: - Upload, with a queue that survives a course with no signal
 

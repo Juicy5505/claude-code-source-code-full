@@ -44,6 +44,7 @@ APP_SOURCES = [
     "WorkoutManager.swift",
     "LocationManager.swift",
     "SessionModel.swift",
+    "GPSSourceCheck.swift",
 ]
 
 # The detector and the model, because the tests exercise both the swing maths
