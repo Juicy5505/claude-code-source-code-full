@@ -147,5 +147,54 @@ class TestSlopeAgainstSessionIndex(unittest.TestCase):
         self.assertAlmostEqual(tempo["trend"]["slope"], 0.5)
 
 
+class TestChipsDoNotContaminateTheDistanceTrend(unittest.TestCase):
+    """A chip is a real shot but not a club distance.
+
+    round_report.py excludes short shots from its distance stats and club
+    bands. trends.py did not, so the SAME golfer hitting the SAME drives was
+    reported as regressing whenever a round happened to include more short game.
+    """
+
+    def drives(self, n=10, yards=200.0):
+        return [{"distance_yd": yards} for _ in range(n)]
+
+    def chips(self, n=4, yards=20.0):
+        return [{"distance_yd": yards, "short_shot": True} for _ in range(n)]
+
+    def test_adding_short_game_does_not_manufacture_a_decline(self):
+        # Ten 200 yd drives, twice. The second round also got up and down four
+        # times. Nothing about the driving changed.
+        analysis = trends.analyze_trends([
+            self.drives(),
+            self.drives() + self.chips(),
+        ])
+        distance = analysis["distance_yd"]
+        self.assertEqual(distance["values"], [200.0, 200.0])
+        self.assertEqual(distance["trend"]["direction"], "flat")
+
+    def test_a_real_decline_is_still_reported(self):
+        # The exclusion must not blunt the signal it is protecting.
+        analysis = trends.analyze_trends([
+            self.drives(yards=220.0) + self.chips(),
+            self.drives(yards=190.0) + self.chips(),
+        ])
+        self.assertEqual(analysis["distance_yd"]["trend"]["direction"], "falling")
+        self.assertIs(analysis["distance_yd"]["trend"]["improving"], False)
+
+    def test_a_session_of_nothing_but_chips_has_no_distance_value(self):
+        # Not zero, and not the chip average — there is no club distance in it.
+        self.assertIsNone(
+            trends.session_value(self.chips(), trends.METRICS["distance_yd"])
+        )
+
+    def test_swing_metrics_still_include_short_shots(self):
+        # A chip has a real tempo and a real impact. Excluding it from those too
+        # would discard good data, and would disagree with round_report.py.
+        swings = [
+            {"distance_yd": 200.0, "peak_g": 10.0},
+            {"distance_yd": 20.0, "short_shot": True, "peak_g": 4.0},
+        ]
+        self.assertEqual(len(trends.usable_swings(swings, trends.METRICS["peak_g"])), 2)
+        self.assertEqual(len(trends.usable_swings(swings, trends.METRICS["distance_yd"])), 1)
 if __name__ == "__main__":
     unittest.main(verbosity=2)

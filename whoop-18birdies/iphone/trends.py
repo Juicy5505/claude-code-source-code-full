@@ -16,7 +16,17 @@ from swing_metrics import consistency
 METRICS = {
     "tempo_ratio": {"label": "tempo", "agg": "mean", "better": "target", "target": 3.0, "unit": ":1"},
     "tempo_consistency": {"label": "tempo consistency", "agg": "cv", "key": "tempo_ratio", "better": "lower", "unit": " cv"},
-    "distance_yd": {"label": "distance", "agg": "mean", "better": "higher", "unit": " yd"},
+    # `exclude_short` because a chip is not a club distance. Without it, a round
+    # in which you got up and down four times reports a LOWER mean distance than
+    # the identical round without those chips — and across sessions that reads as
+    # your driving falling off. Ten 200 yd drives average 200; the same ten plus
+    # four 20 yd chips average 148.6, so the trend line calls a golfer who did
+    # nothing different "regressing" by 26%.
+    #
+    # Only distance. A chip carries a real tempo and a real impact force, so it
+    # belongs in those metrics — and round_report.py already draws the line in
+    # exactly this place, which is why the two agree.
+    "distance_yd": {"label": "distance", "agg": "mean", "better": "higher", "unit": " yd", "exclude_short": True},
     "peak_g": {"label": "swing force", "agg": "mean", "better": "higher", "unit": " g"},
     "hr_bpm": {"label": "heart rate", "agg": "mean", "better": "lower", "unit": " bpm"},
 }
@@ -51,8 +61,19 @@ def linear_slope(values, xs=None):
     return sxy / sxx
 
 
+def usable_swings(swings, spec):
+    """The swings a metric is allowed to aggregate over.
+
+    See the `exclude_short` note on the distance metric for why this exists.
+    """
+    if spec.get("exclude_short"):
+        return [s for s in swings if not s.get("short_shot")]
+    return swings
+
+
 def session_value(swings, spec):
     """Reduces one session's swings to a single number for a metric, or None."""
+    swings = usable_swings(swings, spec)
     agg = spec["agg"]
     if agg == "cv":
         stats = consistency(swings, spec["key"])
