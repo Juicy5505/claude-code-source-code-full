@@ -64,8 +64,28 @@ where you stopped next. Arccos and Shot Scope measure distance the same way.
 **On the phone**, in [Pythonista](https://apps.apple.com/app/id1085978097):
 
 1. Copy the files from `iphone/` into Pythonista (see [IPHONE.md](IPHONE.md)).
-2. Run `swing_logger.py` → choose **Pocket round (GPS only)**.
-3. Play. Stop the script when you finish.
+2. **Run `selftest.py` first.** Thirty seconds, in the garden or on the
+   practice green. It answers the only question that matters before you drive
+   anywhere: *if I start the logger now, will it record anything?*
+
+   ```
+   [PASS] Motion sensor      reading, peak 1.02 g while held
+   [PASS] Sample rate        98 Hz
+   [PASS] GPS                accuracy 5 m
+   [WARN] Auto-Lock          cannot be checked from code
+          Settings → Display & Brightness → Auto-Lock → Never. iOS stops
+          delivering motion and location the moment the screen sleeps.
+   [PASS] Upload target      server reachable at 100.101.102.103
+
+   READY, with 1 thing to be aware of: Auto-Lock
+   ```
+
+   Every check it runs corresponds to a way a session has silently recorded
+   nothing: motion permission never granted, precise location off, GPS accuracy
+   worse than the detector accepts, or an ingest URL that works at home and
+   fails at the course.
+3. Run `swing_logger.py` → choose **Pocket round (GPS only)**.
+4. Play. Stop the script when you finish.
 
 You get a report on the phone, and a log at `~/Documents/pocket_round.json`.
 
