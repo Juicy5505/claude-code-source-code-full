@@ -1062,6 +1062,70 @@ def _version(cmd: list[str]) -> str | None:
     return text[0][:60] if text else ""
 
 
+
+# Paths that mean a vault lives in a syncing cloud folder. Obsidian officially
+# supports iCloud, and the vault working from several machines is the point —
+# but the failure mode below is specific and silent, so it is worth naming.
+CLOUD_MARKERS = (
+    ("iCloud", "Library/Mobile Documents"),
+    ("iCloud", "Mobile Documents/com~apple~CloudDocs"),
+    ("Dropbox", "Dropbox"),
+    ("Google Drive", "Google Drive"),
+    ("OneDrive", "OneDrive"),
+)
+
+
+def _cloud_provider(path: Path) -> str | None:
+    text = str(path)
+    for name, marker in CLOUD_MARKERS:
+        if marker in text:
+            return name
+    return None
+
+
+def _evicted(vault: Path, limit: int = 2000) -> list[Path]:
+    """Notes iCloud has evicted to save space.
+
+    With "Optimize Mac Storage" on, iCloud replaces a file's contents with a
+    `.name.md.icloud` placeholder and REMOVES the real name from the directory.
+    Nothing errors — a glob for `*.md` simply does not see it. For a vault whose
+    whole job is being read at session start, that is silent amnesia: the note
+    exists, the recall omits it, and nothing anywhere says so.
+    """
+    found = []
+    for path in vault.rglob(".*.icloud"):
+        if ".obsidian" in path.parts:
+            continue
+        found.append(path)
+        if len(found) >= limit:
+            break
+    return found
+
+
+def _cloud_row(vault: Path) -> tuple[str, bool, str]:
+    provider = _cloud_provider(vault)
+    if not provider:
+        return ("vault storage", True, "on local disk")
+
+    evicted = _evicted(vault)
+    if not evicted:
+        return (
+            "vault storage",
+            True,
+            f"{provider}, fully downloaded — keep it that way with "
+            f"Finder → right-click the vault → Keep Downloaded",
+        )
+    names = ", ".join(p.name.lstrip(".").removesuffix(".icloud") for p in evicted[:3])
+    more = f" (+{len(evicted) - 3} more)" if len(evicted) > 3 else ""
+    return (
+        "vault storage",
+        False,
+        f"{provider}: {len(evicted)} note(s) evicted and INVISIBLE to recall "
+        f"— {names}{more}. Fix: right-click the vault in Finder → Keep "
+        f"Downloaded, or run `brctl download <vault>`",
+    )
+
+
 def cmd_doctor(args) -> int:
     rows: list[tuple[str, bool, str]] = []
 
@@ -1074,6 +1138,9 @@ def cmd_doctor(args) -> int:
         rows.append(("vault", False, f"registered but missing: {vault} — re-run `brain init`"))
     else:
         rows.append(("vault", False, "not bound here — run `brain init`"))
+
+    if vault and vault.exists():
+        rows.append(_cloud_row(vault))
 
     app = Path("/Applications/Obsidian.app")
     rows.append(

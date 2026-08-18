@@ -106,9 +106,10 @@ brain list                 # every vault on this machine
 python3 second-brain/test_brain.py
 ```
 
-33 tests, no dependencies, run against real temporary vaults on disk — because
+46 tests, no dependencies, run against real temporary vaults on disk — because
 the failure modes that matter here are filesystem ones: clobbering a note,
-duplicating a section, losing the binding between a project and its vault.
+duplicating a section, losing the binding between a project and its vault, and
+a note evicted by iCloud that nothing reports as missing.
 
 ## The rest of the toolchain
 
@@ -125,6 +126,16 @@ working.
 | **Canva** | make the deck, the post, the brand asset |
 | **Hermes** | a second agent; reach me over messages |
 | **OpenClaw** | do something on my machine while I'm away |
+
+## Keeping the vault in iCloud
+
+Supported and worth doing — it is how the same notes reach your phone. One
+setting matters: right-click the vault in Finder → **Keep Downloaded**, or
+macOS evicts notes to save space and they become invisible to recall with no
+error anywhere. `brain doctor` checks for it.
+
+[ICLOUD.md](ICLOUD.md) covers that, rebinding a vault you moved, and why the
+git repo should stay on local disk.
 
 ## Honest limits
 

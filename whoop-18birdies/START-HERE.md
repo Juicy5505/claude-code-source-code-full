@@ -170,6 +170,18 @@ format) or post them to `wb serve` from a Shortcut.
 
 ---
 
+## If you keep things in iCloud
+
+`~/.whoop-18birdies` syncs fine — set `WB_DATA_DIR` to wherever you moved it and
+put that in `~/.zshrc`. Note that `tokens.json` holds your WHOOP refresh token,
+so syncing it puts that on Apple's servers; leave the directory local if you
+would rather it did not.
+
+**Keep the git clone on local disk**, though. iCloud evicts cold files, and
+git's object files are exactly that — an evicted object is a missing object.
+The repo is already synced by git itself. See
+[../second-brain/ICLOUD.md](../second-brain/ICLOUD.md).
+
 ## If something does not work
 
 ```bash

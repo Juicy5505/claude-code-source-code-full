@@ -431,6 +431,94 @@ class TestToolDedupe(VaultCase):
         self.assertIn("`src/app.ts`", actions)
 
 
+class TestCloudStorage(VaultCase):
+    """A vault in iCloud is supported and common — with one silent failure.
+
+    "Optimize Mac Storage" evicts a file's contents and replaces the name with
+    a `.name.md.icloud` placeholder, removing the real name from the directory.
+    Nothing errors; a glob for `*.md` simply does not see it. For a vault whose
+    whole job is being read at session start, that is silent amnesia.
+    """
+
+    def evict(self, path):
+        """Do to a note exactly what iCloud does."""
+        placeholder = path.parent / f".{path.name}.icloud"
+        placeholder.write_bytes(b"")
+        path.unlink()
+        return placeholder
+
+    def test_a_local_vault_reports_local(self):
+        out = self.brain("doctor", check=False).stdout
+        self.assertIn("vault storage", out)
+        self.assertIn("local disk", out)
+
+    def test_eviction_drops_a_decision_from_the_settled_list(self):
+        """What eviction actually costs, stated precisely.
+
+        The dangling LINK survives in the session log, so a casual look still
+        shows the title. What disappears is the decision from the curated
+        "settled — do not re-litigate" list, and with it the reasoning, the
+        rejected alternatives and the revisit condition. A future session sees
+        a title it cannot read and no warning that the note is unreachable —
+        which is worse than the note being plainly absent.
+        """
+        self.brain("decision", "Settled thing")
+        before = self.brain("recall").stdout
+        self.assertIn("Decisions already made", before)
+        self.assertIn("02-Decisions/", before)
+
+        note = next((self.vault / "02-Decisions").glob("*.md"))
+        body = note.read_text(encoding="utf-8")
+        self.assertIn("Revisit if", body)
+        self.evict(note)
+
+        after = self.brain("recall").stdout
+        # The curated list no longer offers it...
+        self.assertNotIn("Decisions already made", after)
+        # ...and the note itself is unreadable, though a link to it remains.
+        self.assertFalse(note.exists())
+
+    def test_doctor_flags_evicted_notes(self):
+        import shutil
+
+        # Relocate the vault under an iCloud-shaped path and rebind.
+        icloud = Path(self.tmp.name) / "home" / "Library" / "Mobile Documents"
+        icloud.mkdir(parents=True)
+        moved = icloud / "vault"
+        shutil.move(str(self.vault), str(moved))
+        self.brain("init", "--vault", str(moved))
+        self.vault = moved
+
+        self.brain("decision", "Something important")
+        clean = self.brain("doctor", check=False).stdout
+        self.assertIn("iCloud", clean)
+        self.assertIn("fully downloaded", clean)
+
+        self.evict(next((self.vault / "02-Decisions").glob("*.md")))
+        flagged = self.brain("doctor", check=False).stdout
+        self.assertIn("evicted", flagged)
+        self.assertIn("INVISIBLE", flagged)
+        self.assertIn("Keep Downloaded", flagged)
+
+    def test_moving_a_vault_is_recoverable_with_history_intact(self):
+        import shutil
+
+        self.brain("decision", "A choice worth keeping")
+        destination = Path(self.tmp.name) / "relocated"
+        shutil.move(str(self.vault), str(destination))
+
+        # Before rebinding, every command should say what happened rather than
+        # silently starting a fresh vault.
+        stranded = self.brain("log", "anything", check=False)
+        self.assertEqual(stranded.returncode, 1)
+        self.assertIn("registered but missing", stranded.stderr)
+
+        self.brain("init", "--vault", str(destination))
+        self.vault = destination
+        self.assertIn("A choice worth keeping", self.brain("recall").stdout)
+        self.brain("log", "writing works again")
+
+
 class TestSafety(VaultCase):
     def test_a_corrupt_registry_fails_loud_instead_of_orphaning_vaults(self):
         registry = Path(self.env["HOME"]) / ".brain" / "vaults.json"
