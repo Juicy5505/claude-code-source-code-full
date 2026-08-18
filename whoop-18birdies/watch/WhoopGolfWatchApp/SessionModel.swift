@@ -54,6 +54,12 @@ final class SessionModel: ObservableObject {
 
     init(mode: String) {
         self.mode = mode
+        // LOCAL time, deliberately. ISO8601DateFormatter defaults to UTC, and
+        // the ingest server files a session under the first swing's calendar
+        // date — so an evening round in the US would be stored under tomorrow
+        // and silently fall out of the WHOOP join, which matches physiology on
+        // the local date. Same bug class as the tee-time fix in rounds/ingest.
+        iso.timeZone = TimeZone.current
         iso.formatOptions = [.withInternetDateTime]
     }
 
@@ -102,18 +108,23 @@ final class SessionModel: ObservableObject {
         return try? enc.encode(log)
     }
 
-    /// Atomic per-swing save, mirroring the logger's temp-file-then-replace so an
-    /// interrupted write can never truncate the session already recorded.
+    /// Atomic per-swing save, so an interrupted write can never truncate the
+    /// session already recorded.
+    ///
+    /// `Data.write(options: .atomic)` is already a write-to-temp-then-rename on
+    /// Apple platforms, which is why there is no manual temp file here. An
+    /// earlier version did the dance by hand with `replaceItemAt`, and that
+    /// silently lost every session: `replaceItemAt` requires the destination to
+    /// already exist, so the very first save threw, the error was swallowed, and
+    /// the file was therefore never created — on any save, ever.
     func autosave(rateHz: Int = 100) {
         guard let data = encoded(rateHz: rateHz) else { return }
-        let url = fileURL()
-        let tmp = url.appendingPathExtension("tmp")
         do {
-            try data.write(to: tmp, options: .atomic)
-            _ = try? FileManager.default.replaceItemAt(url, withItemAt: tmp)
+            try data.write(to: fileURL(), options: .atomic)
         } catch {
             // A failed save must never crash a live session; the previous good
-            // file survives.
+            // file survives, and the session is still in memory for upload.
+            status = "save failed — session still in memory"
         }
     }
 

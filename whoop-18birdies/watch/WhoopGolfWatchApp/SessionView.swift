@@ -126,7 +126,9 @@ struct SessionView: View {
         session.running = false
         motion.stop()
         if useGPS { location.stop() }
-        workout.stop()
+        // Awaited: the route is attached after the workout is saved, and
+        // dismissing before that completes loses the GPS track.
+        await workout.stop()
         session.autosave()
         await session.upload(rateHz: 100)
         dismiss()

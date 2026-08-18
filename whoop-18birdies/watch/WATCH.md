@@ -117,6 +117,33 @@ python3 iphone/analyze.py ~/.whoop-18birdies/watch-sessions/*.json
 Leave `ingestURL` empty to keep sessions on the watch only and pull them off
 another way.
 
+### If your phone is wired and VPN'd to the Mac
+
+That changes what host to point at, and makes this work off your home network —
+which matters, because a golf course is not your home network.
+
+**Over the VPN.** Use the Mac's VPN-assigned address rather than its LAN one:
+
+```bash
+# on the Mac, find the address the VPN gave it
+ifconfig | grep -A2 'utun\|tun0' | grep 'inet '
+```
+
+Then set `ingestURL = "http://<that-address>:8790/swings"`. The watch reaches it
+from anywhere the VPN reaches, and — importantly — this is the *right* way to do
+it. `wb serve` speaks plain HTTP with a bearer token; a VPN gives you the
+encrypted transport it does not have. **Do not port-forward it to the open
+internet instead.** That is the same endpoint without the encryption.
+
+**Over the wire.** USB gets the data off the *phone*, not the watch — the watch
+has no wired path at all, so the VPN route above is the only one for watch
+sessions. For the Pythonista phone logger, USB is the simplest option there is:
+connect the iPhone, open Finder → the device → **Files** → **Pythonista 3**, and
+drag `swings.json` straight out. No server, no token, no network.
+
+The watch still syncs its own copy through the paired iPhone regardless; the
+upload is a convenience, not the only path.
+
 ---
 
 ## How the round reaches WHOOP
@@ -166,6 +193,19 @@ the physiology, the swing analytics live in the log this app writes, and
   SwiftUI) get their first compile on your Mac. Expect to fix a small thing or
   two — API signature nits are normal on first build. Paste me any Xcode error
   and I will correct it.
+
+  A pre-build audit did find and fix four real defects that no compiler would
+  have caught, all of them silent in the worst way:
+
+  | Was | Effect |
+  |---|---|
+  | `autosave` used `replaceItemAt`, which requires the destination to exist | the file was never created, so **every session was lost** unless uploaded |
+  | `ISO8601DateFormatter` defaulted to UTC | an evening round filed under **tomorrow**, dropping out of the WHOOP join |
+  | motion ran on a default (concurrent) `OperationQueue` | samples could arrive **out of order**, corrupting the tempo maths |
+  | `stop()` finished the route in a callback after the view dismissed | the manager deallocated first, so the round reached WHOOP **without its GPS** |
+
+  The first one is why this audit was worth doing before your first round rather
+  than after it.
 - **Still no swing path / face angle / club speed.** One wrist sensor measures
   *when* and *how hard*, not where the clubface points. That is a launch-monitor
   measurement, on the watch exactly as on the phone.

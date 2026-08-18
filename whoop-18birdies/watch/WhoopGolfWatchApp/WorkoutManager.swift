@@ -92,12 +92,32 @@ final class WorkoutManager: NSObject, ObservableObject {
     /// Ends the session and saves the workout. The route is attached to the
     /// finished workout — it must be finished AFTER the workout exists, or the
     /// track is orphaned and WHOOP imports the round without its GPS.
-    func stop() {
+    ///
+    /// Async, and awaited by the caller before it dismisses the view. The
+    /// callback version of this looked correct and was not: the view dismissed
+    /// as soon as `stop()` returned, the manager deallocated, and the weakly
+    /// captured `self` inside HealthKit's completion handler was already nil by
+    /// the time the workout finished — so `finishRoute` never ran and every
+    /// round imported into WHOOP without its GPS track. Holding the builders in
+    /// locals rather than reading them back off `self` is the other half of the
+    /// fix; they must outlive the object.
+    func stop() async {
         session?.end()
-        builder?.endCollection(withEnd: Date()) { [weak self] _, _ in
-            self?.builder?.finishWorkout { workout, _ in
-                guard let self, let workout else { return }
-                self.routeBuilder?.finishRoute(with: workout, metadata: nil) { _, _ in }
+        guard let builder else { return }
+        let route = routeBuilder
+
+        let workout: HKWorkout? = await withCheckedContinuation { continuation in
+            builder.endCollection(withEnd: Date()) { _, _ in
+                builder.finishWorkout { workout, _ in
+                    continuation.resume(returning: workout)
+                }
+            }
+        }
+
+        guard let workout, let route else { return }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            route.finishRoute(with: workout, metadata: nil) { _, _ in
+                continuation.resume()
             }
         }
     }

@@ -15,7 +15,18 @@ import CoreMotion
 @MainActor
 final class MotionManager: ObservableObject {
     private let motion = CMMotionManager()
-    private let queue = OperationQueue()
+
+    /// Serial, deliberately. A default OperationQueue is concurrent, so motion
+    /// callbacks can land on several threads at once and reach `ingest` out of
+    /// order. The buffer is walked backwards in time by `findMotionStart`, so
+    /// out-of-order samples do not merely add noise — they corrupt the tempo
+    /// maths, which is exactly the reading that has been unreliable before.
+    private let queue: OperationQueue = {
+        let q = OperationQueue()
+        q.maxConcurrentOperationCount = 1
+        q.name = "com.whoopgolf.motion"
+        return q
+    }()
 
     private let targetHz = 100.0
     private let bufferSeconds = 2.5

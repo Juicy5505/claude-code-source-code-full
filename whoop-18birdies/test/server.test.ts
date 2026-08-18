@@ -242,6 +242,27 @@ describe("ingest server", () => {
     expect(second.savedAs).toBe("round-2026-08-12-2");
   });
 
+  test("files a watch session under its LOCAL date, not the UTC one", async () => {
+    // The watch stamps swings in local time with an offset. An evening round in
+    // the US is the next day in UTC, so filing on the UTC date would store it
+    // under tomorrow and drop it out of the WHOOP join, which matches
+    // physiology on the local calendar date. Same bug class as the tee-time
+    // fix in rounds/ingest — this pins the watch side of it.
+    const res = await handle(
+      new Request("http://localhost/swings", {
+        method: "POST",
+        headers: { authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({
+          mode: "round",
+          swings: [{ index: 1, timestamp: "2026-08-17T18:43:44-07:00", peak_g: 11.4 }],
+        }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    // 18:43 -07:00 is 01:43Z on the 18th. The 17th is the correct answer.
+    expect(await res.json()).toMatchObject({ savedAs: "round-2026-08-17" });
+  });
+
   test("rejects a swing payload with no swings", async () => {
     const res = await handle(
       new Request("http://localhost/swings", {
