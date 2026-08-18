@@ -1,0 +1,102 @@
+name: whoop-18birdies
+
+# Deliberately SCOPED to this project's own paths, and deliberately separate
+# from ci.yml.
+#
+# ci.yml is disabled for push/pull_request on purpose — the repo-wide typecheck
+# and lint do not currently pass — and re-enabling it would fail on pre-existing
+# issues that have nothing to do with this code. This workflow gates only
+# whoop-18birdies and second-brain, so their suites run on every change to them
+# without dragging the rest of the repository into it.
+
+on:
+  push:
+    paths:
+      - "whoop-18birdies/**"
+      - "second-brain/**"
+      - ".github/workflows/whoop-18birdies.yml"
+  pull_request:
+    paths:
+      - "whoop-18birdies/**"
+      - "second-brain/**"
+      - ".github/workflows/whoop-18birdies.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: whoop-18birdies
+        run: bun install --frozen-lockfile
+
+      # Bun tests, tsc, the eight Python suites, and a check that the Swift
+      # golden vectors still match the Python reference they were generated
+      # from. That last one is the guard against the watch port silently
+      # drifting away from the tested implementation.
+      - name: whoop-18birdies suite
+        working-directory: whoop-18birdies
+        run: ./run-tests.sh
+
+      # No dependencies, and it must stay that way — it installs itself into a
+      # user's ~/.claude, so anything it needs is something they would need too.
+      - name: second-brain suite
+        run: python3 second-brain/test_brain.py
+
+      - name: Shell scripts parse
+        run: |
+          bash -n whoop-18birdies/run-tests.sh
+          bash -n second-brain/install.sh
+
+      # The Python here runs on a phone under Pythonista, where there is no
+      # package manager. An accidental `import requests` at module scope would
+      # break the logger on the device and pass every test on this runner.
+      - name: No third-party imports in the phone code
+        run: |
+          python3 - <<'EOF'
+          import ast, pathlib, sys
+
+          # Pythonista ships these; everything else must be stdlib or local.
+          DEVICE = {"motion", "location", "console", "ui", "sound", "cb", "objc_util"}
+          LOCAL = {p.stem for p in pathlib.Path("whoop-18birdies/iphone").glob("*.py")}
+          ALLOWED = DEVICE | LOCAL | set(sys.stdlib_module_names)
+
+          bad = []
+          for path in sorted(pathlib.Path("whoop-18birdies/iphone").glob("*.py")):
+              tree = ast.parse(path.read_text(), filename=str(path))
+              # MODULE LEVEL ONLY. An import inside a function is deliberate and
+              # fine — it is how the optional upload path reaches `requests`
+              # without making the whole logger refuse to start on a phone that
+              # does not have it.
+              for node in tree.body:
+                  names = []
+                  if isinstance(node, ast.Import):
+                      names = [a.name.split(".")[0] for a in node.names]
+                  elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                      names = [node.module.split(".")[0]]
+                  for name in names:
+                      if name not in ALLOWED:
+                          bad.append(f"{path}:{node.lineno}: {name}")
+
+          if bad:
+              print("Non-stdlib imports found in phone code:")
+              print("\n".join(f"  {b}" for b in bad))
+              sys.exit(1)
+          print(f"{len(LOCAL)} phone modules: stdlib and local imports only")
+          EOF
