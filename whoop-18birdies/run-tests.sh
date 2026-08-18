@@ -66,6 +66,17 @@ for file in iphone/test_*.py; do
 done
 [ "$TOTAL" -gt 0 ] && printf '    \033[32m--\033[0m   %s python test(s) total\n' "$TOTAL"
 
+# --- Xcode project ------------------------------------------------------------
+
+say "Xcode project generates and validates"
+if OUT=$(python3 watch/test_generate_project.py 2>&1); then
+  COUNT=$(echo "$OUT" | grep -oE '^Ran [0-9]+' | grep -oE '[0-9]+' || echo 0)
+  pass "$COUNT check(s) — parses as a plist, no dangling refs, settings correct"
+else
+  echo "$OUT" | tail -25
+  fail "watch project"
+fi
+
 # --- Golden vectors -----------------------------------------------------------
 
 say "Swift golden vectors are current"

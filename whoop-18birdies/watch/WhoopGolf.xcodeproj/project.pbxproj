@@ -1,0 +1,460 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1270091260CD90F1D9F3DFA2 = {
+			isa = PBXBuildFile;
+			fileRef = 13B9A600BCF8CFC1D38A6503;
+		};
+		1561B9520AC1B8A409B9B796 = {
+			isa = PBXBuildFile;
+			fileRef = C90E18D7DD9B8E0980770A90;
+		};
+		388184046F55A72F60716C87 = {
+			isa = PBXBuildFile;
+			fileRef = FCB1EB3D1773C0956685EB37;
+		};
+		42DABD637D7CA698868AB280 = {
+			isa = PBXBuildFile;
+			fileRef = 4E01CB3CBC47644B8DA8F29E;
+		};
+		65F60E10E2F4B909FFF21D8C = {
+			isa = PBXBuildFile;
+			fileRef = FCB1EB3D1773C0956685EB37;
+		};
+		67CDFF088247F9351F82B2C5 = {
+			isa = PBXBuildFile;
+			fileRef = 4E01CB3CBC47644B8DA8F29E;
+		};
+		7830A5E72955368A450F50DF = {
+			isa = PBXBuildFile;
+			fileRef = 32162ADB778303E5DADD330D;
+		};
+		AC61FCE40DD776D30F4C3BD7 = {
+			isa = PBXBuildFile;
+			fileRef = AFEEC0BD77F001835BF0AB23;
+		};
+		BE0727792A05F77E723A0349 = {
+			isa = PBXBuildFile;
+			fileRef = 485ED6A72C4F8F9FF1A1F923;
+		};
+		EF707FC10300853CA2CCEF3A = {
+			isa = PBXBuildFile;
+			fileRef = 17EF13179755266BB7BCA2C0;
+		};
+		FB6F1E95AA6D1D47D97F39DE = {
+			isa = PBXBuildFile;
+			fileRef = E4041EB2B5012A4CCC74714B;
+		};
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		75CE9C13048EC714EBFC355B = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8FF10499A510840F364E084B;
+			proxyType = 1;
+			remoteGlobalIDString = 75E84AF664DE6BD0C9721062;
+			remoteInfo = WhoopGolf;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		13B9A600BCF8CFC1D38A6503 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutManager.swift;
+			sourceTree = "<group>";
+		};
+		17EF13179755266BB7BCA2C0 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MotionManager.swift;
+			sourceTree = "<group>";
+		};
+		32162ADB778303E5DADD330D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = LocationManager.swift;
+			sourceTree = "<group>";
+		};
+		46C668196E4AFC2592630730 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = WhoopGolf.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		485ED6A72C4F8F9FF1A1F923 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WhoopGolfApp.swift;
+			sourceTree = "<group>";
+		};
+		4E01CB3CBC47644B8DA8F29E = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SwingDetector.swift;
+			sourceTree = "<group>";
+		};
+		82932C7EB9085B313681BDD1 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = WhoopGolfTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AFEEC0BD77F001835BF0AB23 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.json;
+			path = swing_vectors.json;
+			sourceTree = "<group>";
+		};
+		C90E18D7DD9B8E0980770A90 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SessionView.swift;
+			sourceTree = "<group>";
+		};
+		E4041EB2B5012A4CCC74714B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SwingDetectorTests.swift;
+			sourceTree = "<group>";
+		};
+		FCB1EB3D1773C0956685EB37 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SessionModel.swift;
+			sourceTree = "<group>";
+		};
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C257F73D731F79B40B1C18D4 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2A9D4F597F5AE81E36E471C = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4DBCBA309B6C2F3D3C148D2D = {
+			isa = PBXGroup;
+			children = (
+				46C668196E4AFC2592630730,
+				82932C7EB9085B313681BDD1,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		510C30ECF765CCC996372988 = {
+			isa = PBXGroup;
+			children = (
+				485ED6A72C4F8F9FF1A1F923,
+				C90E18D7DD9B8E0980770A90,
+				4E01CB3CBC47644B8DA8F29E,
+				17EF13179755266BB7BCA2C0,
+				13B9A600BCF8CFC1D38A6503,
+				32162ADB778303E5DADD330D,
+				FCB1EB3D1773C0956685EB37,
+			);
+			path = WhoopGolfWatchApp;
+			sourceTree = "<group>";
+		};
+		70F52695820CC9C47E6A4847 = {
+			isa = PBXGroup;
+			children = (
+				510C30ECF765CCC996372988,
+				DA9EA838A2DC0E71EBD8EF65,
+				4DBCBA309B6C2F3D3C148D2D,
+			);
+			sourceTree = "<group>";
+		};
+		DA9EA838A2DC0E71EBD8EF65 = {
+			isa = PBXGroup;
+			children = (
+				E4041EB2B5012A4CCC74714B,
+				AFEEC0BD77F001835BF0AB23,
+			);
+			path = WhoopGolfWatchAppTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		75E84AF664DE6BD0C9721062 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D2EBF912C47FE875E0CCEF5;
+			buildPhases = (
+				FEEA142D832B66ADE32967B0,
+				C257F73D731F79B40B1C18D4,
+				90AD4EA0B8A877854E060D0C,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WhoopGolf;
+			productName = WhoopGolf;
+			productReference = 46C668196E4AFC2592630730;
+			productType = "com.apple.product-type.application";
+		};
+		C75C526E81F84DE3D55AE9C8 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE814CAB84A2894C7CAF083A;
+			buildPhases = (
+				DD456A05653D0616767ECEBD,
+				C2A9D4F597F5AE81E36E471C,
+				C8FEE0177F3D99E7BF488259,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4286EC9A5BB9F00225F139F5,
+			);
+			name = WhoopGolfTests;
+			productName = WhoopGolfTests;
+			productReference = 82932C7EB9085B313681BDD1;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8FF10499A510840F364E084B = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = A15C1660503C9D18B9702A73;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 70F52695820CC9C47E6A4847;
+			productRefGroup = 4DBCBA309B6C2F3D3C148D2D;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				75E84AF664DE6BD0C9721062,
+				C75C526E81F84DE3D55AE9C8,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		90AD4EA0B8A877854E060D0C = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C8FEE0177F3D99E7BF488259 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC61FCE40DD776D30F4C3BD7,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DD456A05653D0616767ECEBD = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				42DABD637D7CA698868AB280,
+				388184046F55A72F60716C87,
+				FB6F1E95AA6D1D47D97F39DE,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FEEA142D832B66ADE32967B0 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE0727792A05F77E723A0349,
+				1561B9520AC1B8A409B9B796,
+				67CDFF088247F9351F82B2C5,
+				EF707FC10300853CA2CCEF3A,
+				1270091260CD90F1D9F3DFA2,
+				7830A5E72955368A450F50DF,
+				65F60E10E2F4B909FFF21D8C,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4286EC9A5BB9F00225F139F5 = {
+			isa = PBXTargetDependency;
+			target = 75E84AF664DE6BD0C9721062;
+			targetProxy = 75CE9C13048EC714EBFC355B;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1718AAF4E5CB68E01B8646DA = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				SDKROOT = watchos;
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				ENABLE_TESTABILITY = YES;
+			};
+			name = Debug;
+		};
+		33463152ED1CFFD4190C6F38 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				SDKROOT = watchos;
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				ONLY_ACTIVE_ARCH = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				ENABLE_TESTABILITY = NO;
+			};
+			name = Release;
+		};
+		7A10E27661DAD05CBB56A3E1 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.watchapp.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
+		A667A5DCF00157E154976C42 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.watchapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WhoopGolf;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Reads heart rate during a round.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Records the round as a golf workout so WHOOP can import it.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
+				INFOPLIST_KEY_UIBackgroundModes = "workout-processing location";
+			};
+			name = Debug;
+		};
+		E05252BD554B415D661AE24E = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.watchapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WhoopGolf;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Reads heart rate during a round.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Records the round as a golf workout so WHOOP can import it.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
+				INFOPLIST_KEY_UIBackgroundModes = "workout-processing location";
+			};
+			name = Release;
+		};
+		F8546FAA4DB85C6E18FC644C = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.watchapp.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2D2EBF912C47FE875E0CCEF5 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A667A5DCF00157E154976C42,
+				E05252BD554B415D661AE24E,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A15C1660503C9D18B9702A73 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1718AAF4E5CB68E01B8646DA,
+				33463152ED1CFFD4190C6F38,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FE814CAB84A2894C7CAF083A = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8546FAA4DB85C6E18FC644C,
+				7A10E27661DAD05CBB56A3E1,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8FF10499A510840F364E084B;
+}

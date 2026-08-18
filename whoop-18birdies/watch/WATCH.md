@@ -37,7 +37,34 @@ ever change the algorithm, change it there first, then mirror it into
 
 ---
 
-## Build it (about 15 minutes, once)
+## Build it (about 2 minutes, once)
+
+The project file is generated, so there is nothing to assemble by hand:
+
+```bash
+cd whoop-18birdies
+python3 watch/generate-project.py      # already committed; re-run only if you want the defaults back
+open watch/WhoopGolf.xcodeproj
+```
+
+Then **two** things in Xcode:
+
+1. Select the **WhoopGolf** target → **Signing & Capabilities** → pick your
+   Apple ID team. (Signing is the one thing a generated project cannot set —
+   it is tied to your account.)
+2. Choose your watch as the destination and press **Run**.
+
+That is it. Everything the manual path below configures is already set: the
+watchOS 9.0 floor a Series 5 needs, **both** background modes, all five usage
+strings, and a test target with `swing_vectors.json` bundled. Press **⌘U** to
+run the 60+ golden-vector tests against your build.
+
+The generated project is validated by `watch/test_generate_project.py`, which
+parses the `.pbxproj` back as a plist and checks the object graph and every
+setting that has historically cost a round.
+
+<details>
+<summary>The manual path, if you would rather assemble it yourself</summary>
 
 1. **New project** in Xcode → **watchOS** → **App**. Name it `WhoopGolf`,
    interface **SwiftUI**, language **Swift**. Uncheck test targets if you like.
@@ -91,6 +118,8 @@ ever change the algorithm, change it there first, then mirror it into
    developer certificate.
 
 That's it. The app appears on the watch; launch it from the app grid.
+
+</details>
 
 ---
 
