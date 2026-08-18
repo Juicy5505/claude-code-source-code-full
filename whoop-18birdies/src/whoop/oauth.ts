@@ -36,10 +36,26 @@ export async function saveTokens(tokens: TokenSet): Promise<void> {
 }
 
 export async function loadTokens(): Promise<TokenSet | null> {
+  let raw: string;
   try {
-    return JSON.parse(await readFile(paths.tokens(), "utf8")) as TokenSet;
+    raw = await readFile(paths.tokens(), "utf8");
   } catch {
-    return null;
+    return null; // genuinely not linked yet
+  }
+  try {
+    return JSON.parse(raw) as TokenSet;
+  } catch (err) {
+    // A truncated or corrupt token file is NOT the same as "never logged in".
+    // Reporting it as such sent people through `wb login` again, which rewrote
+    // the file and destroyed the refresh token that might still have been
+    // recoverable from it.
+    throw new Error(
+      `${paths.tokens()} exists but is not valid JSON (${
+        err instanceof Error ? err.message : String(err)
+      }).\n` +
+        "Inspect it — the refresh_token inside may still be good — or delete it " +
+        "and run `wb login` again.",
+    );
   }
 }
 
@@ -158,6 +174,21 @@ export async function refresh(tokens: TokenSet): Promise<TokenSet> {
   return merged;
 }
 
+/**
+ * The refresh currently in flight, if any.
+ *
+ * `snapshot()` fetches cycles, recovery, sleep and workouts concurrently. With
+ * an expired token all four called getAccessToken at once and all four fired
+ * their own refresh — four rotations of the same refresh token, of which only
+ * the last is valid. WHOOP invalidates a refresh token when it is used, so the
+ * three losers wrote dead credentials over the live ones and the next command
+ * failed with "not linked", requiring a full re-login.
+ *
+ * Collapsing them into one in-flight promise is the fix: whoever arrives first
+ * does the refresh, everyone else awaits the same result.
+ */
+let refreshInFlight: Promise<TokenSet> | null = null;
+
 /** Returns a valid access token, refreshing on the fly when it is near expiry. */
 export async function getAccessToken(): Promise<string> {
   const tokens = await loadTokens();
@@ -167,5 +198,11 @@ export async function getAccessToken(): Promise<string> {
   if (Date.now() < tokens.expires_at - EXPIRY_SKEW_MS) {
     return tokens.access_token;
   }
-  return (await refresh(tokens)).access_token;
+
+  if (!refreshInFlight) {
+    refreshInFlight = refresh(tokens).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return (await refreshInFlight).access_token;
 }

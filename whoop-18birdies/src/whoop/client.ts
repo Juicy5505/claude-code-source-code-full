@@ -24,6 +24,9 @@ export interface Range {
 }
 
 const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+/** Longest we will wait between attempts, however large Retry-After is. */
+const MAX_RETRY_DELAY_MS = 60_000;
 const MAX_ATTEMPTS = 5;
 
 /**
@@ -63,11 +66,21 @@ export class WhoopClient {
         throw new Error(`WHOOP ${path} failed (${res.status}): ${body}`);
       }
 
-      // WHOOP publishes Retry-After on 429; honour it rather than guessing.
+      // WHOOP publishes Retry-After on 429; honour it rather than guessing —
+      // but CAP it. The header is a server-controlled number of seconds, and an
+      // unbounded wait means one upstream hiccup can park `wb sync` for hours
+      // with no output, which is indistinguishable from a hang.
       const retryAfter = Number(res.headers.get("retry-after"));
-      const delayMs = Number.isFinite(retryAfter) && retryAfter > 0
+      const suggested = Number.isFinite(retryAfter) && retryAfter > 0
         ? retryAfter * 1000
         : 2 ** attempt * 250;
+      const delayMs = Math.min(suggested, MAX_RETRY_DELAY_MS);
+      if (suggested > delayMs) {
+        console.warn(
+          `WHOOP asked for a ${Math.round(suggested / 1000)}s pause; waiting ` +
+            `${MAX_RETRY_DELAY_MS / 1000}s and retrying.`,
+        );
+      }
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }

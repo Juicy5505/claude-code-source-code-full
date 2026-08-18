@@ -1,4 +1,7 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { WhoopClient } from "../src/whoop/client.ts";
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
@@ -109,5 +112,131 @@ describe("id coercion (audit fix)", () => {
     const recoveries = await client.recoveries();
     expect(recoveries[0]!.cycle_id).toBe("12345");
     expect(recoveries[0]!.sleep_id).toBe("999");
+  });
+});
+
+
+describe("token handling under concurrency", () => {
+  const dir = mkdtempSync(join(tmpdir(), "wb-oauth-"));
+
+  afterEach(() => {
+    delete process.env.WB_DATA_DIR;
+    delete process.env.WHOOP_CLIENT_ID;
+    delete process.env.WHOOP_CLIENT_SECRET;
+  });
+
+  test("a corrupt token file is reported, not read as 'never logged in'", async () => {
+    const scratch = mkdtempSync(join(tmpdir(), "wb-oauth-bad-"));
+    process.env.WB_DATA_DIR = scratch;
+    writeFileSync(join(scratch, "tokens.json"), "{ truncated");
+    const { loadTokens } = await import("../src/whoop/oauth.ts");
+    // Reporting corruption as "not linked" sent people through `wb login`
+    // again, which overwrote the file and destroyed a refresh token that might
+    // still have been recoverable from it.
+    await expect(loadTokens()).rejects.toThrow(/not valid JSON/);
+    rmSync(scratch, { recursive: true, force: true });
+  });
+
+  test("an absent token file really is 'not linked'", async () => {
+    const scratch = mkdtempSync(join(tmpdir(), "wb-oauth-none-"));
+    process.env.WB_DATA_DIR = scratch;
+    const { loadTokens } = await import("../src/whoop/oauth.ts");
+    expect(await loadTokens()).toBeNull();
+    rmSync(scratch, { recursive: true, force: true });
+  });
+
+  test("concurrent callers share ONE refresh", async () => {
+    // snapshot() fetches cycles, recovery, sleep and workouts concurrently.
+    // With an expired token all four used to fire their own refresh — four
+    // rotations of the same single-use refresh token, of which only the last
+    // survives, so the three losers wrote dead credentials over the live ones.
+    process.env.WB_DATA_DIR = dir;
+    process.env.WHOOP_CLIENT_ID = "test-client-id";
+    process.env.WHOOP_CLIENT_SECRET = "test-client-secret";
+    writeFileSync(
+      join(dir, "tokens.json"),
+      JSON.stringify({
+        access_token: "stale",
+        refresh_token: "rt-1",
+        expires_at: Date.now() - 60_000, // already expired
+        scope: "offline read:recovery",
+      }),
+    );
+
+    let refreshCalls = 0;
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (_url: string, _init?: RequestInit) => {
+      refreshCalls += 1;
+      // A slow response widens the window in which a second caller could
+      // start its own refresh, which is exactly what must not happen.
+      await new Promise((r) => setTimeout(r, 25));
+      return new Response(
+        JSON.stringify({
+          access_token: `fresh-${refreshCalls}`,
+          refresh_token: `rt-${refreshCalls + 1}`,
+          expires_in: 3600,
+          scope: "offline read:recovery",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch;
+
+    try {
+      const { getAccessToken } = await import("../src/whoop/oauth.ts");
+      const tokens = await Promise.all([
+        getAccessToken(),
+        getAccessToken(),
+        getAccessToken(),
+        getAccessToken(),
+      ]);
+      expect(refreshCalls).toBe(1);
+      expect(new Set(tokens).size).toBe(1);
+    } finally {
+      globalThis.fetch = realFetch;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("a failed refresh does not wedge every later attempt", async () => {
+    // The in-flight promise must be cleared on rejection too, or one transient
+    // network failure poisons the process for as long as it runs.
+    const scratch = mkdtempSync(join(tmpdir(), "wb-oauth-fail-"));
+    process.env.WB_DATA_DIR = scratch;
+    process.env.WHOOP_CLIENT_ID = "test-client-id";
+    process.env.WHOOP_CLIENT_SECRET = "test-client-secret";
+    writeFileSync(
+      join(scratch, "tokens.json"),
+      JSON.stringify({
+        access_token: "stale",
+        refresh_token: "rt-1",
+        expires_at: Date.now() - 60_000,
+        scope: "offline",
+      }),
+    );
+
+    let attempts = 0;
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (_url: string, _init?: RequestInit) => {
+      attempts += 1;
+      if (attempts === 1) throw new Error("network down");
+      return new Response(
+        JSON.stringify({
+          access_token: "recovered",
+          refresh_token: "rt-2",
+          expires_in: 3600,
+          scope: "offline",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch;
+
+    try {
+      const { getAccessToken } = await import("../src/whoop/oauth.ts");
+      await expect(getAccessToken()).rejects.toThrow();
+      expect(await getAccessToken()).toBe("recovered");
+    } finally {
+      globalThis.fetch = realFetch;
+      rmSync(scratch, { recursive: true, force: true });
+    }
   });
 });

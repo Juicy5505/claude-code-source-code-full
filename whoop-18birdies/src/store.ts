@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import { dirname, join, resolve, sep } from "node:path";
 import { paths } from "./config.ts";
 import { type Round, dedupeRounds } from "./rounds/types.ts";
@@ -36,9 +37,20 @@ async function readJson<T>(file: string, fallback: T): Promise<T> {
  */
 async function writeJson(file: string, value: unknown): Promise<void> {
   await mkdir(dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
-  await writeFile(tmp, JSON.stringify(value, null, 2));
-  await rename(tmp, file);
+  // A UNIQUE temp name per write. A fixed `${file}.tmp` means two concurrent
+  // saves — `wb sync` while the ingest server stores a round, say — write over
+  // each other's temp file and then both rename it, so one payload is lost and
+  // the other may be a spliced mixture of the two.
+  const tmp = `${file}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
+  try {
+    // 0600: this holds WHOOP health data and round history. The default 0644
+    // makes it readable by every account on the machine.
+    await writeFile(tmp, JSON.stringify(value, null, 2), { mode: 0o600 });
+    await rename(tmp, file);
+  } catch (err) {
+    await rm(tmp, { force: true }).catch(() => {});
+    throw err;
+  }
 }
 
 export function loadRounds(): Promise<Round[]> {
