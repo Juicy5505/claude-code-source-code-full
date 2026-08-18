@@ -144,6 +144,16 @@ and retried on the next run — a dead spot never costs you a round.
 > encryption it does not have. **Do not port-forward it to the open internet
 > instead** — that is the same endpoint with the protection removed.
 
+**You do not need exit nodes for this**, and one of them is worth turning off.
+An exit node routes a device's traffic *out to the internet* through another
+machine. Reaching `wb serve` is not that: it is peer-to-peer traffic between
+two tailnet members, which goes direct and never touches an exit node. Plain
+tailnet membership on both devices is the whole requirement.
+
+Using the **iPhone** as an exit node during a round is actively bad: it would
+relay another device's internet traffic for four-plus hours while also holding
+a GPS fix and running the logger. Turn that one off before you play.
+
 **Then, on the Mac:**
 
 ```bash
