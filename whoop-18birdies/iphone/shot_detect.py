@@ -285,16 +285,32 @@ def shots_from_stops(stops, max_shot_yd=MAX_SHOT_YD, short_shot_yd=SHORT_SHOT_YD
     return shots
 
 
+_STOP_KWARGS = frozenset(
+    {"min_stop_s", "max_stop_s", "radius_m", "max_accuracy_m",
+     "window_s", "max_displacement_m"}
+)
+_SHOT_KWARGS = frozenset({"max_shot_yd", "short_shot_yd"})
+
+
 def detect_shots(fixes, **kwargs):
-    """GPS track in, shots out. The one call the logger needs."""
-    stop_kwargs = {
-        k: v
-        for k, v in kwargs.items()
-        if k in {"min_stop_s", "max_stop_s", "radius_m", "max_accuracy_m"}
-    }
-    shot_kwargs = {
-        k: v for k, v in kwargs.items() if k in {"max_shot_yd", "short_shot_yd"}
-    }
+    """GPS track in, shots out. The one call the logger needs.
+
+    Unknown keywords raise rather than being dropped. An earlier version
+    filtered silently, so `detect_shots(fixes, window_s=6)` — the parameter that
+    actually decides what counts as standing still — was accepted, ignored, and
+    ran with the default. Tuning that appears to work and does nothing is worse
+    than tuning that fails.
+    """
+    unknown = set(kwargs) - _STOP_KWARGS - _SHOT_KWARGS
+    if unknown:
+        raise TypeError(
+            "detect_shots() got unexpected keyword argument(s): {}. Valid: {}".format(
+                ", ".join(sorted(unknown)),
+                ", ".join(sorted(_STOP_KWARGS | _SHOT_KWARGS)),
+            )
+        )
+    stop_kwargs = {k: v for k, v in kwargs.items() if k in _STOP_KWARGS}
+    shot_kwargs = {k: v for k, v in kwargs.items() if k in _SHOT_KWARGS}
     return shots_from_stops(find_stops(fixes, **stop_kwargs), **shot_kwargs)
 
 

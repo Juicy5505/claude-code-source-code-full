@@ -405,6 +405,34 @@ class TestReportIntegration(unittest.TestCase):
         self.assertIn("too few full swings", text)
 
 
+class TestTuningParameters(unittest.TestCase):
+    def test_the_stationary_window_actually_reaches_the_detector(self):
+        # window_s decides what counts as standing still. Silently dropping it
+        # meant tuning that appeared to work and did nothing.
+        fixes = round_track([180.0])
+        default = detect_shots(fixes)
+        tightened = detect_shots(fixes, window_s=4.0, max_displacement_m=3.0)
+        self.assertNotEqual(
+            [s["kind"] for s in default],
+            [s["kind"] for s in tightened],
+            "tuning had no effect, so it is not being passed through",
+        )
+
+    def test_an_unknown_keyword_raises_rather_than_being_ignored(self):
+        with self.assertRaises(TypeError) as caught:
+            detect_shots(round_track([180.0]), stationary_window=10)
+        self.assertIn("stationary_window", str(caught.exception))
+        self.assertIn("window_s", str(caught.exception))
+
+    def test_every_documented_parameter_is_accepted(self):
+        detect_shots(
+            round_track([180.0]),
+            min_stop_s=6.0, max_stop_s=300.0, radius_m=14.0,
+            max_accuracy_m=25.0, window_s=10.0, max_displacement_m=8.0,
+            max_shot_yd=400.0, short_shot_yd=45.0,
+        )
+
+
 class TestStopModel(unittest.TestCase):
     def test_duration_and_serialisation(self):
         stop = Stop(100.0, 118.5, BASE_LAT, BASE_LON, 19)

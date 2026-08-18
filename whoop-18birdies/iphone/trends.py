@@ -26,16 +26,22 @@ def _mean(xs):
     return sum(xs) / len(xs) if xs else float("nan")
 
 
-def linear_slope(values):
-    """Least-squares slope of values against their index (0,1,2,...).
+def linear_slope(values, xs=None):
+    """Least-squares slope of values against `xs`, defaulting to 0,1,2,...
 
-    Positive slope means the metric rose across the sequence. Returns None with
-    fewer than two points, or when every x is identical (never, here).
+    `xs` matters when sessions are missing the metric. Compacting the values and
+    regressing against their new positions silently rescales the slope: a metric
+    present in sessions 1 and 3 but not 2 is fitted over a run of one instead of
+    two, so "per session" means something different for every metric in the same
+    report. The direction is unaffected — compaction preserves order — but the
+    magnitude is not, and it is a documented field.
     """
     n = len(values)
     if n < 2:
         return None
-    xs = list(range(n))
+    xs = list(range(n)) if xs is None else list(xs)
+    if len(xs) != n:
+        return None
     mx = _mean(xs)
     my = _mean(values)
     sxx = sum((x - mx) ** 2 for x in xs)
@@ -71,11 +77,14 @@ def trend_verdict(values, spec):
     Returns {slope, direction, improving} where `improving` is True/False/None
     given the metric's better-is definition, or None if undecidable.
     """
-    clean = [v for v in values if v is not None]
-    if len(clean) < 2:
+    # Keep each value's SESSION index, so a gap stays a gap on the x-axis.
+    points = [(i, v) for i, v in enumerate(values) if v is not None]
+    if len(points) < 2:
         return None
+    positions = [i for i, _ in points]
+    clean = [v for _, v in points]
 
-    raw_slope = linear_slope(clean)
+    raw_slope = linear_slope(clean, positions)
 
     # A metric that did not move is flat — neither improving nor regressing.
     # Deciding "improving" from the sign of a zero slope would label every
@@ -89,7 +98,7 @@ def trend_verdict(values, spec):
         # Distance from the target is what should shrink.
         target = spec["target"]
         deltas = [abs(v - target) for v in clean]
-        dslope = linear_slope(deltas)
+        dslope = linear_slope(deltas, positions)
         improving = None if dslope is None or abs(dslope) < 1e-9 else dslope < 0
     elif spec["better"] == "higher":
         improving = raw_slope > 0

@@ -2,6 +2,8 @@
 
 import unittest
 
+import trends
+
 from trends import METRICS, analyze_trends, linear_slope, session_value, trend_verdict
 
 
@@ -103,6 +105,46 @@ class TestAnalyze(unittest.TestCase):
         # Neither metric appears in two sessions.
         self.assertNotIn("distance_yd", result)
         self.assertNotIn("tempo_ratio", result)
+
+
+class TestSlopeAgainstSessionIndex(unittest.TestCase):
+    """A session missing the metric must stay a GAP on the x-axis.
+
+    Compacting the values and regressing against their new positions rescales
+    the slope, so "per session" would mean something different for every metric
+    in the same report.
+    """
+
+    def test_a_gap_halves_the_per_session_slope(self):
+        # 10 at session 0, 20 at session 2: +5 per session, not +10.
+        self.assertAlmostEqual(trends.linear_slope([10.0, 20.0], [0, 2]), 5.0)
+        self.assertAlmostEqual(trends.linear_slope([10.0, 20.0]), 10.0)
+
+    def test_direction_is_unchanged_by_the_fix(self):
+        # Compaction preserved order, so the sign was always right; this guards
+        # against the fix accidentally changing it.
+        rising = trends.linear_slope([1.0, 2.0, 3.0], [0, 2, 5])
+        falling = trends.linear_slope([3.0, 2.0, 1.0], [0, 2, 5])
+        self.assertGreater(rising, 0)
+        self.assertLess(falling, 0)
+
+    def test_mismatched_lengths_are_refused_rather_than_guessed(self):
+        self.assertIsNone(trends.linear_slope([1.0, 2.0, 3.0], [0, 1]))
+
+    def test_a_metric_absent_from_a_middle_session_still_trends(self):
+        sessions = [
+            [{"tempo_ratio": 2.0}, {"tempo_ratio": 2.0}],
+            [{"peak_g": 9.0}],                                 # no tempo at all
+            [{"tempo_ratio": 3.0}, {"tempo_ratio": 3.0}],
+        ]
+        analysis = trends.analyze_trends(sessions)
+        self.assertIn("tempo_ratio", analysis)
+        tempo = analysis["tempo_ratio"]
+        self.assertEqual(tempo["first"], 2.0)
+        self.assertEqual(tempo["last"], 3.0)
+        self.assertEqual(tempo["values"], [2.0, None, 3.0])
+        # 1.0 of change spread over TWO sessions, not over one step.
+        self.assertAlmostEqual(tempo["trend"]["slope"], 0.5)
 
 
 if __name__ == "__main__":
