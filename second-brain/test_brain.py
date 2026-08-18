@@ -293,6 +293,144 @@ class TestGraph(VaultCase):
         self.assertTrue((self.vault / "05-Graph" / "Code Graph.md").exists())
 
 
+class TestMOCIsNotDestructive(VaultCase):
+    """`brain index` must never delete anything a person wrote.
+
+    The premise of this tool is that the vault IS the memory. Silently eating
+    notes is the worst thing it could do, and an earlier version did exactly
+    that: the generated blocks were matched from their opening marker to the
+    next `## ` heading or the END OF THE FILE, so anything typed below the last
+    block, with no heading after it, disappeared on the next index.
+    """
+
+    def moc(self) -> str:
+        return (self.vault / "MOC.md").read_text(encoding="utf-8")
+
+    def test_trailing_prose_survives_repeated_indexing(self):
+        path = self.vault / "MOC.md"
+        path.write_text(
+            self.moc() + "\nMY OWN CLOSING NOTES, no heading after them.\n",
+            encoding="utf-8",
+        )
+        for _ in range(3):
+            self.brain("index")
+        self.assertIn("MY OWN CLOSING NOTES", self.moc())
+
+    def test_a_hand_written_section_survives(self):
+        path = self.vault / "MOC.md"
+        path.write_text(
+            self.moc() + "\n## My section\n\nAn hour of my own notes.\n",
+            encoding="utf-8",
+        )
+        self.brain("index")
+        self.assertIn("An hour of my own notes", self.moc())
+        self.assertIn("## My section", self.moc())
+
+    def test_generated_blocks_are_bounded_by_closing_markers(self):
+        for key in ("sessions", "decisions", "knowledge", "unlinked"):
+            self.assertIn(f"<!-- /brain:{key} -->", self.moc())
+
+    def test_generated_content_is_replaced_not_appended(self):
+        self.brain("decision", "First choice")
+        self.brain("index")
+        self.brain("index")
+        # Count LINES, not substring hits: a wikilink carries the title twice,
+        # once in the path and once in the alias.
+        lines = [ln for ln in self.moc().splitlines() if "First choice" in ln]
+        self.assertEqual(len(lines), 1, lines)
+
+    def test_migrates_an_old_unbounded_moc_without_losing_prose(self):
+        # The shape a vault created before closing markers existed.
+        path = self.vault / "MOC.md"
+        text = self.moc()
+        for key in ("sessions", "decisions", "knowledge", "unlinked"):
+            text = text.replace(
+                f"<!-- brain:{key} -->\n<!-- /brain:{key} -->",
+                f"<!-- brain:{key} -->\n\n- [[old/Stale|Stale]]\n",
+            )
+        text += "\nNOTES FROM BEFORE THE MIGRATION.\n"
+        path.write_text(text, encoding="utf-8")
+
+        self.brain("index")
+        migrated = self.moc()
+        self.assertIn("NOTES FROM BEFORE THE MIGRATION", migrated)
+        self.assertIn("<!-- /brain:unlinked -->", migrated)
+        self.assertNotIn("old/Stale", migrated)
+
+
+class TestConcurrency(VaultCase):
+    def test_parallel_hooks_do_not_lose_entries(self):
+        """Claude Code fires hooks concurrently.
+
+        A PostToolUse for a file edit can land while a UserPromptSubmit is still
+        rewriting today's note. Both read the whole file, modify it, and write
+        it back — so without a lock the later write silently discards the
+        earlier one and an entry vanishes from the record.
+        """
+        import concurrent.futures
+
+        entries = [f"parallel entry {i}" for i in range(12)]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+            list(pool.map(lambda text: self.brain("log", text), entries))
+
+        note = self.session_text()
+        missing = [e for e in entries if e not in note]
+        self.assertEqual(missing, [], f"lost {len(missing)} concurrent entries")
+
+
+class TestHookResilience(VaultCase):
+    """A hook must never fail the session it is attached to."""
+
+    def run_in(self, cwd, *args, stdin=""):
+        return subprocess.run(
+            [sys.executable, str(BRAIN), *args],
+            cwd=cwd, env=self.env, input=stdin, capture_output=True, text=True,
+        )
+
+    def test_hooks_exit_zero_in_an_unbound_directory(self):
+        loose = Path(self.tmp.name) / "unbound"
+        loose.mkdir()
+        for args, stdin in (
+            (["session-start"], ""),
+            (["prompt"], json.dumps({"prompt": "hello"})),
+            (["tool"], json.dumps({"tool_name": "Write", "tool_input": {"file_path": "a.ts"}})),
+            (["session-end"], json.dumps({"reason": "clear"})),
+        ):
+            proc = self.run_in(loose, *args, stdin=stdin)
+            self.assertEqual(proc.returncode, 0, f"{args[0]} exited {proc.returncode}")
+            self.assertNotIn("Traceback", proc.stderr, f"{args[0]} leaked a traceback")
+
+    def test_hooks_exit_zero_when_the_vault_has_been_deleted(self):
+        import shutil as sh
+
+        sh.rmtree(self.vault)
+        for args, stdin in (
+            (["session-start"], ""),
+            (["prompt"], json.dumps({"prompt": "hello"})),
+            (["session-end"], json.dumps({"reason": "clear"})),
+        ):
+            proc = self.run_in(self.project, *args, stdin=stdin)
+            self.assertEqual(proc.returncode, 0, f"{args[0]} exited {proc.returncode}")
+            self.assertNotIn("Traceback", proc.stderr)
+
+
+class TestToolDedupe(VaultCase):
+    def test_a_prompt_mentioning_a_path_does_not_suppress_its_edits(self):
+        """The dedupe check must look only at the Actions section.
+
+        Scanning the whole note meant a prompt that merely mentioned a path in
+        backticks poisoned the check, and every real edit to that file was then
+        silently never recorded — the exact opposite of "write everything down".
+        """
+        self.brain("prompt", "please refactor `src/app.ts` for me")
+        payload = json.dumps(
+            {"tool_name": "Write", "tool_input": {"file_path": str(self.project / "src/app.ts")}}
+        )
+        self.brain("tool", stdin=payload)
+        actions = self.session_text().split("## Actions")[1].split("\n## ")[0]
+        self.assertIn("`src/app.ts`", actions)
+
+
 class TestSafety(VaultCase):
     def test_a_corrupt_registry_fails_loud_instead_of_orphaning_vaults(self):
         registry = Path(self.env["HOME"]) / ".brain" / "vaults.json"

@@ -60,7 +60,7 @@ mkdir -p "$CLAUDE_DIR"
 [ -f "$SETTINGS" ] && cp "$SETTINGS" "${SETTINGS}.bak-${STAMP}" && ok "backed up settings.json"
 
 BRAIN_BIN="${BIN_DIR}/brain" python3 - "$SETTINGS" <<'PY'
-import json, os, sys
+import json, os, shlex, sys
 
 path = sys.argv[1]
 brain = os.environ["BRAIN_BIN"]
@@ -80,11 +80,17 @@ hooks = settings.setdefault("hooks", {})
 # PostToolUse   -> which files this work touched, deduped per file per day.
 # SessionEnd    -> carry the unfinished part forward. NOT Stop, which fires
 #                  after every single reply and would log a heartbeat.
+# The hook command is run through a shell, so the path must be quoted. A Mac
+# user called "My Name" gets /Users/My Name/.local/bin/brain, and unquoted that
+# is two arguments — every hook fails silently on exactly the machines where
+# this is hardest to debug.
+quoted = shlex.quote(brain)
+
 wanted = {
-    "SessionStart":     {"matcher": "startup|resume|clear", "cmd": f"{brain} session-start"},
-    "UserPromptSubmit": {"matcher": None,                   "cmd": f"{brain} prompt"},
-    "PostToolUse":      {"matcher": "Edit|Write|NotebookEdit", "cmd": f"{brain} tool"},
-    "SessionEnd":       {"matcher": None,                   "cmd": f"{brain} session-end"},
+    "SessionStart":     {"matcher": "startup|resume|clear",   "cmd": f"{quoted} session-start"},
+    "UserPromptSubmit": {"matcher": None,                     "cmd": f"{quoted} prompt"},
+    "PostToolUse":      {"matcher": "Edit|Write|NotebookEdit", "cmd": f"{quoted} tool"},
+    "SessionEnd":       {"matcher": None,                     "cmd": f"{quoted} session-end"},
 }
 
 added = []
@@ -111,6 +117,12 @@ PY
 say "Installing the memory contract into ~/.claude/CLAUDE.md"
 BEGIN="<!-- BEGIN second-brain -->"
 END="<!-- END second-brain -->"
+
+if [ ! -f "${HERE}/CLAUDE-global.md" ]; then
+  fail_msg="CLAUDE-global.md is missing from ${HERE} — nothing to install."
+  printf '    \033[31mFAIL\033[0m %s\n' "$fail_msg"
+  exit 1
+fi
 
 if [ -f "$GLOBAL_MD" ] && grep -qF "$BEGIN" "$GLOBAL_MD"; then
   cp "$GLOBAL_MD" "${GLOBAL_MD}.bak-${STAMP}"
