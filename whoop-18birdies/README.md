@@ -1,6 +1,16 @@
 # whoop-18birdies
 
-Link WHOOP recovery, sleep and strain to 18Birdies golf rounds.
+Golf tracking built around a WHOOP strap and an iPhone: yardages, swing tempo,
+and whether your body being under-recovered actually shows up in your scoring.
+
+> ### → [START-HERE.md](START-HERE.md)
+>
+> If you have a WHOOP and an iPhone and want numbers today, read that instead.
+> It is the short path: three ways to track a round, ordered by how little you
+> have to wear, starting with one that needs nothing but the strap.
+
+The rest of this file is the reference — every command, the API details, and the
+constraints that shaped the design.
 
 ## What's actually possible
 
@@ -84,8 +94,14 @@ bun src/cli.ts import-health export.xml    # import golf rounds from an Apple He
 bun src/cli.ts rounds                      # list stored rounds
 bun src/cli.ts report                      # correlate WHOOP metrics against scoring
 bun src/cli.ts readiness [YYYY-MM-DD]      # golf readiness for a date
-bun src/cli.ts serve [--port N]            # ingest server for the iPhone Shortcut
+bun src/cli.ts golf [YYYY-MM-DD|--list]    # the round as WHOOP alone recorded it
+bun src/cli.ts serve [--port N]            # ingest server for the phone
 ```
+
+`golf` is the one that needs no scorecard and no phone: WHOOP detects the round
+itself, and this joins it to the recovery, sleep and day strain around it.
+`golf --list` prints every activity name in your data, for when WHOOP files a
+round as something other than Golf.
 
 ### Getting rounds in
 
