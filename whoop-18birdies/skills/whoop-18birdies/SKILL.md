@@ -78,8 +78,37 @@ bun src/cli.ts import-health export.xml    # import golf rounds from an Apple He
 bun src/cli.ts rounds                      # list stored rounds
 bun src/cli.ts report                      # correlate WHOOP metrics against scoring
 bun src/cli.ts readiness [YYYY-MM-DD]      # golf readiness for a date
-bun src/cli.ts serve [--port N]            # ingest server for the iPhone Shortcut
+bun src/cli.ts golf [YYYY-MM-DD|--list]    # the round as WHOOP alone recorded it
+bun src/cli.ts serve [--port N]            # ingest server for the phone
 ```
+
+`golf` is the one to reach for first when someone asks "how was my round" and
+has no scorecard: WHOOP detects the round itself, so it needs no phone, no
+watch, and no data entry. If it finds nothing, `golf --list` shows every
+activity name in their data — WHOOP sometimes files a round as "Walking", and
+relabelling it in the WHOOP app then re-syncing fixes it.
+
+### Tracking the golf itself, on the phone
+
+There are three ways, and the right recommendation depends on what the user is
+willing to wear. Lead with the least invasive that answers their question.
+
+| Want | Mode | Wear |
+|---|---|---|
+| strain, HR, recovery | none — just `wb golf` | the strap |
+| **yardages** | `swing_logger.py` → **Pocket** | strap + phone in a pocket |
+| tempo, swing force | `swing_logger.py` → **Range/Round** | phone on the LEAD forearm |
+
+Pocket mode measures shots as the distance between consecutive stops — the
+Arccos/Shot Scope method — so it needs nothing strapped on. Its limit is
+specific and worth stating rather than discovering: **shots under about 33
+yards do not appear at all**, because a chip and the walk after it are
+indistinguishable from standing still. Their shot count will be short by
+roughly their number of chips and putts.
+
+Arm mode is the only one that gives tempo, because tempo depends on WHEN the
+swing phases happen, which needs the arm's motion. On a forearm a swing is
+about 8x walking motion; in a pocket nearer 3x, where detection is marginal.
 
 ### Getting rounds in
 
@@ -154,6 +183,14 @@ Never present the readiness number as coming from WHOOP.
 
 ## Things to avoid
 
+- **Do not suggest WHOOP can measure the swing.** It exposes heart rate over
+  Bluetooth and nothing else — no accelerometer, no gyroscope, to any client
+  including WHOOP's own app. Swing count, tempo, yardage and swing path are
+  outside what the hardware offers anyone, not features waiting to be built.
+  Wearing it on the lead wrist does not change this.
+- **Do not promise swing path, face angle, club speed, launch angle or spin
+  from any wrist or pocket sensor.** Those need the club's position in space,
+  which is a launch-monitor measurement. An Apple Watch cannot do it either.
 - Do not claim a two-way sync exists.
 - Do not suggest automating the 18Birdies app through its private API or by
   scripting the UI.

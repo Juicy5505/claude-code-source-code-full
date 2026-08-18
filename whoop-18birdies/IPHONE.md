@@ -141,37 +141,57 @@ WHOOP metric.** WHOOP publishes no golf readiness score.
 
 ---
 
-## Part 5 — swing detection on the phone (experimental)
+## Part 5 — tracking the golf itself, on the phone
 
-`iphone/swing_logger.py` approximates what the 18Birdies watchOS app does on an
-Apple Watch: watch the accelerometer for the spike a golf swing produces, and
-tag each detection with GPS. It runs in **Pythonista** (App Store) — no Mac, no
-Xcode, no developer account.
+`iphone/swing_logger.py` runs in **Pythonista** (App Store) — no Mac, no Xcode,
+no developer account. It offers three modes, and they differ mainly in what you
+have to wear.
 
-**Read the constraints before you bother:**
+### Pocket — yardages, nothing strapped on
 
-- **Placement decides whether this works at all.** Strap the phone to your
-  **lead forearm** (left arm for a right-handed golfer). In a pocket the sensor
-  mostly sees hip rotation, which is too close to a practice swing or climbing
-  out of a cart to separate reliably. This is why 18Birdies built it for the
-  watch and tells you to wear it on the lead wrist.
-- **iOS only delivers motion updates to a foreground app.** The script must stay
-  on screen for the whole round — set Auto-Lock to Never and start on a full
-  battery. The Apple Watch gets a background workout entitlement a script never
-  will.
+**Start here.** Phone in a pocket, GPS only. You stop at the ball, hit it, and
+walk after it, so the shot's length is the distance between where you stopped
+and where you stopped next. That is how Arccos and Shot Scope measure distance
+too, and it needs nothing on your arm.
+
+One habit makes it work: **stand over the ball for a few seconds before you
+hit.** That pause is what marks the shot; rake-and-hit gives it nothing to find.
+
+What it cannot see, stated up front rather than left to discover:
+
+- **Shots under about 33 yards do not appear at all.** A chip and the walk after
+  it are indistinguishable from standing still, so the shot is invisible rather
+  than wrong. Your count will be short by roughly your chips and putts. This is
+  exactly why the trackers that do measure the short game put a sensor in the
+  club rather than reading where the player stood.
+- **No tempo and no swing force.** Those need the arm.
+
+### Range / Round — tempo and swing force
+
+Same script, phone on your **lead forearm** (left arm for a right-handed
+golfer). There a swing is roughly 8x your walking motion and easy to separate;
+in a pocket it is nearer 3x, where swing detection gets marginal — which is why
+pocket mode measures distance by GPS instead of trying to detect swings at all.
+
+**No calibration step.** Detection tracks a rolling median of your own motion
+and fires on a multiple of it, so it adapts to wherever the phone actually sits.
+An earlier version needed a threshold set by hand; it does not any more. A
+`calibrate` mode still exists (`python swing_logger.py calibrate`) but it only
+*reports* placement quality — swing peaks 5x your walking peaks is a good spot —
+and sets nothing.
+
+### Constraints that apply to all three
+
+- **iOS only delivers motion and location updates to a foreground app.** The
+  script must stay on screen for the whole session — set Auto-Lock to Never and
+  start on a full battery.
 - **It cannot write shots into 18Birdies.** No public API. You get a standalone
   log to correlate afterwards.
-- **It detects that a swing happened and where you stood.** Not swing path, not
-  face angle, not club head speed — an arm-worn phone cannot measure those.
+- **No swing path, face angle, club speed, launch angle or spin.** Those need
+  the club's position in space — a launch-monitor measurement. No wrist or
+  pocket sensor gives them, an Apple Watch included.
 - **Shortcuts cannot do any of this.** There is no motion or accelerometer
   action in Shortcuts; sensor work needs Pythonista or a native app.
-
-**Calibrate first.** The threshold depends on your tempo and exactly where the
-phone sits, so the shipped default is a starting point, not a setting:
-
-```
-python swing_logger.py calibrate   # 30s: walk, then take a few full swings
-```
 
 It prints peak magnitudes per second. Set `SWING_THRESHOLD_G` comfortably above
 your walking peaks — usually around 60-70% of your swing peak — then:
@@ -267,10 +287,25 @@ the other sensor code, first runs on your hardware.
 The server binds `0.0.0.0` and speaks plain HTTP, which is fine on your own
 LAN and **not** fine on the open internet. Don't port-forward it.
 
-To use it away from home, put it behind a tunnel that terminates TLS
-(Tailscale, Cloudflare Tunnel, or similar) and point the Shortcut at the HTTPS
-hostname. The bearer token still applies; over a tunnel the `?token=` form is
-safe because the URL is encrypted in transit.
+**Tailscale is the straightforward answer**, and it covers the iPhone (macOS,
+iOS and tvOS are supported; watchOS is not). Install it on both the Mac and the
+phone, then on the Mac:
+
+```bash
+tailscale ip -4        # e.g. 100.101.102.103 — this is your host
+tailscale status       # confirms the phone is on the tailnet and reachable
+```
+
+Point `INGEST_URL` in `swing_logger.py` — or the Shortcut's URL — at
+`http://100.101.102.103:8790`. The tunnel is encrypted end to end and
+authenticated per device, so this works from a golf course, not just your
+kitchen. Cloudflare Tunnel works the same way if you prefer a hostname.
+
+The bearer token still applies. Over a tunnel the `?token=` form is safe,
+because the whole URL is encrypted in transit.
+
+If an upload fails anyway — a dead spot mid-round — the session is already
+saved on the phone and queued; the next run retries it before starting.
 
 ---
 
