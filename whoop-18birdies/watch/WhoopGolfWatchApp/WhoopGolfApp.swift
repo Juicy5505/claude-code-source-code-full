@@ -20,6 +20,7 @@ struct WhoopGolfApp: App {
 
 struct ModePicker: View {
     @State private var mode: String?
+    @State private var pending = 0
 
     var body: some View {
         if let mode {
@@ -35,6 +36,17 @@ struct ModePicker: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+
+                // Surfaced, because the alternative is a round sitting
+                // undelivered on the watch with nothing anywhere saying so.
+                if pending > 0 {
+                    Text(pending == 1
+                         ? "1 round waiting to upload"
+                         : "\(pending) rounds waiting to upload")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                        .multilineTextAlignment(.center)
+                }
                 Button("Range (no GPS)") { mode = "range" }
                     // .bordered is watchOS 8.0; .borderedProminent is 9.0 and
                     // would break the documented 8.5 floor.
@@ -44,6 +56,15 @@ struct ModePicker: View {
                     .buttonStyle(.bordered)
             }
             .padding()
+            .task {
+                // App launch is when the watch is most likely to be somewhere
+                // with WiFi, so this is the right moment to drain the queue.
+                // The watch cannot reach a tailnet — Tailscale has no watchOS
+                // client — so plain WiFi is the only route it has.
+                let carrier = SessionModel(mode: "round")
+                await carrier.flushOutbox()
+                pending = SessionModel.pendingCount
+            }
         }
     }
 }

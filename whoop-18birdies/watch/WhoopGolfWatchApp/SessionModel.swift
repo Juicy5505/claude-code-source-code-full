@@ -167,11 +167,6 @@ final class SessionModel: ObservableObject {
     /// silently lost every session: `replaceItemAt` requires the destination to
     /// already exist, so the very first save threw, the error was swallowed, and
     /// the file was therefore never created — on any save, ever.
-    /// The rate actually achieved, measured over the session. Reporting a
-    /// hardcoded 100 Hz makes a session that ran at 60 look like one that ran
-    /// clean, and the tempo derived from it correspondingly trustworthy.
-    var achievedRateHz: Int = 100
-
     func autosave(rateHz: Int = 100) {
         guard let data = encoded(rateHz: rateHz) else { return }
         do {
@@ -183,24 +178,122 @@ final class SessionModel: ObservableObject {
         }
     }
 
-    /// POST the finished session to `wb serve`, if configured. Best-effort.
+    /// The rate actually achieved, measured over the session. Reporting a
+    /// hardcoded 100 Hz makes a session that ran at 60 look like one that ran
+    /// clean, and the tempo derived from it correspondingly trustworthy.
+    var achievedRateHz: Int = 100
+
+    // MARK: - Upload, with a queue that survives a course with no signal
+
+    /// Where unsent sessions wait. One file per round, named by the instant it
+    /// finished, so a second round can never overwrite a first that has not yet
+    /// been delivered — which the fixed `swings.json` filename allowed.
+    private static var outboxDirectory: URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return docs.appendingPathComponent("outbox", isDirectory: true)
+    }
+
+    /// Finish the session: try to deliver it, and queue it if that fails.
+    ///
+    /// Queueing is not a nicety here, it is the normal path. Tailscale has no
+    /// watchOS client, so the watch can only reach `wb serve` over plain WiFi —
+    /// which a golf course does not have. Every round will therefore fail to
+    /// upload at the time and succeed later, and without a queue that meant
+    /// every round was lost.
     func upload(rateHz: Int) async {
-        guard !ingestURL.isEmpty, let url = URL(string: ingestURL),
-              let body = encoded(rateHz: rateHz) else { return }
+        guard let body = encoded(rateHz: rateHz) else { return }
+        if ingestURL.isEmpty {
+            status = "saved on watch (no ingest URL set)"
+            return
+        }
+        if await deliver(body) {
+            status = "uploaded to server"
+        } else {
+            enqueue(body)
+            status = "no connection — queued, will send on WiFi"
+        }
+        await flushOutbox()
+    }
+
+    /// Retry anything still waiting. Called on app launch, which is the moment
+    /// the watch is most likely to be somewhere with WiFi.
+    func flushOutbox() async {
+        guard !ingestURL.isEmpty else { return }
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(
+            at: Self.outboxDirectory, includingPropertiesForKeys: nil
+        ) else { return }
+
+        var sent = 0
+        for file in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard let data = try? Data(contentsOf: file) else { continue }
+            if await deliver(data) {
+                try? fm.removeItem(at: file)
+                sent += 1
+            } else {
+                // Stop on the first failure. If the network is down, the rest
+                // will fail too, and hammering it drains a Series 5 battery
+                // that is already the weak point of a five-hour round.
+                break
+            }
+        }
+        if sent > 0 {
+            status = sent == 1 ? "sent 1 queued round" : "sent \(sent) queued rounds"
+        }
+    }
+
+    /// One delivery attempt. Returns true when the session is SETTLED — which
+    /// deliberately includes a 4xx. A bad token or a malformed body will not
+    /// start working on the next attempt, and retrying it every launch forever
+    /// would keep a permanently undeliverable file at the head of the queue,
+    /// blocking every round behind it.
+    private func deliver(_ body: Data) async -> Bool {
+        var endpoint = ingestURL
+        if !endpoint.hasSuffix("/swings") {
+            endpoint = endpoint.hasSuffix("/") ? endpoint + "swings" : endpoint + "/swings"
+        }
+        guard let url = URL(string: endpoint) else { return false }
+
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
+        req.timeoutInterval = 20
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if !ingestToken.isEmpty {
             req.setValue("Bearer \(ingestToken)", forHTTPHeaderField: "Authorization")
         }
         req.httpBody = body
+
         do {
             let (_, resp) = try await URLSession.shared.data(for: req)
-            if let http = resp as? HTTPURLResponse {
-                status = http.statusCode == 200 ? "uploaded to server" : "upload failed (\(http.statusCode))"
+            guard let http = resp as? HTTPURLResponse else { return false }
+            if http.statusCode == 200 { return true }
+            if (400..<500).contains(http.statusCode) {
+                status = "server refused (\(http.statusCode)) — check the token"
+                return true      // settled: never going to succeed
             }
+            return false         // 5xx: worth another try later
         } catch {
-            status = "upload failed — session saved on watch"
+            return false         // no network, which is the expected case
         }
+    }
+
+    private func enqueue(_ body: Data) {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: Self.outboxDirectory,
+                                withIntermediateDirectories: true)
+        // Seconds-resolution timestamps could collide if two sessions ended in
+        // the same second; the UUID suffix makes that impossible.
+        let stamp = ISO8601DateFormatter().string(from: Date())
+            .replacingOccurrences(of: ":", with: "-")
+        let name = "\(mode)-\(stamp)-\(UUID().uuidString.prefix(6)).json"
+        try? body.write(to: Self.outboxDirectory.appendingPathComponent(name),
+                        options: .atomic)
+    }
+
+    /// How many rounds are still waiting, for the picker to show.
+    static var pendingCount: Int {
+        (try? FileManager.default.contentsOfDirectory(
+            at: outboxDirectory, includingPropertiesForKeys: nil
+        ).count) ?? 0
     }
 }

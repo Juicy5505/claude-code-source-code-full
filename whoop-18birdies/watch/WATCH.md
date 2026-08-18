@@ -116,9 +116,13 @@ as syncing to the iPhone, which it does not.
 Set two fields at the top of `SessionModel.swift` before building:
 
 ```swift
-var ingestURL = "http://192.168.1.24:8790/swings"   // your `wb serve` host
+var ingestURL = "http://192.168.1.24:8790"   // your `wb serve` host, LAN address
 var ingestToken = "your-token"
 ```
+
+Use the **LAN** address here, not the tailnet one — the watch has no Tailscale
+client and cannot route to `100.x.x.x`. The `/swings` suffix is added for you if
+you leave it off.
 
 On **Stop & Save** the watch POSTs the session to the `/swings` endpoint (added
 to `wb serve` for exactly this), which stores it under
@@ -132,6 +136,36 @@ python3 iphone/analyze.py ~/.whoop-18birdies/watch-sessions/*.json
 
 Leave `ingestURL` empty to keep sessions on the watch only and pull them off
 another way.
+
+### The watch cannot reach your tailnet
+
+Worth knowing before you plan around it: **Tailscale has no watchOS client.**
+macOS, iOS and tvOS are supported; the watch is not. So the watch can only
+reach `wb serve` over plain WiFi on the same network — which a golf course does
+not have.
+
+That is fine, because it is handled rather than hoped for. A round that cannot
+upload is written to an outbox on the watch and retried every time you open the
+app. The picker shows how many are waiting:
+
+```
+Swing Logger
+Detection self-calibrates from your motion.
+2 rounds waiting to upload
+```
+
+Open the app once you are home on WiFi and they go. Nothing is lost by playing
+somewhere with no signal, which is the normal case.
+
+Two details that make this work rather than merely look like it does:
+
+- **Queued rounds are named by the instant they finished**, not by a fixed
+  filename. The live session still autosaves to `swings.json`, but a finished
+  one moves to `outbox/round-<timestamp>-<id>.json`. With the old fixed name, a
+  second round overwrote the first if the first had not been delivered.
+- **A 4xx settles a round rather than retrying it forever.** A bad token will
+  not start working on the next launch, and a permanently undeliverable file at
+  the head of the queue would block every round behind it.
 
 ### If your phone is wired and VPN'd to the Mac
 
