@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import { dirname, join, resolve, sep } from "node:path";
 import { paths } from "./config.ts";
@@ -129,6 +129,49 @@ export async function saveWatchSession(
 
   await writeJson(candidate, session);
   return { path: candidate, name };
+}
+
+/**
+ * Watch session names, most recent round first.
+ *
+ * Ordered by the date in the filename rather than by mtime. mtime is the moment
+ * the file last landed on this disk, which for a session restored from a backup
+ * or copied off another machine is today — so a round from March would sort as
+ * the newest thing you played.
+ */
+export async function listWatchSessions(): Promise<string[]> {
+  let entries: string[];
+  try {
+    entries = await readdir(paths.watchSessions());
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw err;
+  }
+
+  const dateOf = (name: string): string =>
+    name.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? "";
+
+  return entries
+    .filter((name) => name.endsWith(".json"))
+    .map((name) => name.slice(0, -".json".length))
+    .sort((a, b) => {
+      const byDate = dateOf(b).localeCompare(dateOf(a));
+      // Undated sessions all compare equal on date; the name tiebreak keeps the
+      // order stable rather than dependent on directory iteration order.
+      return byDate !== 0 ? byDate : b.localeCompare(a);
+    });
+}
+
+/** Reads one stored session by name. Throws if it is missing or corrupt. */
+export async function loadWatchSession(name: string): Promise<WatchSession> {
+  // Through the same sanitiser that named the file. A session name reaches
+  // here from the command line, so `wb coach ../../tokens` must not resolve to
+  // anything outside the sessions directory.
+  const label = safeLabel(name, "");
+  if (!label) throw new Error(`"${name}" is not a valid session name.`);
+  const session = await readJson<WatchSession | null>(paths.watchSession(label), null);
+  if (!session) throw new Error(`No stored session named "${name}".`);
+  return session;
 }
 
 async function exists(file: string): Promise<boolean> {

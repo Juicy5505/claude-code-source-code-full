@@ -22,7 +22,17 @@ import {
   whoopLocalDate,
 } from "./link/correlate.ts";
 import { computeReadiness } from "./link/readiness.ts";
-import { loadRounds, loadSnapshot, saveRounds, saveSnapshot } from "./store.ts";
+import {
+  listWatchSessions,
+  loadRounds,
+  loadSnapshot,
+  loadWatchSession,
+  saveRounds,
+  saveSnapshot,
+  type WatchSession,
+} from "./store.ts";
+import { buildFacts } from "./coach/facts.ts";
+import { coachRound, explainError, formatCoachRead } from "./coach/coach.ts";
 import { WhoopClient } from "./whoop/client.ts";
 import { authorize, loadTokens } from "./whoop/oauth.ts";
 
@@ -38,6 +48,7 @@ const USAGE = `wb — link WHOOP physiology to 18Birdies golf rounds
   wb report                      Correlate WHOOP metrics against scoring
   wb readiness [YYYY-MM-DD]      Golf readiness for a date (default: today)
   wb golf [YYYY-MM-DD|--list]    The round as WHOOP alone recorded it
+  wb coach [name|--list] [--json]  Read a watch round: swing, body, one thing to fix
   wb serve [--port N]            Ingest server for the iPhone Shortcut
 
 Setup: create an app at developer.whoop.com, then export
@@ -346,6 +357,91 @@ function whoopDateOf(workout: { start: string; timezone_offset: string }): strin
   return whoopLocalDate(workout.start, workout.timezone_offset);
 }
 
+/**
+ * Reads one watch round and asks Claude what it shows.
+ *
+ *   wb coach                     the most recent stored session
+ *   wb coach round-2026-08-18    a specific one
+ *   wb coach --file swings.json  a session file straight off the watch
+ *   wb coach --list              what is stored
+ *   wb coach --json              the structured read, for piping
+ *
+ * The WHOOP side is joined when there is a golf workout on the same LOCAL
+ * calendar date, and simply omitted when there is not — a range session, or a
+ * round played without the strap, still gets a read on the swing itself.
+ */
+async function cmdCoach(args: string[]): Promise<void> {
+  const wantsJson = args.includes("--json");
+  const file = flagValue(args, "--file");
+
+  if (args.includes("--list")) {
+    const names = await listWatchSessions();
+    if (names.length === 0) {
+      console.log("No watch sessions stored. Run `wb serve` and finish a round.");
+      return;
+    }
+    for (const name of names) console.log(`  ${name}`);
+    return;
+  }
+
+  let session: WatchSession;
+  let label: string;
+  if (file) {
+    session = JSON.parse(await readFile(file, "utf8")) as WatchSession;
+    label = file;
+  } else {
+    // Any bare argument is the session name; flags and their values are not.
+    const flags = new Set(["--json", "--list", "--file"]);
+    const named = args.find(
+      (a, i) => !a.startsWith("--") && args[i - 1] !== "--file" && !flags.has(a),
+    );
+    const names = await listWatchSessions();
+    if (names.length === 0 && !named) {
+      console.log(
+        "No watch sessions stored yet.\n" +
+          "Run `wb serve`, finish a round on the watch, then `wb coach`.",
+      );
+      return;
+    }
+    label = named ?? names[0]!;
+    session = await loadWatchSession(label);
+  }
+
+  if (!Array.isArray(session.swings) || session.swings.length === 0) {
+    console.log(`${label} has no swings in it — nothing to read.`);
+    return;
+  }
+
+  // Join WHOOP on the round's own local date, matching `wb golf`.
+  const facts0 = buildFacts(session);
+  let whoop = null;
+  if (facts0.date) {
+    const snapshot = await loadSnapshot();
+    const workout = golfWorkouts(snapshot).find(
+      (w) => whoopDateOf(w) === facts0.date,
+    );
+    if (workout) whoop = buildGolfRound(snapshot, workout);
+  }
+  const facts = buildFacts(session, whoop);
+
+  let read;
+  try {
+    read = await coachRound(facts);
+  } catch (err) {
+    // A readable cause, not a stack trace: the usual failure here is a missing
+    // credential, and the fix is a sentence.
+    console.error(`\nCould not get a read.\n${explainError(err)}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (wantsJson) {
+    console.log(JSON.stringify({ facts, read }, null, 2));
+    return;
+  }
+  console.log(formatCoachRead(read, facts));
+}
+
 async function main(): Promise<void> {
   const [cmd, ...args] = process.argv.slice(2);
 
@@ -371,6 +467,8 @@ async function main(): Promise<void> {
       return cmdReadiness(args[0]);
     case "golf":
       return cmdGolf(args[0]);
+    case "coach":
+      return cmdCoach(args);
     case "serve":
       return cmdServe(args);
     default:

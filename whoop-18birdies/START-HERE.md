@@ -174,6 +174,46 @@ wb readiness                # whether you should have played at all
 wb report                   # does under-recovery actually show in your scoring
 ```
 
+### `wb coach` — one round, read back to you
+
+Everything above prints numbers. `wb coach` reads them:
+
+```bash
+wb coach                    # the most recent round on file
+wb coach --list             # what is stored
+wb coach round-2026-08-17   # a specific one
+wb coach --json             # the structured read, for piping
+```
+
+```
+Round of 2026-08-17
+===================
+
+Tempo held together all afternoon; contact fell away over the last nine.
+
+20 swings · 294 min · tempo 2.95:1 · 19 shots measured · longest 230.1 yd
+
+Work on
+  Late-round contact, not mechanics.
+  Drill: nine holes hitting to 80% — the goal is the last three swings
+  matching the first three.
+```
+
+It needs an Anthropic credential (`export ANTHROPIC_API_KEY=...`, or `ant auth
+login`). Nothing else in `wb` does — WHOOP and the watch work without it.
+
+**It cannot see your swing.** No path, no face angle, no club speed, no ball
+flight — those need a launch monitor, and the prompt forbids inventing them. It
+reads tempo, impact force, yardage spread, front-to-back decline, and your WHOOP
+numbers for that day.
+
+Every statistic it cites is computed in `src/coach/facts.ts` and handed over as
+a fact sheet, not derived by the model from raw swings — so a wrong average is
+a test failure rather than a confident sentence. **If the round carries a GPS
+warning, the yardages are removed from that sheet entirely** rather than flagged:
+they measure where your cart went, and a number left in the input is a number
+something can reason about.
+
 `wb report` needs your scores, which nothing can read automatically — 18Birdies
 has no public API. Add them with `wb import-csv` (`wb template` prints the
 format) or post them to `wb serve` from a Shortcut.
