@@ -17,11 +17,45 @@ from swing_metrics import consistency, fatigue_split, tempo_verdict
 # --- Loading -----------------------------------------------------------------
 
 
-def load_swings(path):
+def load_session(path):
+    """Load a log as (swings, meta), keeping the wrapper rather than discarding it.
+
+    `load_swings` returned only the list, which meant every field the logger
+    writes ALONGSIDE the swings was dropped at the door — including
+    `gps_warning`, the flag the watch sets when it worked out that its position
+    fixes were coming from the paired iPhone rather than from your wrist. The
+    report then printed a full club-gapping analysis of distances that measure
+    where a golf cart went, with nothing anywhere saying so. See `report`.
+    """
     with open(path) as handle:
         data = json.load(handle)
-    # Accept either the logger's wrapper or a bare list.
-    return data.get("swings", data) if isinstance(data, dict) else data
+    if not isinstance(data, dict):
+        return data, {}
+    if "swings" not in data:
+        # A bare mapping that is not the logger's wrapper. Preserved from the
+        # original behaviour rather than tightened, so an unusual hand-made log
+        # keeps working.
+        return data, {}
+    meta = {key: value for key, value in data.items() if key != "swings"}
+    return data["swings"], meta
+
+
+def load_swings(path):
+    """Just the swings, for callers that do not care about the wrapper."""
+    return load_session(path)[0]
+
+
+def gps_warning_of(meta):
+    """The session's GPS warning, or None.
+
+    Normalised here so every caller agrees on what "set" means: a missing key,
+    a null, and an empty string are all "no warning", and anything else is a
+    warning to be surfaced verbatim.
+    """
+    warning = (meta or {}).get("gps_warning")
+    if isinstance(warning, str) and warning.strip():
+        return warning.strip()
+    return None
 
 
 def local_date(iso_timestamp):
@@ -125,7 +159,7 @@ def section(title):
     print("-" * len(title))
 
 
-def report(swings, cache_path=None):
+def report(swings, cache_path=None, meta=None):
     if not swings:
         print("No swings in that log.")
         return
@@ -133,6 +167,31 @@ def report(swings, cache_path=None):
     date = round_date(swings)
     print("Round report — {}".format(date or "undated"))
     print("{} swings detected".format(len(swings)))
+
+    # An Apple Watch before the Series 8 uses the PAIRED IPHONE'S GPS whenever
+    # the phone is in Bluetooth range. With the phone in the cart, every "shot"
+    # is the gap between two cart positions — numbers that look entirely
+    # plausible and describe a different object. The watch detects this and
+    # writes `gps_warning` into the session; this is where that flag has to be
+    # obeyed, because this report is what gets read afterwards.
+    #
+    # Suppressed rather than annotated. A caveat under a table of yardages is
+    # read after the yardages, and by then the reader has already formed a view
+    # about their bag.
+    warning = gps_warning_of(meta)
+    if warning:
+        section("GPS PROBLEM — distances withheld")
+        print("  {}".format(warning))
+        print("")
+        print("  Your watch was walking but its reported position barely moved,")
+        print("  which means the fix came from your iPhone, not your wrist. With")
+        print("  the phone in the cart, every shot was measured cart-to-cart.")
+        print("")
+        print("  Distances, club gapping and the distance fatigue trend are")
+        print("  omitted from this report. Tempo, swing force and heart rate are")
+        print("  unaffected — only the POSITION was wrong.")
+        print("")
+        print("  Fix: put the phone in Airplane Mode, or leave it out of range.")
 
     measured = [s for s in swings if s.get("distance_yd") is not None]
     # Chips and putts are marked `short_shot` by the pocket detector. They are
@@ -144,7 +203,12 @@ def report(swings, cache_path=None):
     short = [s for s in measured if s.get("short_shot")]
 
     section("Distance")
-    if full:
+    if warning:
+        print(
+            "  withheld — {} measurement(s) in this session describe the cart, "
+            "not the swing.".format(len(measured))
+        )
+    elif full:
         dists = [s["distance_yd"] for s in full]
         print("  shots measured : {}".format(len(dists)))
         print("  longest        : {:.0f} yd".format(max(dists)))
@@ -181,6 +245,11 @@ def report(swings, cache_path=None):
     section("Fatigue across the round")
     found = False
     for label, key in (("Distance", "distance_yd"), ("Tempo", "tempo_ratio"), ("Swing force", "peak_g")):
+        # An unreliable yardage is no more usable as a fatigue trend than it is
+        # as a club distance: a cart driven further after lunch would read as a
+        # golfer getting stronger.
+        if warning and key == "distance_yd":
+            continue
         drift = fatigue_split(swings, key)
         if not drift:
             continue
@@ -251,8 +320,8 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         raise SystemExit(1)
-    swings = load_swings(sys.argv[1])
-    report(swings, sys.argv[2] if len(sys.argv) > 2 else None)
+    swings, meta = load_session(sys.argv[1])
+    report(swings, sys.argv[2] if len(sys.argv) > 2 else None, meta)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ cache is treated as physiology for a single-session report.
 import json
 import sys
 
-from round_report import load_swings, report, round_date
+from round_report import gps_warning_of, load_session, report, round_date
 from trends import analyze_trends, format_trends
 
 
@@ -48,19 +48,45 @@ def main(argv):
     if len(session_paths) == 1:
         # Single session: full report, with a WHOOP cache if one was passed.
         cache = other_paths[0] if other_paths else None
-        report(load_swings(session_paths[0]), cache)
+        swings, meta = load_session(session_paths[0])
+        report(swings, cache, meta)
         return 0
 
     # Many sessions: trend analysis, ordered oldest -> newest by round date so
     # the direction of travel is meaningful regardless of argument order.
-    loaded = [(p, load_swings(p)) for p in session_paths]
-    loaded.sort(key=lambda pair: round_date(pair[1]) or "")
-    sessions = [swings for _, swings in loaded]
+    loaded = [(p,) + load_session(p) for p in session_paths]
+    loaded.sort(key=lambda row: round_date(row[1]) or "")
+
+    # A session whose GPS came from the paired phone contributes a real tempo
+    # and a real swing force, but its distances measure a cart. Stripping only
+    # `distance_yd` keeps the session in the tempo and heart-rate trends while
+    # removing it from the distance one — dropping the whole session would
+    # throw away good data, and keeping it whole would put cart movement into a
+    # line the user reads as "am I hitting it further".
+    flagged = []
+    sessions = []
+    for path, swings, meta in loaded:
+        if gps_warning_of(meta):
+            flagged.append(path)
+            sessions.append([
+                {k: v for k, v in s.items() if k != "distance_yd"} for s in swings
+            ])
+        else:
+            sessions.append(swings)
 
     print("Sessions, oldest to newest:")
-    for path, swings in loaded:
+    for path, swings, _ in loaded:
         print("  {}  ({} swings)".format(round_date(swings) or "undated", len(swings)))
     print("")
+
+    if flagged:
+        print("GPS PROBLEM in {} of {} session(s):".format(len(flagged), len(loaded)))
+        for path in flagged:
+            print("  {}".format(path))
+        print("  The watch was reporting the paired iPhone's position, so those")
+        print("  distances measure the cart. They are excluded from the distance")
+        print("  trend below; tempo, swing force and heart rate still include them.")
+        print("")
 
     for line in format_trends(analyze_trends(sessions), len(sessions)):
         print(line)
