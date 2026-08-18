@@ -281,5 +281,43 @@ class TestAngleUnwrapping(unittest.TestCase):
         self.assertEqual(swing_metrics._unwrap([1.5]), [1.5])
 
 
+class TestBadPeakIndexIsRefusedRatherThanAnswered(unittest.TestCase):
+    """A negative index used to produce a complete, plausible, wrong result.
+
+    Python's samples[-1] is the last sample, not an error, so
+    analyse_swing(samples, -1) returned real-looking mechanics derived from
+    entirely the wrong sample and reported nothing. This function is what
+    gen_swing_vectors.py runs to produce the golden vectors that pin the Swift
+    port, so a wrong answer here would be frozen into the fixture the watch is
+    validated against.
+    """
+
+    def samples(self, n=20):
+        return [(i * 0.01, 1.0 + i * 0.1, None) for i in range(n)]
+
+    def test_a_negative_index_raises_instead_of_wrapping(self):
+        with self.assertRaises(IndexError):
+            analyse_swing(self.samples(), -1)
+
+    def test_an_index_past_the_end_raises(self):
+        with self.assertRaises(IndexError):
+            analyse_swing(self.samples(), 20)
+
+    def test_the_message_names_both_numbers(self):
+        # So the caller can see which index and which length disagreed.
+        with self.assertRaises(IndexError) as caught:
+            analyse_swing(self.samples(), -1)
+        self.assertIn("-1", str(caught.exception))
+        self.assertIn("20", str(caught.exception))
+
+    def test_a_valid_index_is_untouched(self):
+        self.assertAlmostEqual(analyse_swing(self.samples(), 19)["peak_g"], 2.9, places=2)
+
+    def test_omitting_the_index_still_finds_the_peak_itself(self):
+        self.assertAlmostEqual(analyse_swing(self.samples())["peak_g"], 2.9, places=2)
+
+    def test_an_empty_window_is_still_an_empty_result_not_an_error(self):
+        # Unchanged: no samples is a normal "nothing to say", not a bad call.
+        self.assertEqual(analyse_swing([]), {})
 if __name__ == "__main__":
     unittest.main(verbosity=2)

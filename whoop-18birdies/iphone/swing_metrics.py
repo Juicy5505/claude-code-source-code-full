@@ -183,6 +183,25 @@ def analyse_swing(samples, peak_index=None):
 
     if peak_index is None:
         peak_index = max(range(len(samples)), key=lambda i: samples[i][1])
+    elif not 0 <= peak_index < len(samples):
+        # Rejected explicitly, because Python would otherwise answer.
+        #
+        # A peak_index past the end raises IndexError, which is fine — loud and
+        # obvious. A NEGATIVE one does not: samples[-1] is the last sample, so
+        # analyse_swing(samples, -1) returns a complete, plausible result
+        # computed from entirely the wrong sample and reports no problem at all.
+        #
+        # The live logger cannot produce a negative index, but this function is
+        # the reference implementation: gen_swing_vectors.py runs it to produce
+        # the golden vectors that PIN the Swift port. A silently wrong answer
+        # here would be frozen into the fixture and then used to validate the
+        # watch against, so the wrong number would become the definition of
+        # correct.
+        raise IndexError(
+            "peak_index {} is outside the {} sample(s) given".format(
+                peak_index, len(samples)
+            )
+        )
 
     result = {
         "peak_g": round(samples[peak_index][1], 2),

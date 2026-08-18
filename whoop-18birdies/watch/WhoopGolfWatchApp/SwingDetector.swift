@@ -132,7 +132,10 @@ enum SwingAnalysis {
     /// straight out of walking has no quiet lead-in, and fabricating a start
     /// inside that motion produces a nonsense tempo. Honest nil keeps it out.
     static func findMotionStart(_ s: [MotionSample], peak: Int) -> Int? {
-        if peak <= 0 { return nil }
+        // Both ends. The lower bound was already here; without the upper one
+        // `s[peak]` on the next line is a fatal "Index out of range", which on
+        // a watch means the app dies mid-round and the round is gone.
+        if peak <= 0 || peak >= s.count { return nil }
         let tPeak = s[peak].t
         var quietRun = 0
         var i = peak
@@ -200,6 +203,18 @@ enum SwingAnalysis {
     /// Derives mechanics from a motion window. Fields that need phases the window
     /// does not contain come back nil rather than guessed.
     static func analyse(_ samples: [MotionSample], peak peakIndex: Int) -> SwingMetrics {
+        // Named rather than bare. `samples[peakIndex]` on an out-of-range index
+        // traps with "Index out of range" and nothing about which caller or
+        // which window — on a watch that is a crash report with no lead.
+        //
+        // A trap and not a fallback: the Python reference raises here too (see
+        // analyse_swing in iphone/swing_metrics.py), and there is no honest
+        // SwingMetrics to return for a peak that is not in the window. Inventing
+        // one would put a fabricated swing into the round.
+        precondition(
+            samples.indices.contains(peakIndex),
+            "analyse: peak \(peakIndex) is outside the \(samples.count) sample(s) given"
+        )
         var m = SwingMetrics(peakG: round(samples[peakIndex].mag, 2),
                              backswingS: nil, downswingS: nil,
                              tempoRatio: nil, tempoFrames: nil, yawSweepDeg: nil)
