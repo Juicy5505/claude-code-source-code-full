@@ -3,6 +3,7 @@ import {
   correlateAll,
   indexPhysiology,
   linkRounds,
+  localToday,
   previousDate,
   sleepHours,
   summarise,
@@ -275,5 +276,45 @@ describe("readiness", () => {
   test("flags short sleep in the advice", () => {
     const r = computeReadiness({ date: "2026-05-04", recoveryScore: 50, sleepHours: 5 });
     expect(r.advice.some((a) => /sleep/i.test(a))).toBe(true);
+  });
+});
+
+
+describe("localToday", () => {
+  // Every join in this project is keyed on the LOCAL calendar date. Defaulting
+  // to the UTC date meant that at 5pm in California `wb readiness` asked for
+  // tomorrow and reported no WHOOP data for a day with plenty.
+  const at = (iso: string, offsetMinutes: number) => {
+    const date = new Date(iso);
+    const original = Date.prototype.getTimezoneOffset;
+    // getTimezoneOffset returns minutes to ADD to local to reach UTC, so
+    // UTC-07:00 is +420. Stubbing it is how a fixed zone is simulated without
+    // depending on the machine's own TZ.
+    Date.prototype.getTimezoneOffset = () => offsetMinutes;
+    try {
+      return localToday(date);
+    } finally {
+      Date.prototype.getTimezoneOffset = original;
+    }
+  };
+
+  test("an evening in California is still today, not tomorrow", () => {
+    // 2026-08-17 17:30 PDT == 2026-08-18 00:30 UTC.
+    expect(at("2026-08-18T00:30:00.000Z", 420)).toBe("2026-08-17");
+  });
+
+  test("late morning UTC is the same day everywhere", () => {
+    expect(at("2026-08-17T11:00:00.000Z", 420)).toBe("2026-08-17");
+    expect(at("2026-08-17T11:00:00.000Z", 0)).toBe("2026-08-17");
+    expect(at("2026-08-17T11:00:00.000Z", -120)).toBe("2026-08-17");
+  });
+
+  test("an early morning east of Greenwich is already the next day", () => {
+    // 2026-08-18 07:00 in UTC+09:00 is 2026-08-17 22:00 UTC.
+    expect(at("2026-08-17T22:00:00.000Z", -540)).toBe("2026-08-18");
+  });
+
+  test("returns a plain YYYY-MM-DD", () => {
+    expect(localToday()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

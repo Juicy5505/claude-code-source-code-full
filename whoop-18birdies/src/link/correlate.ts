@@ -18,6 +18,21 @@ export function whoopLocalDate(iso: string, offset: string): string {
   return new Date(base + shiftMs).toISOString().slice(0, 10);
 }
 
+/**
+ * Today's date on THIS machine, as YYYY-MM-DD.
+ *
+ * Deliberately not `new Date().toISOString().slice(0, 10)`, which is the UTC
+ * date. Every join in this project is keyed on the LOCAL calendar date — that
+ * is what WHOOP's own `timezone_offset` gives, and what a golfer means by "my
+ * round on Tuesday". West of Greenwich the two diverge every evening: at 5pm in
+ * California the UTC date is already tomorrow, so `wb readiness` before a
+ * twilight round asked for a day that does not exist yet and reported no data.
+ */
+export function localToday(now: Date = new Date()): string {
+  const shifted = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return shifted.toISOString().slice(0, 10);
+}
+
 export function previousDate(date: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - 1);

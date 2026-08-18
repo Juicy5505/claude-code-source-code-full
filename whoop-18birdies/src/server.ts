@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { indexPhysiology, linkRounds, summarise } from "./link/correlate.ts";
+import { indexPhysiology, linkRounds, localToday, summarise } from "./link/correlate.ts";
 import { computeReadiness } from "./link/readiness.ts";
 import { roundsFromPayload } from "./rounds/ingest.ts";
 import {
@@ -146,7 +146,10 @@ export function createHandler(opts: HandlerOptions) {
     }
 
     if (url.pathname === "/readiness" && req.method === "GET") {
-      const date = url.searchParams.get("date") ?? new Date().toISOString().slice(0, 10);
+      // localToday, not the UTC date: the physiology index is keyed on local
+      // calendar dates, so a UTC default asks for tomorrow every evening west
+      // of Greenwich and reports "no WHOOP data" for a day with plenty.
+      const date = url.searchParams.get("date") ?? localToday();
       const [rounds, snapshot] = await Promise.all([loadRounds(), loadSnapshot()]);
       const day = indexPhysiology(snapshot).get(date);
 

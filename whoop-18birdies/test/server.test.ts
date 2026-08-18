@@ -263,6 +263,52 @@ describe("ingest server", () => {
     expect(await res.json()).toMatchObject({ savedAs: "round-2026-08-17" });
   });
 
+  test("a traversing mode cannot write outside the data directory", async () => {
+    // `mode` arrives in the request body and used to be concatenated straight
+    // into a filesystem path, so "../../../../tmp/pwned" resolved to
+    // /tmp/pwned-<date>.json — an arbitrary file write.
+    const res = await handle(
+      new Request("http://localhost/swings", {
+        method: "POST",
+        headers: { authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({
+          mode: "../../../../tmp/pwned",
+          swings: [{ index: 1, timestamp: "2026-08-17T09:10:00", peak_g: 9 }],
+        }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { savedAs: string; path: string };
+    expect(body.savedAs).not.toContain("..");
+    expect(body.savedAs).not.toContain("/");
+    expect(body.path.startsWith(dir)).toBe(true);
+    // The sanitised label keeps the alphanumerics and drops the rest.
+    expect(body.savedAs).toBe("tmppwned-2026-08-17");
+  });
+
+  test("exotic mode labels are reduced to something safe", async () => {
+    for (const [mode, expected] of [
+      ["a/b", "ab"],
+      ["..%2f..%2fx", "2f2fx"],
+      ["", "session"],
+      ["RANGE", "range"],
+      ["\u0000\u0000", "session"],
+    ] as const) {
+      const res = await handle(
+        new Request("http://localhost/swings", {
+          method: "POST",
+          headers: { authorization: `Bearer ${TOKEN}` },
+          body: JSON.stringify({
+            mode,
+            swings: [{ index: 1, timestamp: "2026-08-18T09:10:00", peak_g: 9 }],
+          }),
+        }),
+      );
+      const body = (await res.json()) as { savedAs: string };
+      expect(body.savedAs.startsWith(expected)).toBe(true);
+    }
+  });
+
   test("rejects a swing payload with no swings", async () => {
     const res = await handle(
       new Request("http://localhost/swings", {

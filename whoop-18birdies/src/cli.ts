@@ -17,6 +17,7 @@ import {
 import {
   indexPhysiology,
   linkRounds,
+  localToday,
   summarise,
   whoopLocalDate,
 } from "./link/correlate.ts";
@@ -48,9 +49,9 @@ function fmt(n: number, digits = 2): string {
   return Number.isFinite(n) ? n.toFixed(digits) : "n/a";
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+// Local, not UTC — see localToday's comment. The distinction decides which
+// day's recovery you are shown.
+const today = localToday;
 
 function flagValue(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);

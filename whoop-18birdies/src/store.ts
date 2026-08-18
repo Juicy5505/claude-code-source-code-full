@@ -1,5 +1,5 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { paths } from "./config.ts";
 import { type Round, dedupeRounds } from "./rounds/types.ts";
 import { type WhoopSnapshot, emptySnapshot } from "./whoop/types.ts";
@@ -72,6 +72,21 @@ export interface WatchSession {
  * date, so repeat uploads on different days do not overwrite each other. A
  * second session on the same date is suffixed rather than clobbering the first.
  */
+/**
+ * Reduce a caller-supplied label to something safe to put in a filename.
+ *
+ * `mode` arrives in the request body, and it used to be concatenated straight
+ * into a path. That is an arbitrary file write: `mode: "../../../../tmp/pwned"`
+ * resolved to `/tmp/pwned-2026-08-17.json`, entirely outside the data
+ * directory. Allow-listing the characters is the fix — a deny-list of "../"
+ * misses `..%2f`, backslashes, absolute paths and NUL bytes.
+ */
+function safeLabel(value: unknown, fallback: string): string {
+  const text = typeof value === "string" ? value : "";
+  const cleaned = text.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32);
+  return cleaned || fallback;
+}
+
 export async function saveWatchSession(
   session: WatchSession,
 ): Promise<{ path: string; name: string }> {
@@ -81,12 +96,23 @@ export async function saveWatchSession(
       ? first.slice(0, 10)
       : "undated";
 
+  const mode = safeLabel(session.mode, "session");
+
   // Avoid overwriting an earlier session that shares the date.
-  let name = `${session.mode}-${date}`;
+  let name = `${mode}-${date}`;
   let candidate = paths.watchSession(name);
   for (let n = 2; await exists(candidate); n++) {
-    name = `${session.mode}-${date}-${n}`;
+    name = `${mode}-${date}-${n}`;
     candidate = paths.watchSession(name);
+  }
+
+  // Belt and braces: even with the label sanitised, refuse to write anywhere
+  // but inside the sessions directory. A future edit to the naming scheme
+  // cannot silently reintroduce an escape.
+  const root = resolve(paths.watchSessions());
+  const target = resolve(candidate);
+  if (target !== join(root, `${name}.json`) || !target.startsWith(root + sep)) {
+    throw new Error("refusing to write a session outside the data directory");
   }
 
   await writeJson(candidate, session);
