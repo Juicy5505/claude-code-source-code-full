@@ -13,9 +13,12 @@ drops, an absent usage string that crashes the app on first permission request.
     python3 watch/test_generate_project.py
 """
 
+import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -138,12 +141,36 @@ def parse_openstep(text: str):
     return result
 
 
+def env_without_team() -> dict:
+    env = dict(os.environ)
+    env.pop("DEVELOPMENT_TEAM", None)
+    return env
+
+
+def generate_into_copy(env: dict):
+    """Run the generator against a throwaway copy of watch/ and return
+    (result, project_dir). Keeps a failing case from clobbering the real
+    project, and lets a test assert that nothing was written at all."""
+    tmp = tempfile.mkdtemp()
+    fake = Path(tmp) / "watch"
+    shutil.copytree(HERE, fake,
+                    ignore=shutil.ignore_patterns("WhoopGolf.xcodeproj", "__pycache__"))
+    result = subprocess.run(
+        [sys.executable, str(fake / "generate-project.py")],
+        capture_output=True, text=True, env=env,
+    )
+    return result, fake / "WhoopGolf.xcodeproj"
+
+
 class ProjectCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # A clean environment, deliberately. $DEVELOPMENT_TEAM changes what the
+        # generator emits, so inheriting it would make every assertion below
+        # depend on whoever happens to be running the suite.
         result = subprocess.run(
             [sys.executable, str(HERE / "generate-project.py")],
-            capture_output=True, text=True,
+            capture_output=True, text=True, env=env_without_team(),
         )
         if result.returncode != 0:
             raise AssertionError(f"generator failed:\n{result.stderr}")
@@ -287,11 +314,53 @@ class TestSettingsThatCostRounds(ProjectCase):
         self.assertEqual(settings["SDKROOT"], "watchos")
 
 
+class TestSigning(ProjectCase):
+    """Signing is where a generated project fails for a reason nobody can see.
+
+    "Signing for 'WhoopGolf' requires a development team" stops the build
+    before a single line of Swift is compiled, and from Xcode it is one dropdown
+    away. From `xcodebuild` there is no dropdown, so the Team ID has to be in
+    the project — which is what $DEVELOPMENT_TEAM is for.
+    """
+
+    def test_no_team_is_baked_in_by_default(self):
+        # The committed project must be team-free: a stranger's Team ID in it
+        # fails to sign with an error that names provisioning, not the team.
+        self.assertNotIn("DEVELOPMENT_TEAM", self.text)
+
+    def test_a_team_id_reaches_both_the_app_and_the_tests(self):
+        env = env_without_team()
+        env["DEVELOPMENT_TEAM"] = "ABCDE12345"
+        result, project = generate_into_copy(env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        text = (project / "project.pbxproj").read_text(encoding="utf-8")
+        tree = parse_openstep(text)
+        scopes = [
+            obj["buildSettings"]
+            for obj in tree["objects"].values()
+            if obj.get("isa") == "XCBuildConfiguration"
+            and "PRODUCT_BUNDLE_IDENTIFIER" in obj["buildSettings"]
+        ]
+        self.assertTrue(scopes, "no target-level configurations found")
+        for settings in scopes:
+            # Both the app and the test bundle. Signing only the app makes
+            # `xcodebuild test` fail after `xcodebuild build` succeeded, which
+            # reads as the tests being broken rather than unsigned.
+            self.assertEqual(settings.get("DEVELOPMENT_TEAM"), "ABCDE12345",
+                             settings.get("PRODUCT_BUNDLE_IDENTIFIER"))
+
+    def test_a_malformed_team_id_aborts_and_writes_nothing(self):
+        env = env_without_team()
+        env["DEVELOPMENT_TEAM"] = "my-team"
+        result, project = generate_into_copy(env)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Team ID", result.stderr)
+        self.assertFalse(project.exists(),
+                         "wrote a project that could never sign")
+
+
 class TestRefusesToGenerateGarbage(ProjectCase):
     def test_a_missing_source_aborts_rather_than_emitting_a_broken_project(self):
-        import shutil
-        import tempfile
-
         with tempfile.TemporaryDirectory() as tmp:
             fake = Path(tmp) / "watch"
             shutil.copytree(HERE, fake, ignore=shutil.ignore_patterns(
@@ -299,7 +368,7 @@ class TestRefusesToGenerateGarbage(ProjectCase):
             (fake / "WhoopGolfWatchApp" / "MotionManager.swift").unlink()
             result = subprocess.run(
                 [sys.executable, str(fake / "generate-project.py")],
-                capture_output=True, text=True,
+                capture_output=True, text=True, env=env_without_team(),
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("MotionManager.swift", result.stderr)

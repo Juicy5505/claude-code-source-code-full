@@ -92,8 +92,11 @@ final class SessionModel: ObservableObject {
 
     /// Great-circle distance in metres. A faithful port of `haversine_m` in
     /// iphone/shot_model.py, which is the tested reference.
-    static func haversineMetres(_ lat1: Double, _ lon1: Double,
-                                _ lat2: Double, _ lon2: Double) -> Double {
+    /// `nonisolated` deliberately: this is pure arithmetic with no state, and
+    /// the golden-vector tests call it from XCTest, which is not on the main
+    /// actor. Without this the whole test target fails to compile.
+    nonisolated static func haversineMetres(_ lat1: Double, _ lon1: Double,
+                                            _ lat2: Double, _ lon2: Double) -> Double {
         let earthRadius = 6_371_008.8
         let p1 = lat1 * .pi / 180
         let p2 = lat2 * .pi / 180
@@ -197,7 +200,7 @@ final class SessionModel: ObservableObject {
     /// Where unsent sessions wait. One file per round, named by the instant it
     /// finished, so a second round can never overwrite a first that has not yet
     /// been delivered — which the fixed `swings.json` filename allowed.
-    private static var outboxDirectory: URL {
+    nonisolated private static var outboxDirectory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent("outbox", isDirectory: true)
     }
@@ -300,7 +303,9 @@ final class SessionModel: ObservableObject {
     }
 
     /// How many rounds are still waiting, for the picker to show.
-    static var pendingCount: Int {
+    /// `nonisolated` so the mode picker can read it without an actor hop —
+    /// it touches FileManager only, never this object's state.
+    nonisolated static var pendingCount: Int {
         (try? FileManager.default.contentsOfDirectory(
             at: outboxDirectory, includingPropertiesForKeys: nil
         ).count) ?? 0

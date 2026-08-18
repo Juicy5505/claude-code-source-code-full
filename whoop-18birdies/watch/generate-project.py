@@ -17,8 +17,17 @@ Everything the manual steps configure is set here, including both background
 modes, the four usage strings, the watchOS 9.0 floor a Series 5 needs, and a
 test target with SwingDetector.swift and swing_vectors.json already wired.
 
-The one thing it cannot do is sign the app: open the project, select the
-WhoopGolf target → Signing & Capabilities, and pick your Apple ID team.
+Signing needs your Apple Developer Team ID, which this cannot invent. Either
+set it once here:
+
+    DEVELOPMENT_TEAM=ABCDE12345 python3 watch/generate-project.py
+
+or leave it unset and pick your team in Xcode under the WhoopGolf target →
+Signing & Capabilities. Setting it matters if you ever build from the command
+line, where there is no dialog to click and the failure is the opaque
+"Signing for \'WhoopGolf\' requires a development team".
+
+Your Team ID is the ten-character code at developer.apple.com → Membership.
 
 Regenerating is safe — it overwrites the project and nothing else. If you have
 customised the project in Xcode, your changes live in the .xcodeproj and WILL
@@ -28,6 +37,8 @@ be lost, so re-run it only when you want the generated configuration back.
 from __future__ import annotations
 
 import hashlib
+import os
+import re
 import sys
 from pathlib import Path
 
@@ -148,6 +159,27 @@ def common_settings() -> dict:
     }
 
 
+def development_team() -> str:
+    """The Apple Team ID to bake into the project, from $DEVELOPMENT_TEAM.
+
+    Validated rather than trusted. A malformed value does not fail the build
+    with anything mentioning the team — Xcode reports a provisioning error
+    about the bundle identifier instead, and you go looking in the wrong place.
+    Apple Team IDs are exactly ten uppercase alphanumerics.
+    """
+    team = os.environ.get("DEVELOPMENT_TEAM", "").strip()
+    if not team:
+        return ""
+    if not re.fullmatch(r"[A-Z0-9]{10}", team):
+        raise SystemExit(
+            f"DEVELOPMENT_TEAM={team!r} is not a Team ID.\n"
+            "It is exactly ten uppercase letters and digits — find yours at\n"
+            "developer.apple.com → Membership, or leave it unset and pick the\n"
+            "team in Xcode under Signing & Capabilities."
+        )
+    return team
+
+
 def app_settings() -> dict:
     return {
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
@@ -180,6 +212,7 @@ def app_settings() -> dict:
         # with the wrist down; location keeps GPS alive. Ticking only the first
         # produces a round with two yardages in it and no error anywhere.
         "INFOPLIST_KEY_UIBackgroundModes": "workout-processing location",
+        **({"DEVELOPMENT_TEAM": development_team()} if development_team() else {}),
     }
 
 
@@ -192,6 +225,10 @@ def test_settings() -> dict:
         "PRODUCT_BUNDLE_IDENTIFIER": "com.whoopgolf.watchapp.tests",
         "PRODUCT_NAME": "$(TARGET_NAME)",
         "SWIFT_EMIT_LOC_STRINGS": "NO",
+        # The test bundle needs the same team, or `xcodebuild test` fails to
+        # sign it after the app itself signed cleanly — which reads as the
+        # tests being broken rather than unsigned.
+        **({"DEVELOPMENT_TEAM": development_team()} if development_team() else {}),
     }
 
 
@@ -498,7 +535,11 @@ def main() -> int:
     print()
     print("Next:")
     print(f"  open {PROJECT.relative_to(HERE.parent)}")
-    print("  select the WhoopGolf target → Signing & Capabilities → pick your team")
+    if development_team():
+        print(f"  signing team {development_team()} is already set")
+    else:
+        print("  select the WhoopGolf target → Signing & Capabilities → pick your team")
+        print("  (or re-run with DEVELOPMENT_TEAM=<your ten-character Team ID>)")
     print("  choose your watch as the destination and press Run")
     return 0
 

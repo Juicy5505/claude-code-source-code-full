@@ -18,6 +18,7 @@ struct WhoopGolfApp: App {
     }
 }
 
+@MainActor
 struct ModePicker: View {
     @State private var mode: String?
     @State private var pending = 0
@@ -48,23 +49,33 @@ struct ModePicker: View {
                         .multilineTextAlignment(.center)
                 }
                 Button("Range (no GPS)") { mode = "range" }
-                    // .bordered is watchOS 8.0; .borderedProminent is 9.0 and
-                    // would break the documented 8.5 floor.
+                    // `.bordered` (watchOS 8.0), not `.borderedProminent`.
+                    // Both clear the project's 9.0 floor; bordered is the
+                    // one that stays legible in direct sun, which is where
+                    // this screen is actually read.
                     .buttonStyle(.bordered)
                     .tint(.green)
                 Button("Play a round (GPS)") { mode = "round" }
                     .buttonStyle(.bordered)
             }
             .padding()
-            .task {
-                // App launch is when the watch is most likely to be somewhere
-                // with WiFi, so this is the right moment to drain the queue.
-                // The watch cannot reach a tailnet — Tailscale has no watchOS
-                // client — so plain WiFi is the only route it has.
-                let carrier = SessionModel(mode: "round")
-                await carrier.flushOutbox()
-                pending = SessionModel.pendingCount
-            }
+            .task { await drainOutbox() }
         }
+    }
+
+    /// App launch is when the watch is most likely to be somewhere with WiFi,
+    /// so this is the right moment to drain the queue. The watch cannot reach a
+    /// tailnet — Tailscale has no watchOS client — so plain WiFi is its only
+    /// route.
+    ///
+    /// A separate method rather than the body of the `.task`, because
+    /// `View.task` takes a `@Sendable` closure, and a `@Sendable` closure does
+    /// NOT inherit this view's main-actor isolation. Constructing a `@MainActor`
+    /// SessionModel inline in there is a compile error; awaiting a main-actor
+    /// method from there is the hop that makes it legal.
+    private func drainOutbox() async {
+        let carrier = SessionModel(mode: "round")
+        await carrier.flushOutbox()
+        pending = SessionModel.pendingCount
     }
 }

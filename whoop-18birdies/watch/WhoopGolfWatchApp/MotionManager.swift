@@ -84,7 +84,7 @@ final class MotionManager: ObservableObject {
 
     /// Called on the main actor for each detected swing, with the analysed
     /// window and the sample index within it that is the impact peak.
-    var onSwing: ((SwingMetrics) -> Void)?
+    var onSwing: (@MainActor (SwingMetrics) -> Void)?
 
     var isAvailable: Bool { motion.isDeviceMotionAvailable }
 
@@ -93,7 +93,12 @@ final class MotionManager: ObservableObject {
         buffer.removeAll(keepingCapacity: true)
         buffer.reserveCapacity(bufferMax + 8)
         motion.deviceMotionUpdateInterval = 1.0 / targetHz
-        motion.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
+        // `@Sendable` is load-bearing, not decoration. Without it the closure
+        // literal inherits this method's main-actor isolation and is then
+        // converted to CMDeviceMotionHandler, which is not isolated — the
+        // isolation is silently erased. Core Motion calls it on `queue`
+        // regardless, so the annotation just makes the truth checkable.
+        motion.startDeviceMotionUpdates(to: queue) { @Sendable [weak self] data, _ in
             guard let self, let data else { return }
             let now = data.timestamp   // monotonic seconds since boot
             let a = data.userAcceleration

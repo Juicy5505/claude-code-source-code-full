@@ -1,9 +1,11 @@
+import Combine
 import SwiftUI
 import WatchKit
 
 /// The live dashboard during a session, and the wiring that binds the sensor
 /// managers together: motion drives detection, HealthKit supplies HR, location
 /// supplies GPS, and each detected swing is recorded (and haptic-cued).
+@MainActor
 struct SessionView: View {
     let mode: String
 
@@ -88,10 +90,9 @@ struct SessionView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                 }
-                // `.bordered` is watchOS 8.0; `.borderedProminent` is watchOS
-                // 9.0 and would break the documented 8.5 floor — the build
-                // succeeds and then refuses to install, with an unhelpful
-                // "does not support the minimum OS version".
+                // `.bordered` (watchOS 8.0), matching the mode picker. The
+                // project's floor is 9.0, so `.borderedProminent` would also
+                // build — this is a legibility choice, not an availability one.
                 .buttonStyle(.bordered)
                 .tint(ending ? .gray : .green)
                 .disabled(ending)
