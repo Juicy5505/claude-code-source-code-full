@@ -204,7 +204,7 @@ export function inkBoxPropsToCSS(props: InkStyleProps): CSSProperties {
   // Border
   if (props.borderStyle) {
     const styleName = typeof props.borderStyle === 'string' ? props.borderStyle : 'single'
-    const cssBorderStyle = BORDER_STYLE_MAP[styleName] ?? 'solid'
+    const cssBorderStyle = (BORDER_STYLE_MAP[styleName] ?? 'solid') as CSSProperties['borderTopStyle']
     const isBold = BORDER_BOLD_STYLES.has(styleName)
     const borderWidth = isBold ? '2px' : '1px'
 

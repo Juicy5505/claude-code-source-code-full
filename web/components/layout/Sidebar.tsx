@@ -21,7 +21,12 @@ const TABS: Array<{ id: SidebarTab; icon: React.ElementType; label: string }> = 
   { id: "settings", icon: Settings, label: "Settings" },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  /** Called after a navigation action (used by the mobile drawer to close). */
+  onNavigate?: () => void;
+}
+
+export function Sidebar({ onNavigate }: SidebarProps = {}) {
   const {
     sidebarOpen,
     sidebarWidth,
@@ -76,10 +81,12 @@ export function Sidebar() {
   const handleTabClick = (id: SidebarTab) => {
     if (id === "settings") {
       openSettings();
+      onNavigate?.();
       return;
     }
     if (!sidebarOpen) toggleSidebar();
     setSidebarTab(id);
+    onNavigate?.();
   };
 
   return (

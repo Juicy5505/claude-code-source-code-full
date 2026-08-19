@@ -109,7 +109,7 @@ const pools = new Map<string, WorkerPool>();
 
 export function getWorkerPool<T>(key: string, factory: () => Worker): WorkerPool<T> {
   if (!pools.has(key)) {
-    pools.set(key, new WorkerPool<T>(factory));
+    pools.set(key, new WorkerPool<T>(factory) as WorkerPool);
   }
   return pools.get(key) as WorkerPool<T>;
 }

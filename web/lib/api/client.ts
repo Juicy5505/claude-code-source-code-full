@@ -161,7 +161,7 @@ class ApiClient {
     const url = `${this.baseUrl}${path}`;
     const headers = this.buildHeaders(extraHeaders);
 
-    const timeoutSignals: (AbortSignal | undefined)[] = [userSignal];
+    const timeoutSignals: (AbortSignal | undefined)[] = [userSignal ?? undefined];
     let timeoutController: AbortController | undefined;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 

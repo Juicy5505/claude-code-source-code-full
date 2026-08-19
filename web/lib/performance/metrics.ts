@@ -13,6 +13,15 @@ export interface PerformanceMetric {
   meta?: Record<string, unknown>;
 }
 
+/**
+ * Layout Instability API entry — not yet in the TS DOM lib, so declared here.
+ * @see https://wicg.github.io/layout-instability/
+ */
+interface LayoutShift extends PerformanceEntry {
+  readonly value: number;
+  readonly hadRecentInput: boolean;
+}
+
 type MetricSink = (metric: PerformanceMetric) => void;
 
 let sink: MetricSink = () => {};
