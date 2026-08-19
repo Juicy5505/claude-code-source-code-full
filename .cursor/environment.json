@@ -1,0 +1,10 @@
+{
+  "name": "Claude Code Source Snapshot",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "mcp-explorer-http",
+      "command": "cd mcp-server && PORT=8787 CLAUDE_CODE_SRC_ROOT=\"$PWD/../src\" node dist/src/http.js"
+    }
+  ]
+}
