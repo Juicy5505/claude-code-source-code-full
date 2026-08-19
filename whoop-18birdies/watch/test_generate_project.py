@@ -280,14 +280,49 @@ class TestSettingsThatCostRounds(ProjectCase):
         self.assertLessEqual(target, 10.0)
         self.assertGreaterEqual(target, 8.5, "below the code's actual API floor")
 
-    def test_both_background_modes_are_present(self):
+    def test_workout_processing_is_in_the_watchos_key(self):
+        # WKBackgroundModes is the key watchOS reads for background execution.
+        # This used to live in UIBackgroundModes, where watchOS never looks — so
+        # the app lost background execution the moment the wrist dropped and the
+        # round stopped recording with no error at all.
+        settings = self.settings_for("INFOPLIST_KEY_WKBackgroundModes")
+        self.assertIn("workout-processing", settings["INFOPLIST_KEY_WKBackgroundModes"])
+
+    def test_location_is_in_the_key_core_location_actually_reads(self):
+        # UIBackgroundModes, the iOS-shaped key, is what Core Location checks —
+        # on watchOS too. Apple's watchOS 4 release notes: "To track location in
+        # the background while a user is in a workout session, add
+        # UIBackgroundModes/location in the Info.plist file. (29483437)".
+        # Without it, allowsBackgroundLocationUpdates = true throws and kills the
+        # app as the round starts.
         settings = self.settings_for("INFOPLIST_KEY_UIBackgroundModes")
-        modes = settings["INFOPLIST_KEY_UIBackgroundModes"]
-        # workout-processing keeps the motion loop alive with the wrist down;
-        # location keeps GPS alive. Only the first means a round records two
-        # yardages and then stops, with no error anywhere.
-        self.assertIn("workout-processing", modes)
-        self.assertIn("location", modes)
+        self.assertIn("location", settings["INFOPLIST_KEY_UIBackgroundModes"])
+
+    def test_the_two_modes_are_not_crammed_into_one_key(self):
+        # The specific regression this replaced: "workout-processing location"
+        # as a single UIBackgroundModes value. Both words were present, so a
+        # substring check passed, and the app still had no background execution.
+        settings = self.settings_for("INFOPLIST_KEY_UIBackgroundModes")
+        self.assertNotIn(
+            "workout-processing", settings["INFOPLIST_KEY_UIBackgroundModes"],
+            "workout-processing belongs in WKBackgroundModes, not UIBackgroundModes",
+        )
+        settings = self.settings_for("INFOPLIST_KEY_WKBackgroundModes")
+        self.assertNotIn(
+            "location", settings["INFOPLIST_KEY_WKBackgroundModes"],
+            "'location' is not a legal WKBackgroundModes value",
+        )
+
+    def test_the_build_script_verifies_the_modes_survived_into_the_bundle(self):
+        # These two INFOPLIST_KEY_ settings are not in Apple's published Build
+        # Settings Reference, and Xcode silently ignores INFOPLIST_KEY_ names it
+        # does not recognise. Setting them correctly here is necessary and not
+        # sufficient, so build.sh reads them back out of the built bundle — this
+        # test pins that the check exists rather than being quietly dropped.
+        script = (HERE / "build.sh").read_text(encoding="utf-8")
+        self.assertIn("verify_background_modes", script)
+        self.assertIn("WKBackgroundModes", script)
+        self.assertIn("plutil", script)
 
     def test_every_usage_string_is_set(self):
         settings = self.settings_for("INFOPLIST_KEY_NSMotionUsageDescription")

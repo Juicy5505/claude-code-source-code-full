@@ -395,7 +395,8 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
-				INFOPLIST_KEY_UIBackgroundModes = "workout-processing location";
+				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
+				INFOPLIST_KEY_UIBackgroundModes = location;
 			};
 			name = Debug;
 		};
@@ -419,7 +420,8 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
-				INFOPLIST_KEY_UIBackgroundModes = "workout-processing location";
+				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
+				INFOPLIST_KEY_UIBackgroundModes = location;
 			};
 			name = Release;
 		};

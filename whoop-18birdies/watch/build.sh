@@ -47,7 +47,10 @@ ARGS=(-project WhoopGolf.xcodeproj -scheme WhoopGolf -configuration Debug)
 case "$MODE" in
   check)
     echo "==> compile check (watchOS simulator sdk, signing off)"
-    ARGS+=(-sdk watchsimulator CODE_SIGNING_ALLOWED=NO build)
+    # A known derived-data path so the built bundle can be found afterwards and
+    # its Info.plist inspected. See verify_background_modes.
+    DERIVED=$(mktemp -d -t whoopgolf-dd)
+    ARGS+=(-sdk watchsimulator CODE_SIGNING_ALLOWED=NO -derivedDataPath "$DERIVED" build)
     ;;
   test)
     # A concrete simulator, discovered rather than guessed: the names change
@@ -83,6 +86,67 @@ MSG
     ;;
 esac
 
+# Reads the background modes back out of the BUILT bundle.
+#
+# Not paranoia. Xcode generates the Info.plist from INFOPLIST_KEY_* build
+# settings, but it silently ignores any INFOPLIST_KEY_ name it does not
+# recognise — Apple documents that a setting it treats as user-defined is not
+# used when generating the plist, with no warning. Neither
+# INFOPLIST_KEY_WKBackgroundModes nor INFOPLIST_KEY_UIBackgroundModes appears in
+# Apple's published Build Settings Reference, so whether setting them does
+# anything at all is not something to take on faith.
+#
+# The cost of being wrong is invisible at build time and total at run time: with
+# workout-processing missing, the app loses background execution the moment the
+# wrist drops and the round stops recording; with location missing, setting
+# allowsBackgroundLocationUpdates = true throws and kills the app on the first
+# tee. Both compile perfectly.
+verify_background_modes() {
+  local app plist
+  app=$(find "$DERIVED/Build/Products" -maxdepth 3 -name "WhoopGolf.app" -type d 2>/dev/null | head -1)
+  if [ -z "$app" ] || [ ! -f "$app/Info.plist" ]; then
+    echo "    could not find the built Info.plist to verify — skipping" >&2
+    return 0
+  fi
+  plist="$app/Info.plist"
+
+  local failed=0
+  check_mode() {
+    local key="$1" want="$2"
+    if ! plutil -extract "$key" json -o - "$plist" 2>/dev/null | grep -q "\"$want\""; then
+      printf '\033[31m    MISSING\033[0m %s must contain "%s"\n' "$key" "$want" >&2
+      failed=1
+    else
+      printf '    \033[32mok\033[0m   %s contains "%s"\n' "$key" "$want"
+    fi
+  }
+
+  echo "==> background modes in the built bundle"
+  # watchOS reads this one for background execution during a workout.
+  check_mode WKBackgroundModes workout-processing
+  # Core Location reads this one, on watchOS too, for its backgroundable check.
+  check_mode UIBackgroundModes location
+
+  if [ "$failed" -ne 0 ]; then
+    cat >&2 <<MSG
+
+The build succeeded but the shipped Info.plist is missing a background mode.
+That is a silent runtime failure, not a build error: the round will either stop
+recording when your wrist drops, or the app will crash on the first tee.
+
+What the bundle actually contains:
+MSG
+    plutil -p "$plist" | grep -iE "backgroundmodes" -A4 >&2 || echo "  (no background modes at all)" >&2
+    cat >&2 <<'MSG'
+
+Most likely cause: Xcode does not recognise these INFOPLIST_KEY_ build settings
+and dropped them without warning. The fix is to stop generating the plist and
+ship a real Info.plist wired up with INFOPLIST_FILE instead.
+MSG
+    return 1
+  fi
+}
+
 LOG=$(mktemp -t whoopgolf-build)
 xcodebuild "${ARGS[@]}" >"$LOG" 2>&1
 STATUS=$?
@@ -90,6 +154,10 @@ STATUS=$?
 if [ "$STATUS" -eq 0 ]; then
   printf '\n\033[32mBUILD SUCCEEDED\033[0m  (full log: %s)\n' "$LOG"
   [ "$MODE" = "test" ] && grep -E "Test Suite .* (passed|failed)" "$LOG" | tail -5
+  # Only in check mode, which is the one that pins -derivedDataPath.
+  if [ "$MODE" = "check" ]; then
+    verify_background_modes || exit 1
+  fi
   exit 0
 fi
 

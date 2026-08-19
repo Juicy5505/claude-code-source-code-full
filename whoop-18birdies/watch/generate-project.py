@@ -208,10 +208,37 @@ def app_settings() -> dict:
             "Measures shot distances by GPS.",
         "INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription":
             "Tracks your round with the screen off.",
-        # BOTH background modes. workout-processing keeps the motion loop alive
-        # with the wrist down; location keeps GPS alive. Ticking only the first
-        # produces a round with two yardages in it and no error anywhere.
-        "INFOPLIST_KEY_UIBackgroundModes": "workout-processing location",
+        # TWO DIFFERENT KEYS, and putting both values in one of them does not
+        # work — which is what this used to do.
+        #
+        # watchOS reads WKBackgroundModes for its own background execution.
+        # "workout-processing" is what lets an app with a live HKWorkoutSession
+        # keep running with the wrist down; "location" is NOT a legal value of
+        # this key.
+        #
+        # Core Location reads UIBackgroundModes — the iOS-shaped key — for its
+        # backgroundable check, on watchOS too. Apple's watchOS 4 release notes
+        # say it outright: "To track location in the background while a user is
+        # in a workout session, add UIBackgroundModes/location in the Info.plist
+        # file. (29483437)". Without it, setting
+        # allowsBackgroundLocationUpdates = true throws
+        # NSInternalInconsistencyException and kills the app as the round starts.
+        # Apple's own SpeedySloth sample ships both keys.
+        #
+        # The previous value was "workout-processing location" in
+        # UIBackgroundModes alone, so workout-processing sat in a key watchOS
+        # never reads: the app lost background execution the moment the wrist
+        # dropped, and the round simply stopped recording with no error.
+        #
+        # A HKWorkoutSession alone is NOT sufficient for background location: it
+        # keeps the PROCESS alive, it does not confer location authority.
+        #
+        # These two settings are NOT in Apple's published Build Settings
+        # Reference, and Xcode silently ignores INFOPLIST_KEY_ settings it does
+        # not recognise. So build.sh reads the keys back out of the BUILT
+        # bundle rather than trusting that setting them did anything.
+        "INFOPLIST_KEY_WKBackgroundModes": "workout-processing",
+        "INFOPLIST_KEY_UIBackgroundModes": "location",
         **({"DEVELOPMENT_TEAM": development_team()} if development_team() else {}),
     }
 
@@ -532,6 +559,7 @@ def main() -> int:
     print(f"Wrote {PROJECT.relative_to(HERE.parent)}")
     print(f"  {len(APP_SOURCES)} app sources, {len(TEST_SOURCES) + 1} test sources")
     print(f"  watchOS 9.0 floor, both background modes, all usage strings")
+    print(f"  (run ./build.sh to verify the modes survived into the built bundle)")
     print()
     print("Next:")
     print(f"  open {PROJECT.relative_to(HERE.parent)}")
