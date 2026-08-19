@@ -14,11 +14,13 @@ on:
     paths:
       - "whoop-18birdies/**"
       - "second-brain/**"
+      - "tools/**"
       - ".github/workflows/whoop-18birdies.yml"
   pull_request:
     paths:
       - "whoop-18birdies/**"
       - "second-brain/**"
+      - "tools/**"
       - ".github/workflows/whoop-18birdies.yml"
   workflow_dispatch:
 
@@ -59,9 +61,13 @@ jobs:
       - name: second-brain suite
         run: python3 second-brain/test_brain.py
 
+      - name: share.py suite
+        run: python3 tools/test_share.py
+
       - name: Shell scripts parse
         run: |
           bash -n whoop-18birdies/run-tests.sh
+          bash -n whoop-18birdies/watch/build.sh
           bash -n second-brain/install.sh
 
       # The Python here runs on a phone under Pythonista, where there is no
@@ -100,3 +106,22 @@ jobs:
               sys.exit(1)
           print(f"{len(LOCAL)} phone modules: stdlib and local imports only")
           EOF
+
+  # Swift has no toolchain on ubuntu-latest. This is the compile check
+  # HANDOFF.md asks for on a Mac — done here so every push proves the watch
+  # app actually builds, not just that the Python port matches.
+  watch-build:
+    name: Watch (xcodebuild)
+    runs-on: macos-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile check (watchOS simulator, signing off)
+        working-directory: whoop-18birdies/watch
+        run: ./build.sh
+
+      - name: Unit tests (watchOS simulator)
+        working-directory: whoop-18birdies/watch
+        run: ./build.sh --test

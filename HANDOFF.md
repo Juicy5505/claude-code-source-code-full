@@ -4,7 +4,7 @@ You are picking this up in a **local** Claude Code session on a Mac (VS Code or
 Terminal — same thing). The work so far was done in a **cloud** session, which
 is why one thing is still unverified: nothing here has ever been compiled.
 
-Branch: `claude/whoop-18birdies-integration-n630ma` · PR #1 (draft) · 47 commits.
+Branch: `claude/whoop-18birdies-integration-n630ma` · PR #1 (draft) · 50+ commits.
 
 ```bash
 git pull origin claude/whoop-18birdies-integration-n630ma
@@ -12,28 +12,34 @@ git pull origin claude/whoop-18birdies-integration-n630ma
 
 ---
 
-## 1. Do this first
+## 1. Do this first (Mac)
 
 ```bash
 cd whoop-18birdies/watch
 ./build.sh
+./build.sh --test
 ```
 
 That compiles the watchOS app against the **simulator** SDK with signing off.
 No Apple Developer team, no provisioning profile, no paired watch — so it gets
 past `Signing for 'WhoopGolf' requires a development team` and actually reports
-Swift errors, which is the only thing still unknown about this project.
+Swift errors.
 
 When you want it on the physical watch:
 
 ```bash
 DEVELOPMENT_TEAM=XXXXXXXXXX ./build.sh --device   # ten chars, developer.apple.com → Membership
-./build.sh --test                                  # unit tests in a simulator
 ```
 
-**Expect errors on the first run.** They have never been checked by a compiler,
-only by reading. Four were found and fixed that way — three actor-isolation
-errors and a missing `import Combine` — but reading is not a build.
+**CI now runs the same two commands on `macos-latest`** (job `watch-build` in
+`.github/workflows/whoop-18birdies.yml`). If that job is green on your PR, the
+Swift compiles. If it is red, open the log — `build.sh` prints only the error
+lines, not the full clang invocation wall.
+
+Four actor-isolation / import defects were found and fixed by reading before
+any compiler ran. A fifth (bad peak index silently returning wrong mechanics)
+was caught in Python and mirrored in Swift. Still run `./build.sh` locally once
+before your first round — API signature nits are normal on first compile.
 
 ---
 
@@ -128,13 +134,14 @@ Swift uses `.rounded(.toNearestOrEven)` for that reason. Do not "simplify" it.
 ## 5. Tests — all currently green
 
 ```bash
-cd whoop-18birdies && ./run-tests.sh    # 97 TS + 181 Python + 19 project + vectors
+cd whoop-18birdies && ./run-tests.sh    # 129 TS + 203 Python + 19 project + vectors
 python3 second-brain/test_brain.py      # 46
 python3 tools/test_share.py             # 16
+cd whoop-18birdies/watch && ./build.sh --test   # Swift golden vectors in XCTest (Mac / CI)
 ```
 
-Note what is **not** in there: no Swift test has ever run. `./build.sh --test` is
-the first time that happens.
+The ubuntu CI job runs the first three. The macOS CI job runs `./build.sh` and
+`./build.sh --test`.
 
 ---
 
@@ -186,7 +193,8 @@ in a way that looks like repository damage. `brain doctor` detects evicted files
 
 ## 9. Where to pick up
 
-1. `./build.sh` and fix whatever the compiler says.
+1. If macOS CI is red: read the `watch-build` log and fix the Swift errors.
+   If green: `./build.sh --device` on your Mac to install on the Series 5.
 2. Ask the user: `watch/` or `apple/` — which project is real?
-3. PR #1's body is stale (it still says "320 tests" and claims the watch was
-   dropped). Update it once the build is green.
+3. Set `ingestURL` / `ingestToken` in `SessionModel.swift` before building if
+   you want rounds to reach `wb serve` (see `watch/WATCH.md`).

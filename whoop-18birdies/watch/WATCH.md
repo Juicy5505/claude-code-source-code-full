@@ -265,13 +265,13 @@ the physiology, the swing analytics live in the log this app writes, and
 
 ## Honest limits
 
-- **Not compiled here.** This Swift was written on Linux with no Xcode, so it
-  has never been built. The detection *logic* it ports is fully tested in
-  Python and the *output format* is verified to round-trip through `/swings`
-  into `analyze.py`, but the watchOS API calls (HealthKit, Core Motion,
-  SwiftUI) get their first compile on your Mac. Expect to fix a small thing or
-  two — API signature nits are normal on first build. Paste me any Xcode error
-  and I will correct it.
+- **First compile is on your Mac or in CI.** This Swift was written without
+  Xcode locally available. GitHub Actions runs `./watch/build.sh` and
+  `./watch/build.sh --test` on every push — check the `watch-build` job on PR
+  #1. The detection *logic* is fully tested in Python; the watchOS API calls
+  (HealthKit, Core Motion, SwiftUI) get their first compile there. Expect to
+  fix a small thing or two on first build — API signature nits are normal. Paste
+  any Xcode error and it can be corrected.
 
   A pre-build audit did find and fix four real defects that no compiler would
   have caught, all of them silent in the worst way:
