@@ -4,8 +4,7 @@ import type { Conversation } from "../types";
 
 // Lazy import to avoid circular deps at module init time
 function getStore() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  return require("../store").useChatStore as import("../store").UseChatStore;
+  return require("../store").useChatStore as typeof import("../store").useChatStore;
 }
 
 // ---------------------------------------------------------------------------
