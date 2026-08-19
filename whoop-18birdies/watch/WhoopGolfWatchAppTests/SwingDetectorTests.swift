@@ -220,14 +220,15 @@ final class SwingDetectorTests: XCTestCase {
             let d = optionalDouble(row["downswing_s"])
             let expected = optionalString(row["expect"])
             let actual = TempoBench.frames(b, d)
-            XCTAssertEqual(actual, expected, """
-                tempo frames diverged at a rounding boundary.
-                  backswing: \(b.map(String.init) ?? "nil")
-                  downswing: \(d.map(String.init) ?? "nil")
-                  expected:  \(expected ?? "nil")
-                  actual:    \(actual ?? "nil")
-                Python rounds half-to-even; use .rounded(.toNearestOrEven).
-                """)
+            let message = [
+                "tempo frames diverged at a rounding boundary.",
+                "  backswing: \(describe(b))",
+                "  downswing: \(describe(d))",
+                "  expected:  \(describe(expected))",
+                "  actual:    \(describe(actual))",
+                "Python rounds half-to-even; use .rounded(.toNearestOrEven).",
+            ].joined(separator: "\n")
+            XCTAssertEqual(actual, expected, message)
         }
     }
 
@@ -236,7 +237,7 @@ final class SwingDetectorTests: XCTestCase {
             let ratio = double(row["ratio"])
             let expected = optionalString(row["expect"]) ?? ""
             XCTAssertEqual(TempoBench.verdict(ratio), expected,
-                           "verdict diverged for ratio \(ratio.map(String.init) ?? "nil")")
+                           "verdict diverged for ratio \(describe(ratio))")
         }
     }
 
@@ -357,8 +358,16 @@ final class SwingDetectorTests: XCTestCase {
             XCTAssertEqual(a, e, accuracy: 1e-9,
                            "\(message): expected \(e), got \(a)", file: file, line: line)
         case let (a, e):
-            XCTFail("\(message): expected \(e.map(String.init) ?? "nil"), got \(a.map(String.init) ?? "nil")",
+            XCTFail("\(message): expected \(describe(e)), got \(describe(a))",
                     file: file, line: line)
         }
+    }
+
+    private func describe(_ value: Double?) -> String {
+        value.map { String($0) } ?? "nil"
+    }
+
+    private func describe(_ value: String?) -> String {
+        value ?? "nil"
     }
 }
