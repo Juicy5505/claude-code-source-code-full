@@ -42,6 +42,50 @@ fi
 echo "==> regenerating the project"
 python3 generate-project.py || exit 1
 
+# The UDID of any available watchOS simulator, or empty.
+#
+# Two sources, because one of them is not reliable. `xcodebuild
+# -showdestinations` was the original approach and it intermittently returns
+# nothing usable on a runner that demonstrably has a simulator — the same CI
+# image found one on one push and none on the next thirteen minutes later. It
+# reports what the BUILD SYSTEM has resolved for this scheme, which is not the
+# same question as what is installed, and it lists placeholder entries while
+# Xcode is still enumerating runtimes.
+#
+# `xcrun simctl` answers the question directly, so it goes first. The retry
+# covers the enumeration race rather than a genuinely missing runtime; one
+# repeat is enough to tell those apart, and a longer wait would only make a
+# real absence slower to report.
+find_watch_simulator() {
+  local attempt udid
+  for attempt in 1 2; do
+    udid=$(xcrun simctl list devices available -j 2>/dev/null | python3 -c '
+import json, sys
+try:
+    devices = json.load(sys.stdin).get("devices", {})
+except Exception:
+    raise SystemExit
+for runtime, entries in devices.items():
+    if "watchOS" not in runtime:
+        continue
+    for device in entries:
+        if device.get("isAvailable") and device.get("udid"):
+            print(device["udid"])
+            raise SystemExit
+' 2>/dev/null)
+    [ -n "$udid" ] && { echo "$udid"; return 0; }
+
+    udid=$(xcodebuild -project WhoopGolf.xcodeproj -scheme WhoopGolf \
+             -showdestinations 2>/dev/null \
+           | grep 'platform:watchOS Simulator' | grep -v 'placeholder' \
+           | head -1 | sed -E 's/.*id:([0-9A-Fa-f-]+).*/\1/')
+    [ -n "$udid" ] && { echo "$udid"; return 0; }
+
+    [ "$attempt" -eq 1 ] && sleep 5
+  done
+  return 1
+}
+
 ARGS=(-project WhoopGolf.xcodeproj -scheme WhoopGolf -configuration Debug)
 
 case "$MODE" in
@@ -57,12 +101,16 @@ case "$MODE" in
     # with every Xcode release, so a hardcoded "Apple Watch Series 9 (45mm)"
     # fails on the next one with an error about destinations, not about tests.
     echo "==> finding a watchOS simulator"
-    DEST=$(xcodebuild -project WhoopGolf.xcodeproj -scheme WhoopGolf \
-             -showdestinations 2>/dev/null \
-           | grep 'platform:watchOS Simulator' | grep -v 'placeholder' \
-           | head -1 | sed -E 's/.*id:([0-9A-Fa-f-]+).*/\1/')
+    DEST=$(find_watch_simulator)
     if [ -z "$DEST" ]; then
-      echo "no watchOS simulator installed — Xcode → Settings → Components" >&2
+      cat >&2 <<'MSG'
+No watchOS simulator available.
+
+  On a Mac:  Xcode → Settings → Components → install a watchOS Simulator runtime
+  In CI:     the runner image has no watchOS runtime, or Xcode had not finished
+             enumerating them. Both `xcrun simctl` and `xcodebuild
+             -showdestinations` were tried, twice.
+MSG
       exit 1
     fi
     echo "    simulator $DEST"
