@@ -101,7 +101,7 @@ esac
 # wrist drops and the round stops recording; with location missing, setting
 # allowsBackgroundLocationUpdates = true throws and kills the app on the first
 # tee. Both compile perfectly.
-verify_background_modes() {
+verify_info_plist() {
   local app plist
   app=$(find "$DERIVED/Build/Products" -maxdepth 3 -name "WhoopGolf.app" -type d 2>/dev/null | head -1)
   if [ -z "$app" ] || [ ! -f "$app/Info.plist" ]; then
@@ -121,27 +121,54 @@ verify_background_modes() {
     fi
   }
 
-  echo "==> background modes in the built bundle"
+  check_present() {
+    local key="$1"
+    if ! plutil -extract "$key" raw -o - "$plist" >/dev/null 2>&1; then
+      printf '\033[31m    MISSING\033[0m %s\n' "$key" >&2
+      failed=1
+    else
+      printf '    \033[32mok\033[0m   %s\n' "$key"
+    fi
+  }
+
+  echo "==> Info.plist in the built bundle"
+
+  # From the checked-in Info.plist (INFOPLIST_FILE).
   # watchOS reads this one for background execution during a workout.
   check_mode WKBackgroundModes workout-processing
   # Core Location reads this one, on watchOS too, for its backgroundable check.
   check_mode UIBackgroundModes location
 
+  # From GENERATE_INFOPLIST_FILE, which has to MERGE with the file above rather
+  # than replace it. If the merge does not happen these vanish, and a missing
+  # usage string is not a build error either — the app just dies the first time
+  # it asks for the permission, which on a watch reads as the app quitting.
+  check_present WKApplication
+  check_present NSHealthShareUsageDescription
+  check_present NSLocationWhenInUseUsageDescription
+  check_present NSMotionUsageDescription
+
   if [ "$failed" -ne 0 ]; then
     cat >&2 <<MSG
 
-The build succeeded but the shipped Info.plist is missing a background mode.
-That is a silent runtime failure, not a build error: the round will either stop
-recording when your wrist drops, or the app will crash on the first tee.
+The build succeeded but the shipped Info.plist is incomplete. That is a silent
+runtime failure, not a build error:
+
+  WKBackgroundModes missing  the round stops recording when your wrist drops
+  UIBackgroundModes missing  the app throws and dies on the first tee
+  a usage string missing     the app quits the first time it asks for that
+                             permission
 
 What the bundle actually contains:
 MSG
-    plutil -p "$plist" | grep -iE "backgroundmodes" -A4 >&2 || echo "  (no background modes at all)" >&2
+    plutil -p "$plist" >&2
     cat >&2 <<'MSG'
 
-Most likely cause: Xcode does not recognise these INFOPLIST_KEY_ build settings
-and dropped them without warning. The fix is to stop generating the plist and
-ship a real Info.plist wired up with INFOPLIST_FILE instead.
+If the BACKGROUND MODES are missing, WhoopGolfWatchApp/Info.plist did not reach
+the bundle — check INFOPLIST_FILE in generate-project.py.
+
+If the USAGE STRINGS are missing, GENERATE_INFOPLIST_FILE did not merge into
+that file, and every INFOPLIST_KEY_ setting needs to move into the plist itself.
 MSG
     return 1
   fi
@@ -156,7 +183,7 @@ if [ "$STATUS" -eq 0 ]; then
   [ "$MODE" = "test" ] && grep -E "Test Suite .* (passed|failed)" "$LOG" | tail -5
   # Only in check mode, which is the one that pins -derivedDataPath.
   if [ "$MODE" = "check" ]; then
-    verify_background_modes || exit 1
+    verify_info_plist || exit 1
   fi
   exit 0
 fi

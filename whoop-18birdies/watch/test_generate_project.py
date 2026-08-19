@@ -280,38 +280,57 @@ class TestSettingsThatCostRounds(ProjectCase):
         self.assertLessEqual(target, 10.0)
         self.assertGreaterEqual(target, 8.5, "below the code's actual API floor")
 
-    def test_workout_processing_is_in_the_watchos_key(self):
-        # WKBackgroundModes is the key watchOS reads for background execution.
-        # This used to live in UIBackgroundModes, where watchOS never looks — so
-        # the app lost background execution the moment the wrist dropped and the
-        # round stopped recording with no error at all.
-        settings = self.settings_for("INFOPLIST_KEY_WKBackgroundModes")
-        self.assertIn("workout-processing", settings["INFOPLIST_KEY_WKBackgroundModes"])
+    def test_the_background_modes_live_in_a_real_plist_not_build_settings(self):
+        # Proven by CI, not assumed: INFOPLIST_KEY_WKBackgroundModes and
+        # INFOPLIST_KEY_UIBackgroundModes are not names Xcode recognises, and it
+        # discards unrecognised INFOPLIST_KEY_ settings without a warning. The
+        # macOS job built the app and found "no background modes at all" in the
+        # bundle. So they must not come back as build settings.
+        for scope in self.objects_of("XCBuildConfiguration").values():
+            for key in scope["buildSettings"]:
+                self.assertNotIn(
+                    "BackgroundModes", key,
+                    "background modes as a build setting are silently dropped",
+                )
 
-    def test_location_is_in_the_key_core_location_actually_reads(self):
-        # UIBackgroundModes, the iOS-shaped key, is what Core Location checks —
-        # on watchOS too. Apple's watchOS 4 release notes: "To track location in
-        # the background while a user is in a workout session, add
-        # UIBackgroundModes/location in the Info.plist file. (29483437)".
-        # Without it, allowsBackgroundLocationUpdates = true throws and kills the
-        # app as the round starts.
-        settings = self.settings_for("INFOPLIST_KEY_UIBackgroundModes")
-        self.assertIn("location", settings["INFOPLIST_KEY_UIBackgroundModes"])
+    def test_the_app_target_points_at_that_plist(self):
+        settings = self.settings_for("INFOPLIST_FILE")
+        self.assertEqual(settings["INFOPLIST_FILE"], "WhoopGolfWatchApp/Info.plist")
 
-    def test_the_two_modes_are_not_crammed_into_one_key(self):
-        # The specific regression this replaced: "workout-processing location"
-        # as a single UIBackgroundModes value. Both words were present, so a
-        # substring check passed, and the app still had no background execution.
-        settings = self.settings_for("INFOPLIST_KEY_UIBackgroundModes")
-        self.assertNotIn(
-            "workout-processing", settings["INFOPLIST_KEY_UIBackgroundModes"],
-            "workout-processing belongs in WKBackgroundModes, not UIBackgroundModes",
-        )
-        settings = self.settings_for("INFOPLIST_KEY_WKBackgroundModes")
-        self.assertNotIn(
-            "location", settings["INFOPLIST_KEY_WKBackgroundModes"],
-            "'location' is not a legal WKBackgroundModes value",
-        )
+    def test_generate_also_writes_the_plist(self):
+        # A dangling INFOPLIST_FILE fails the build, which is at least loud —
+        # but only if the generator actually emits the file it names.
+        self.assertTrue((HERE / "WhoopGolfWatchApp" / "Info.plist").is_file())
+
+    def test_the_plist_carries_each_mode_in_the_key_that_reads_it(self):
+        import plistlib
+
+        with open(HERE / "WhoopGolfWatchApp" / "Info.plist", "rb") as handle:
+            plist = plistlib.load(handle)
+
+        # watchOS reads WKBackgroundModes for background execution. Without
+        # workout-processing the app is suspended the moment the wrist drops and
+        # the round stops recording, with no error.
+        self.assertIn("workout-processing", plist["WKBackgroundModes"])
+        # Core Location reads UIBackgroundModes, on watchOS too. Without
+        # location, allowsBackgroundLocationUpdates = true throws
+        # NSInternalInconsistencyException and kills the app on the first tee.
+        self.assertIn("location", plist["UIBackgroundModes"])
+
+        # And not swapped: "location" is not a legal WKBackgroundModes value,
+        # and workout-processing in UIBackgroundModes is what the old broken
+        # configuration did.
+        self.assertNotIn("location", plist["WKBackgroundModes"])
+        self.assertNotIn("workout-processing", plist["UIBackgroundModes"])
+
+    def test_generate_infoplist_file_stays_on_so_the_usage_strings_still_merge(self):
+        # The plist above carries only the background modes. The usage strings
+        # and WKApplication come from INFOPLIST_KEY_ settings, which Xcode merges
+        # into the named file — turning this off would ship an app that quits the
+        # first time it asks for HealthKit access.
+        settings = self.settings_for("INFOPLIST_FILE")
+        self.assertEqual(settings["GENERATE_INFOPLIST_FILE"], "YES")
+        self.assertIn("INFOPLIST_KEY_NSHealthShareUsageDescription", settings)
 
     def test_the_build_script_verifies_the_modes_survived_into_the_bundle(self):
         # These two INFOPLIST_KEY_ settings are not in Apple's published Build
@@ -320,7 +339,7 @@ class TestSettingsThatCostRounds(ProjectCase):
         # sufficient, so build.sh reads them back out of the built bundle — this
         # test pins that the check exists rather than being quietly dropped.
         script = (HERE / "build.sh").read_text(encoding="utf-8")
-        self.assertIn("verify_background_modes", script)
+        self.assertIn("verify_info_plist", script)
         self.assertIn("WKBackgroundModes", script)
         self.assertIn("plutil", script)
 

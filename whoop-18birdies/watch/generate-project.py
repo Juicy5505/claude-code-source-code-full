@@ -180,13 +180,65 @@ def development_team() -> str:
     return team
 
 
+# The two background modes, in a REAL Info.plist rather than build settings.
+#
+# They were INFOPLIST_KEY_WKBackgroundModes / INFOPLIST_KEY_UIBackgroundModes,
+# and the macOS CI job proved Xcode drops both of them without a word: the built
+# bundle came back with "no background modes at all". Neither name appears in
+# Apple's published Build Settings Reference, and Xcode ignores INFOPLIST_KEY_
+# names it does not recognise rather than failing.
+#
+# That means the ORIGINAL configuration was being dropped too, so the app has
+# never carried a background mode. Both consequences are invisible until you are
+# on a course: no workout-processing means watchOS suspends the app the moment
+# your wrist drops and the round stops recording; no location means
+# allowsBackgroundLocationUpdates = true throws
+# NSInternalInconsistencyException and kills the app on the first tee.
+#
+# GENERATE_INFOPLIST_FILE stays YES alongside this: Xcode merges the generated
+# keys (the usage strings, WKApplication, the display name) into the file named
+# by INFOPLIST_FILE. build.sh verifies BOTH halves survived into the bundle,
+# because that merge is exactly the kind of thing this file has already been
+# wrong about once.
+INFO_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- watchOS reads this for its own background execution. An app with a live
+	     HKWorkoutSession keeps running with the wrist down because of it.
+	     "location" is NOT a legal value here. -->
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>workout-processing</string>
+	</array>
+	<!-- Core Location reads this one - the iOS-shaped key - on watchOS too.
+	     Apple's watchOS 4 release notes: "To track location in the background
+	     while a user is in a workout session, add UIBackgroundModes/location in
+	     the Info.plist file. (29483437)". Their SpeedySloth sample ships both
+	     keys, and a running workout session is not a substitute: it keeps the
+	     process alive, it does not confer location authority. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+</dict>
+</plist>
+"""
+
+INFO_PLIST_PATH = "WhoopGolfWatchApp/Info.plist"
+
+
 def app_settings() -> dict:
     return {
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
         "MARKETING_VERSION": "1.0",
+        # Both, together. GENERATE_INFOPLIST_FILE supplies the usage strings and
+        # WKApplication; INFOPLIST_FILE supplies the background modes that the
+        # build-setting route silently dropped. Xcode merges the two.
         "GENERATE_INFOPLIST_FILE": "YES",
+        "INFOPLIST_FILE": INFO_PLIST_PATH,
         "PRODUCT_BUNDLE_IDENTIFIER": "com.whoopgolf.watchapp",
         "PRODUCT_NAME": "$(TARGET_NAME)",
         "SKIP_INSTALL": "NO",
@@ -208,37 +260,9 @@ def app_settings() -> dict:
             "Measures shot distances by GPS.",
         "INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription":
             "Tracks your round with the screen off.",
-        # TWO DIFFERENT KEYS, and putting both values in one of them does not
-        # work — which is what this used to do.
-        #
-        # watchOS reads WKBackgroundModes for its own background execution.
-        # "workout-processing" is what lets an app with a live HKWorkoutSession
-        # keep running with the wrist down; "location" is NOT a legal value of
-        # this key.
-        #
-        # Core Location reads UIBackgroundModes — the iOS-shaped key — for its
-        # backgroundable check, on watchOS too. Apple's watchOS 4 release notes
-        # say it outright: "To track location in the background while a user is
-        # in a workout session, add UIBackgroundModes/location in the Info.plist
-        # file. (29483437)". Without it, setting
-        # allowsBackgroundLocationUpdates = true throws
-        # NSInternalInconsistencyException and kills the app as the round starts.
-        # Apple's own SpeedySloth sample ships both keys.
-        #
-        # The previous value was "workout-processing location" in
-        # UIBackgroundModes alone, so workout-processing sat in a key watchOS
-        # never reads: the app lost background execution the moment the wrist
-        # dropped, and the round simply stopped recording with no error.
-        #
-        # A HKWorkoutSession alone is NOT sufficient for background location: it
-        # keeps the PROCESS alive, it does not confer location authority.
-        #
-        # These two settings are NOT in Apple's published Build Settings
-        # Reference, and Xcode silently ignores INFOPLIST_KEY_ settings it does
-        # not recognise. So build.sh reads the keys back out of the BUILT
-        # bundle rather than trusting that setting them did anything.
-        "INFOPLIST_KEY_WKBackgroundModes": "workout-processing",
-        "INFOPLIST_KEY_UIBackgroundModes": "location",
+        # The background modes are NOT here. They live in INFO_PLIST above,
+        # because Xcode silently discarded them as build settings - see the
+        # comment there, and the check in build.sh that caught it.
         **({"DEVELOPMENT_TEAM": development_team()} if development_team() else {}),
     }
 
@@ -546,6 +570,9 @@ def main() -> int:
 
     PROJECT.mkdir(parents=True, exist_ok=True)
     (PROJECT / "project.pbxproj").write_text(text, encoding="utf-8")
+
+    # Written next to the sources, where INFOPLIST_FILE points.
+    (HERE / INFO_PLIST_PATH).write_text(INFO_PLIST, encoding="utf-8")
 
     schemes = PROJECT / "xcshareddata" / "xcschemes"
     schemes.mkdir(parents=True, exist_ok=True)

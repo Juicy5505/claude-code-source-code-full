@@ -383,6 +383,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 1.0;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhoopGolfWatchApp/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.watchapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
@@ -395,8 +396,6 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
-				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
-				INFOPLIST_KEY_UIBackgroundModes = location;
 			};
 			name = Debug;
 		};
@@ -408,6 +407,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 1.0;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhoopGolfWatchApp/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.watchapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
@@ -420,8 +420,6 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
-				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
-				INFOPLIST_KEY_UIBackgroundModes = location;
 			};
 			name = Release;
 		};
