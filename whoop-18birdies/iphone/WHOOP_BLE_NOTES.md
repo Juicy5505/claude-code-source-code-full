@@ -30,7 +30,7 @@ Do not mix these up:
 |---|---|---|---|---|
 | **Official WHOOP API** | OAuth | **No** | **No** | `wb sync`, recovery/sleep/strain |
 | **Standard BLE (no bond)** | None | **No** | **No** | `hr_monitor.py` → `0x180D` / `0x2A37` HR Broadcast |
-| **Unofficial BLE RE (bond required)** | Encrypted pair; strap holds **one** bond | **Yes** — 6-axis accel/gyro, ~100 Hz batches | **No** | **Not implemented** (see integration options below) |
+| **Unofficial BLE RE (bond required)** | Encrypted pair; strap holds **one** bond | **Yes** — 6-axis accel/gyro, ~100 Hz batches | **No** | `sidecar/` (Kit C) — built, **never run against a strap** |
 
 ---
 

@@ -8,6 +8,24 @@ import Foundation
 enum WhoopIMUDecoder {
     static let gen4AccelScaleG: Double = 1.0 / 4096.0
 
+    /// Seconds between consecutive IMU samples.
+    ///
+    /// Fixed, and shared by both generations, because the sample RATE is a
+    /// property of the strap (~100 Hz) and not of how many samples happened to
+    /// arrive in one packet.
+    ///
+    /// gen5 previously derived it as `1 / count`. That produced the right 10 ms
+    /// today, but only because the length guard rejects anything under a full
+    /// 100-sample packet, so `count` could not be other than 100 — two unrelated
+    /// invariants propping each other up. Loosen the guard to accept partial
+    /// packets and `1 / count` spreads them across a whole second: phase
+    /// durations double, and `tempo_frames` doubles with them. (The tempo RATIO
+    /// would survive, since both phases scale together, which is exactly what
+    /// makes it the kind of error nobody notices.)
+    ///
+    /// IMUMotionManager already assumes a fixed 100 Hz. This is that value.
+    static let sampleIntervalS: Double = 1.0 / 100.0
+
     struct Sample {
         let timestamp: TimeInterval
         let magnitudeG: Double
@@ -31,7 +49,7 @@ enum WhoopIMUDecoder {
 
         let hr = payload.count > 14 ? Int(payload[14]) : nil
         let count = 100
-        let dt = 1.0 / 100.0
+        let dt = sampleIntervalS
         var out: [Sample] = []
         out.reserveCapacity(count)
 
@@ -53,7 +71,9 @@ enum WhoopIMUDecoder {
         guard payload.count >= 20 + 600 else { return [] }
 
         let count = min(100, (payload.count - 20) / 6)
-        let dt = 1.0 / Double(max(count, 1))
+        // NOT 1 / count — see sampleIntervalS. A short packet covers less time,
+        // it does not stretch its samples to fill a second.
+        let dt = sampleIntervalS
         var out: [Sample] = []
         out.reserveCapacity(count)
 

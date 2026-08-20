@@ -8,15 +8,17 @@ actually works **today**.
 
 **A WHOOP alone cannot substitute for the Apple Watch as a golf tracker** using
 only official APIs or HR Broadcast. **Unofficial BLE reverse engineering** has
-since shown the strap *does* stream 6-axis IMU when bonded and commanded — but
-this project does **not** ship that yet (see [WHOOP_REPOS.md](WHOOP_REPOS.md)).
+since shown the strap *does* stream 6-axis IMU when bonded and commanded, and
+Kit C below now implements that path — but it has **never been run against an
+actual strap**, so treat it as research, not as a tracker you rely on for a
+round (see [WHOOP_REPOS.md](WHOOP_REPOS.md)).
 
 | Capability | Apple Watch (this app) | WHOOP — official / HR Broadcast | WHOOP — unofficial BLE RE* |
 |---|---|---|---|
 | Live heart rate during the round | yes (HealthKit) | yes (BLE HR Broadcast) | yes |
 | Overnight recovery / sleep / strain | no (use WHOOP for that) | yes (official API → `wb`) | yes (local decode in NOOP) |
 | Onboard GPS | yes (Series 5+) | **no** — borrows the phone's | **no** |
-| Swing detection / tempo / impact force | yes (Core Motion ~100 Hz) | **no** on standard path | **yes in theory** — IMU ~100 Hz, bond required |
+| Swing detection / tempo / impact force | yes (Core Motion ~100 Hz) | **no** on standard path | **code exists, unproven on hardware** — IMU ~100 Hz, bond required |
 | Shot-to-shot yardage | yes (wrist GPS) | **no** without the phone | **no** without the phone |
 | Background execution with wrist down | yes (`HKWorkoutSession`) | n/a | n/a |
 
@@ -26,9 +28,9 @@ this project does **not** ship that yet (see [WHOOP_REPOS.md](WHOOP_REPOS.md)).
 Sources: [`iphone/WHOOP_BLE_NOTES.md`](iphone/WHOOP_BLE_NOTES.md) (updated 2026),
 [WHOOP_REPOS.md](WHOOP_REPOS.md), WHOOP docs (no onboard GPS).
 
-So: **WHOOP stays the physiology half.** The golf half needs watch, phone, or
-(future) a sidecar app that speaks the unofficial IMU protocol. Kits A and B are
-what works **now**.
+So: **WHOOP stays the physiology half.** The golf half needs the watch, the
+phone, or the Kit C sidecar. Kits A and B are the ones with rounds behind them;
+Kit C compiles and is untested against a strap.
 
 ---
 
@@ -65,11 +67,21 @@ Enable **WHOOP app → Device Settings → HR Broadcast → ON** once.
 
 ---
 
-## Kit C — WHOOP IMU sidecar (implemented)
+## Kit C — WHOOP IMU sidecar (built, unproven)
 
 Ships in `whoop-18birdies/sidecar/`. iOS app bonds to the strap (NOOP BLE
 protocol), streams IMU, detects swings, uses phone GPS, uploads to `wb serve`.
 See [sidecar/SIDECAR.md](sidecar/SIDECAR.md).
+
+Two things to know before relying on it:
+
+- **It has never talked to a strap.** CI compiles it and unit-tests the framing
+  and the decoder against synthetic packets. Neither can tell you whether the
+  byte offsets are right on your actual WHOOP — only a strap can.
+- **It puts the phone back in the loop.** Kit A exists because the iPhone should
+  not be doing the tracking; a sidecar that detects swings on the phone is the
+  opposite of that. It is here as research into what the strap can do, not as a
+  replacement for the watch.
 
 **Still no GPS from the strap** even with IMU unlocked.
 
