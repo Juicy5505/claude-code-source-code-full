@@ -54,11 +54,11 @@ final class SessionModel: ObservableObject {
     let mode: String                 // "range" or "round"
     private let iso = ISO8601DateFormatter()
 
-    /// Where to POST the finished session. Point this at your `wb serve`
-    /// instance (the same host the iPhone Shortcut used), e.g.
-    /// "http://192.168.1.24:8790/swings". Empty = keep on-device only.
-    var ingestURL: String = ""
-    var ingestToken: String = ""
+    /// Point this at your `wb serve` instance (the same host the iPhone Shortcut
+    /// used), e.g. "http://192.168.1.24:8790/swings". Empty = keep on-device only.
+    /// Configured in Upload settings on the watch — not hardcoded here.
+    private var ingestURL: String { IngestSettings.url }
+    private var ingestToken: String { IngestSettings.token }
 
     init(mode: String) {
         self.mode = mode

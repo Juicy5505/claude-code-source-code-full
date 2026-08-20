@@ -78,6 +78,7 @@ setting that has historically cost a round.
    - `WorkoutManager.swift`  (background execution + live HR)
    - `LocationManager.swift`  (GPS for shot distance)
    - `SessionModel.swift`  (records swings, saves, uploads)
+   - `GPSSourceCheck.swift`  (detects phone GPS masquerading as wrist GPS)
 
    When dragging, tick **Copy items if needed** and add them to the Watch App
    target.
@@ -142,16 +143,16 @@ as syncing to the iPhone, which it does not.
 
 ## Getting the data off the watch
 
-Set two fields at the top of `SessionModel.swift` before building:
+Open **Upload settings** on the mode picker and enter:
 
-```swift
-var ingestURL = "http://192.168.1.24:8790"   // your `wb serve` host, LAN address
-var ingestToken = "your-token"
-```
+- **Server** — your Mac's LAN address running `wb serve`, e.g. `http://192.168.1.24:8790`
+- **Token** — the `WB_INGEST_TOKEN` you exported on the Mac
 
 Use the **LAN** address here, not the tailnet one — the watch has no Tailscale
 client and cannot route to `100.x.x.x`. The `/swings` suffix is added for you if
 you leave it off.
+
+No rebuild needed when your Mac's address changes — settings live in the app.
 
 On **Stop & Save** the watch POSTs the session to the `/swings` endpoint (added
 to `wb serve` for exactly this), which stores it under

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AA35E1F4221385D13DBA734 = {
+			isa = PBXBuildFile;
+			fileRef = 6890E6A4CBEE691619A21337;
+		};
 		1270091260CD90F1D9F3DFA2 = {
 			isa = PBXBuildFile;
 			fileRef = 13B9A600BCF8CFC1D38A6503;
@@ -54,6 +58,10 @@
 		FB6F1E95AA6D1D47D97F39DE = {
 			isa = PBXBuildFile;
 			fileRef = E4041EB2B5012A4CCC74714B;
+		};
+		FC894E209C3E9F6A82D59BBC = {
+			isa = PBXBuildFile;
+			fileRef = 67A84F899CC57144C8188E9F;
 		};
 /* End PBXBuildFile section */
 
@@ -105,6 +113,18 @@
 			path = SwingDetector.swift;
 			sourceTree = "<group>";
 		};
+		67A84F899CC57144C8188E9F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SettingsView.swift;
+			sourceTree = "<group>";
+		};
+		6890E6A4CBEE691619A21337 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = IngestSettings.swift;
+			sourceTree = "<group>";
+		};
 		761B1151B226D58D3BC1EA38 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -134,6 +154,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = SwingDetectorTests.swift;
+			sourceTree = "<group>";
+		};
+		F3C24CC1ADB8EA057937CE74 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = WhoopGolf.entitlements;
 			sourceTree = "<group>";
 		};
 		FCB1EB3D1773C0956685EB37 = {
@@ -176,12 +202,15 @@
 			children = (
 				485ED6A72C4F8F9FF1A1F923,
 				C90E18D7DD9B8E0980770A90,
+				67A84F899CC57144C8188E9F,
+				6890E6A4CBEE691619A21337,
 				4E01CB3CBC47644B8DA8F29E,
 				17EF13179755266BB7BCA2C0,
 				13B9A600BCF8CFC1D38A6503,
 				32162ADB778303E5DADD330D,
 				FCB1EB3D1773C0956685EB37,
 				761B1151B226D58D3BC1EA38,
+				F3C24CC1ADB8EA057937CE74,
 			);
 			path = WhoopGolfWatchApp;
 			sourceTree = "<group>";
@@ -306,6 +335,8 @@
 			files = (
 				BE0727792A05F77E723A0349,
 				1561B9520AC1B8A409B9B796,
+				FC894E209C3E9F6A82D59BBC,
+				0AA35E1F4221385D13DBA734,
 				67CDFF088247F9351F82B2C5,
 				EF707FC10300853CA2CCEF3A,
 				1270091260CD90F1D9F3DFA2,
@@ -396,6 +427,7 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
+				CODE_SIGN_ENTITLEMENTS = WhoopGolfWatchApp/WhoopGolf.entitlements;
 			};
 			name = Debug;
 		};
@@ -420,6 +452,7 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Detects your golf swings.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
+				CODE_SIGN_ENTITLEMENTS = WhoopGolfWatchApp/WhoopGolf.entitlements;
 			};
 			name = Release;
 		};

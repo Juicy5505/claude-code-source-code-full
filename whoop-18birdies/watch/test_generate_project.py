@@ -362,6 +362,14 @@ class TestSettingsThatCostRounds(ProjectCase):
         self.assertEqual(settings["INFOPLIST_KEY_WKApplication"], "YES")
         self.assertEqual(settings["INFOPLIST_KEY_WKWatchOnly"], "YES")
 
+    def test_healthkit_entitlement_is_wired(self):
+        settings = self.settings_for("CODE_SIGN_ENTITLEMENTS")
+        self.assertIn("CODE_SIGN_ENTITLEMENTS", settings)
+        self.assertTrue(settings["CODE_SIGN_ENTITLEMENTS"].endswith(".entitlements"))
+        entitlements = HERE / "WhoopGolfWatchApp" / gen.ENTITLEMENTS_FILE
+        self.assertTrue(entitlements.is_file(), "entitlements file missing on disk")
+        self.assertIn("com.apple.developer.healthkit", entitlements.read_text())
+
     def test_it_targets_the_watch_device_family(self):
         settings = self.settings_for("TARGETED_DEVICE_FAMILY")
         self.assertEqual(settings["TARGETED_DEVICE_FAMILY"], "4")   # 4 = watch
