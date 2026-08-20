@@ -176,6 +176,8 @@ Each of these cost real time to establish. They are not open.
 - **WHOOP 5.0 has no GPS.** It borrows the phone's. (WHOOP's own statement.)
 - **WHOOP exposes no motion data** to any client. BLE teardown found only the
   heart-rate service `0x180D` / characteristic `0x2A37`. No swing data. Ever.
+  Therefore WHOOP alone cannot substitute for the Apple Watch as a golf tracker;
+  the substitute is **WHOOP + iPhone** (see `whoop-18birdies/SUBSTITUTES.md`).
 - **Swing path and face angle need a launch monitor.** No wrist or pocket sensor
   produces them. Do not promise them in the UI.
 - **18Birdies has no public API.**

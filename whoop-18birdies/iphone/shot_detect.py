@@ -351,6 +351,10 @@ def to_session(shots, mode="pocket", sample_rate_hz=1.0):
             # a long wait is also how a halfway hut or a lost-ball search looks,
             # so it is worth being able to see them.
             record["long_wait"] = True
+        if shot.get("hr_bpm") is not None:
+            # Live WHOOP HR stamped onto the stop (see hr_monitor.attach_hr_to_shots).
+            # Absent when no broadcast was running — never zero-filled.
+            record["hr_bpm"] = shot["hr_bpm"]
         swings.append(record)
 
     return {

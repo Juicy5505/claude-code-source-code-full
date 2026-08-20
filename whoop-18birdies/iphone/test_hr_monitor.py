@@ -8,7 +8,7 @@ notification must never take a session down.
 
 import unittest
 
-from hr_monitor import parse_hr_measurement, rmssd_ms
+from hr_monitor import attach_hr_to_shots, nearest_hr, parse_hr_measurement, rmssd_ms
 
 
 class TestParseHrMeasurement(unittest.TestCase):
@@ -72,6 +72,29 @@ class TestRmssd(unittest.TestCase):
         self.assertIsNone(rmssd_ms([]))
         self.assertIsNone(rmssd_ms([1.0]))
         self.assertIsNone(rmssd_ms(None))
+
+
+class TestNearestHr(unittest.TestCase):
+    def test_picks_the_closest_reading(self):
+        log = [(100.0, 80), (110.0, 90), (130.0, 100)]
+        self.assertEqual(nearest_hr(log, 112.0), 90)
+
+    def test_rejects_stale_readings(self):
+        log = [(100.0, 80)]
+        self.assertIsNone(nearest_hr(log, 200.0, max_age_s=30))
+
+    def test_empty_log_is_none_not_zero(self):
+        self.assertIsNone(nearest_hr([], 100.0))
+        self.assertIsNone(nearest_hr(None, 100.0))
+
+    def test_attach_stamps_shots_and_leaves_gaps(self):
+        shots = [
+            {"start_t": 100.0, "kind": "full"},
+            {"start_t": 200.0, "kind": "full"},  # no HR within 30 s
+        ]
+        attach_hr_to_shots(shots, [(105.0, 88)], max_age_s=30)
+        self.assertEqual(shots[0]["hr_bpm"], 88)
+        self.assertNotIn("hr_bpm", shots[1])
 
 
 if __name__ == "__main__":

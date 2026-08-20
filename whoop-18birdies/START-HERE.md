@@ -1,7 +1,21 @@
 # Start here
 
-You have a **WHOOP on your lead wrist**, an **iPhone**, and a **Mac**. No Apple
-Watch. This is the shortest path from that to real numbers.
+You have a **WHOOP**, and either an **Apple Watch** or an **iPhone**. Two kits
+that substitute for each other — same analysis afterwards. Full capability
+matrix: [SUBSTITUTES.md](SUBSTITUTES.md).
+
+| Kit | Wear | Golf half | Physiology half |
+|---|---|---|---|
+| **A — Watch** | WHOOP + Apple Watch | watch does motion, tempo, GPS, live HR | WHOOP overnight |
+| **B — Phone** | WHOOP + iPhone | phone does GPS (pocket) or tempo (forearm); WHOOP does live HR | WHOOP overnight |
+
+**WHOOP alone cannot do the golf half.** It has no onboard GPS and does not
+expose accelerometer data to any app. That is a hardware/API ceiling, not a
+missing feature here. Details and citations: [SUBSTITUTES.md](SUBSTITUTES.md).
+
+---
+
+## Kit B — no watch (WHOOP + phone)
 
 Three ways to track a round. They stack — nothing stops you using all three —
 but the first needs nothing strapped to you and is where to begin.
@@ -9,7 +23,7 @@ but the first needs nothing strapped to you and is where to begin.
 | | Wear | You get | You do not get |
 |---|---|---|---|
 | **1. WHOOP only** | just the strap | strain, HR, HR zones, calories, recovery, sleep | anything about the golf |
-| **2. Pocket** | strap + phone in pocket | all of the above **plus yardages** | tempo, swing force |
+| **2. Pocket** | strap + phone in pocket | all of the above **plus yardages** + live WHOOP HR | tempo, swing force |
 | **3. Arm** | strap + phone on lead forearm | all of the above **plus tempo and force** | comfort |
 
 ---
@@ -50,10 +64,14 @@ If WHOOP filed the round under another name — it sometimes guesses "Walking" �
 app as Golf, `wb sync` again.
 
 **This is the whole physiological picture of a round, and it is everything WHOOP
-can give.** The strap exposes heart rate over Bluetooth and nothing else — no
-accelerometer, no gyroscope, to any app including WHOOP's own. So swing count,
-tempo, yardage and swing path are not missing features here; they are outside
-what the hardware offers anyone. The next two paths add them using the phone.
+can give on its own.** The strap exposes heart rate over Bluetooth and nothing
+else — no accelerometer, no gyroscope, to any app including WHOOP's own. So
+swing count, tempo, yardage and swing path are not missing features here; they
+are outside what the hardware offers anyone. Kit A (watch) or modes 2–3 below
+add them. See [SUBSTITUTES.md](SUBSTITUTES.md).
+
+Enable **HR Broadcast** once for Kit B live heart rate:
+WHOOP app → Device Settings → HR Broadcast → ON.
 
 ## 2. Pocket — yardages, nothing strapped on
 

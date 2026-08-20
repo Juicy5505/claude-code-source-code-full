@@ -184,6 +184,13 @@ class TestRunner(SelfTestCase):
         self.assertEqual(result.status, "warn")
         self.assertIn("Auto-Lock", result.fix)
 
+    def test_whoop_hr_check_points_at_broadcast(self):
+        # Kit B (WHOOP + phone) only gets live HR when Broadcast is on. The
+        # check must name that switch, not silently pass.
+        result = self.run_check("WHOOP HR Broadcast")
+        self.assertEqual(result.status, "warn")
+        self.assertIn("HR Broadcast", result.fix)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

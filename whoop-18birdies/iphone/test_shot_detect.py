@@ -329,6 +329,22 @@ class TestSharedSchema(unittest.TestCase):
             self.assertNotIn("peak_g", swing)
             self.assertNotIn("tempo_ratio", swing)
 
+    def test_live_whoop_hr_passes_through_when_present(self):
+        # Pocket mode stamps WHOOP HR onto stops; the shared schema must carry
+        # it so Kit B rounds show cardio drift the same way Kit A does.
+        shots = detect_shots(round_track([180.0, 150.0]))
+        for shot in shots:
+            if shot["kind"] != "transition":
+                shot["hr_bpm"] = 94
+                break
+        session = shot_detect.to_session(shots)
+        stamped = [s for s in session["swings"] if s.get("hr_bpm") == 94]
+        self.assertEqual(len(stamped), 1)
+        for swing in session["swings"]:
+            if "hr_bpm" not in swing:
+                continue
+            self.assertNotEqual(swing["hr_bpm"], 0)
+
     def test_walks_between_holes_are_not_emitted_as_shots(self):
         session = shot_detect.to_session(detect_shots(round_track([500.0, 180.0])))
         for swing in session["swings"]:

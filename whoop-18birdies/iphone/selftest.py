@@ -251,19 +251,51 @@ def _upload():
     )
 
 
+@check("WHOOP HR Broadcast")
+def _whoop_hr():
+    """The one live signal WHOOP can give mid-round when the watch is absent.
+
+    Cannot verify the strap is broadcasting without a 12 s BLE scan — which is
+    too slow and flaky for a pre-flight that should finish in thirty seconds —
+    so this states the enable path and confirms the BLE stack is importable.
+    """
+    from swing_logger import WHOOP_HR
+
+    if not WHOOP_HR:
+        return warn(
+            "disabled in swing_logger.py",
+            "Set WHOOP_HR = True to attach live heart rate from the strap "
+            "(the substitute for the watch's HealthKit HR).",
+        )
+    try:
+        import cb  # noqa: F401
+    except ImportError:
+        return warn(
+            "Bluetooth module unavailable",
+            "Expected inside Pythonista. Live WHOOP HR will be skipped.",
+        )
+    return warn(
+        "enable once in the WHOOP app",
+        "Menu → Device Settings → HR Broadcast → ON. Without it, Kit B "
+        "(WHOOP + phone) gets yardages/tempo but no live heart rate. See "
+        "SUBSTITUTES.md.",
+    )
+
+
 @check("Analysis modules")
 def _modules_import():
     try:
         import shot_detect  # noqa: F401
         import shot_model  # noqa: F401
         import swing_metrics  # noqa: F401
+        import hr_monitor  # noqa: F401
     except ImportError as exc:
         return fail(
             str(exc),
             "Copy ALL the .py files from iphone/ into the same Pythonista "
             "folder — the logger imports its analysis from them.",
         )
-    return ok("swing_metrics, shot_model, shot_detect all import")
+    return ok("swing_metrics, shot_model, shot_detect, hr_monitor all import")
 
 
 # --- runner -------------------------------------------------------------------

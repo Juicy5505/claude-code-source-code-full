@@ -3,11 +3,11 @@
 Golf tracking built around a WHOOP strap and an iPhone: yardages, swing tempo,
 and whether your body being under-recovered actually shows up in your scoring.
 
-> ### → [START-HERE.md](START-HERE.md)
+> ### → [START-HERE.md](START-HERE.md) · [SUBSTITUTES.md](SUBSTITUTES.md)
 >
-> If you have a WHOOP and an iPhone and want numbers today, read that instead.
-> It is the short path: three ways to track a round, ordered by how little you
-> have to wear, starting with one that needs nothing but the strap.
+> If you have a WHOOP and want numbers today, start with START-HERE.
+> If you want WHOOP and Apple Watch to substitute for each other, read
+> SUBSTITUTES — WHOOP alone cannot do the golf half; Kit B is WHOOP + phone.
 
 The rest of this file is the reference — every command, the API details, and the
 constraints that shaped the design.

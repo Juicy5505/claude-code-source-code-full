@@ -283,6 +283,31 @@ def live_stats(swings):
         print("  -- {} swings; no tempo readings yet --".format(len(swings)))
 
 
+def _connect_whoop_hr():
+    """Try to attach a broadcasting WHOOP. Returns a monitor or None.
+
+    Shared by arm and pocket modes so the substitute kit (WHOOP + phone) gets
+    live HR in both — the one signal the strap can actually contribute mid-round.
+    """
+    if not WHOOP_HR:
+        return None
+    try:
+        from hr_monitor import HeartRateMonitor
+
+        print("Scanning for a broadcasting WHOOP (12s)...")
+        candidate = HeartRateMonitor()
+        if candidate.start(timeout=12):
+            print("WHOOP connected — live heart rate on every shot.")
+            return candidate
+        print(
+            "No WHOOP found. Check HR Broadcast is ON in the WHOOP app\n"
+            "(Menu -> Device Settings). Continuing without heart rate."
+        )
+    except Exception as exc:
+        print("Heart rate unavailable ({}). Continuing without it.".format(exc))
+    return None
+
+
 def run_session(mode):
     """The detection loop. mode is 'round' (GPS + distances) or 'range'."""
     use_gps = mode == "round"
@@ -292,23 +317,7 @@ def run_session(mode):
     buffer = deque(maxlen=max(16, int(BUFFER_SECONDS * TARGET_HZ)))
     detector = AdaptiveThreshold(sample_hz=TARGET_HZ) if AUTO_THRESHOLD else None
 
-    hr = None
-    if WHOOP_HR:
-        try:
-            from hr_monitor import HeartRateMonitor
-
-            print("Scanning for a broadcasting WHOOP (12s)...")
-            candidate = HeartRateMonitor()
-            if candidate.start(timeout=12):
-                hr = candidate
-                print("WHOOP connected — live heart rate on every swing.")
-            else:
-                print(
-                    "No WHOOP found. Check HR Broadcast is ON in the WHOOP app\n"
-                    "(Menu -> Device Settings). Continuing without heart rate."
-                )
-        except Exception as exc:
-            print("Heart rate unavailable ({}). Continuing without it.".format(exc))
+    hr = _connect_whoop_hr()
 
     motion.start_updates()
     if use_gps:
@@ -444,8 +453,15 @@ def run_pocket_session():
     What it gives up is real and worth knowing before you rely on it: no tempo,
     no peak force, and no shot under about 33 yards, because a chip and the walk
     after it are indistinguishable from standing still. See shot_detect.py.
+
+    Live WHOOP heart rate is still available (HR Broadcast). That is the one
+    mid-round signal the strap can contribute when the watch is not on your wrist.
     """
+    from hr_monitor import attach_hr_to_shots
+
     fixes = []
+    hr_log = []
+    hr = _connect_whoop_hr()
     location.start_updates()
     print("Pocket mode. Phone anywhere on you; GPS only.")
     print("Stand over each ball for a few seconds before you hit — that pause")
@@ -462,6 +478,11 @@ def run_pocket_session():
             if fix and fix.get("latitude") is not None and fix.get("longitude") is not None:
                 fix["t"] = time.time()
                 fixes.append(fix)
+
+            if hr:
+                bpm = hr.current_bpm(max_age_s=15.0)
+                if bpm is not None:
+                    hr_log.append((time.time(), bpm))
 
             now = time.time()
             # Save periodically, NOT on every fix. The whole track is rewritten
@@ -488,10 +509,15 @@ def run_pocket_session():
         pass
     finally:
         location.stop_updates()
+        live_hrv = hr.live_hrv_ms() if hr else None
+        if hr:
+            hr.stop()
         shots = detect_shots(fixes)
+        attach_hr_to_shots(shots, hr_log)
         session = to_session(shots, sample_rate_hz=POCKET_HZ)
         _save_pocket(fixes, started, shots, session)
         print("\n" + format_pocket_report(shots))
+        print_hr_block(session.get("swings", []), live_hrv)
         print("\nSaved to {}".format(POCKET_LOG_PATH))
         upload_session(session)
 
@@ -800,8 +826,9 @@ def choose_mode():
 
     choice = console.alert(
         "Swing Logger",
-        "Pocket mode needs nothing strapped on: GPS only, yardages, no tempo.\n"
-        "Range and Round need the phone on your lead forearm for swing detection.",
+        "Kit B (no watch): WHOOP on the wrist + this phone.\n"
+        "Pocket: GPS yardages + live WHOOP HR. No tempo.\n"
+        "Range/Round: phone on lead forearm for swing detection.",
         "Pocket round (GPS only)",
         "Range (arm strap)",
         "Round (arm strap + GPS)",

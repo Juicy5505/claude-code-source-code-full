@@ -89,6 +89,42 @@ def rmssd_ms(rr_seconds):
     return (sum(d * d for d in diffs) / len(diffs)) ** 0.5
 
 
+def nearest_hr(hr_log, at_t, max_age_s=30.0):
+    """Closest bpm in hr_log to at_t, or None if nothing is fresh enough.
+
+    hr_log is a list of (epoch_seconds, bpm). Used by pocket mode, which does
+    not have a swing-instant callback — only a stop time — so the reading is
+    "heart rate while you stood over the ball", not "at impact".
+    """
+    if not hr_log or at_t is None:
+        return None
+    best = None
+    best_age = None
+    for t, bpm in hr_log:
+        if bpm is None:
+            continue
+        age = abs(t - at_t)
+        if age > max_age_s:
+            continue
+        if best_age is None or age < best_age:
+            best = bpm
+            best_age = age
+    return best
+
+
+def attach_hr_to_shots(shots, hr_log, max_age_s=30.0):
+    """Stamp hr_bpm onto each shot from the nearest live reading.
+
+    Mutates and returns shots. Shots without a fresh reading are left alone —
+    absent, not zero — so averages never invent a resting rate.
+    """
+    for shot in shots:
+        bpm = nearest_hr(hr_log, shot.get("start_t"), max_age_s=max_age_s)
+        if bpm is not None:
+            shot["hr_bpm"] = bpm
+    return shots
+
+
 # --- The BLE shell (Pythonista-only) --------------------------------------------
 
 
