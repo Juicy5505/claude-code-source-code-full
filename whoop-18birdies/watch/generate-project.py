@@ -65,7 +65,7 @@ APP_SOURCES = [
 # and the haversine port. Nothing else — keeping the test target's source list
 # minimal is what lets the tests run without a @testable import, and therefore
 # without depending on how Xcode names the app module.
-TEST_SOURCES = ["SwingDetector.swift", "SessionModel.swift"]
+TEST_SOURCES = ["SwingDetector.swift", "SessionModel.swift", "IngestSettings.swift"]
 TEST_FILE = "SwingDetectorTests.swift"
 TEST_RESOURCE = "swing_vectors.json"
 
