@@ -152,11 +152,11 @@ more fields." The official OAuth v2 client stays.
 This repo does **not** ship IMU decoding yet. If you want to pursue it, borrow
 from the repos in [`WHOOP_REPOS.md`](../WHOOP_REPOS.md):
 
-| Option | Effort | Fits golf round? |
+| Option | Effort | Status |
 |---|---|---|
-| **A — Sidecar iOS app** fork NOOP / my-whoop; write `swings.json` | Medium | Best — native BLE + bond |
-| **B — Port decoder to Pythonista** | Very high | Poor — `cb` lacks bonding/framing helpers |
-| **C — Keep Kit B as-is** phone motion + WHOOP HR | Done | Stable path today |
+| **A — Sidecar iOS app** | Medium | **Shipped** — `whoop-18birdies/sidecar/` |
+| **B — Port decoder to Pythonista** | Very high | Not planned |
+| **C — Keep Kit B as-is** | Done | phone motion + WHOOP HR |
 
 Kit B (phone on forearm or in pocket) remains the supported substitute when the
 watch stays home. Unofficial WHOOP IMU is a **research path**, not something

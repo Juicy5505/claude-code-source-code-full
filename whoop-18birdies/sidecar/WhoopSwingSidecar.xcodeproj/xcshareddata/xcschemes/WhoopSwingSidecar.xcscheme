@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme LastUpgradeVersion="1500" version="1.7">
+   <BuildAction buildImplicitDependencies="YES" parallelizeBuildables="YES">
+      <BuildActionEntries>
+         <BuildActionEntry buildForAnalyzing="YES" buildForArchiving="YES"
+            buildForProfiling="YES" buildForRunning="YES" buildForTesting="YES">
+            <BuildableReference BuildableIdentifier="primary"
+               BlueprintIdentifier="8F18FABF50DCC7281F4473C0"
+               BuildableName="WhoopSwingSidecar.app" BlueprintName="WhoopSwingSidecar"
+               ReferencedContainer="container:WhoopSwingSidecar.xcodeproj"/>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction buildConfiguration="Debug">
+      <Testables>
+         <TestableReference skipped="NO">
+            <BuildableReference BuildableIdentifier="primary"
+               BlueprintIdentifier="AF17EDFC139158687DBB5EBB"
+               BuildableName="WhoopSwingSidecarTests.xctest" BlueprintName="WhoopSwingSidecarTests"
+               ReferencedContainer="container:WhoopSwingSidecar.xcodeproj"/>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction buildConfiguration="Debug">
+      <BuildableProductRunnable runnableDebuggingMode="0">
+         <BuildableReference BuildableIdentifier="primary"
+            BlueprintIdentifier="8F18FABF50DCC7281F4473C0"
+            BuildableName="WhoopSwingSidecar.app" BlueprintName="WhoopSwingSidecar"
+            ReferencedContainer="container:WhoopSwingSidecar.xcodeproj"/>
+      </BuildableProductRunnable>
+   </LaunchAction>
+</Scheme>

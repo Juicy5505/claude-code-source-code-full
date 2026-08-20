@@ -1,19 +1,17 @@
 # Start here
 
-You have a **WHOOP**, and either an **Apple Watch** or an **iPhone**. Two kits
-that substitute for each other — same analysis afterwards. Full capability
-matrix: [SUBSTITUTES.md](SUBSTITUTES.md).
+You have a **WHOOP**, and either an **Apple Watch** or an **iPhone**. Three kits
+share the same analysis afterwards. Full capability matrix: [SUBSTITUTES.md](SUBSTITUTES.md).
 
 | Kit | Wear | Golf half | Physiology half |
 |---|---|---|---|
 | **A — Watch** | WHOOP + Apple Watch | watch does motion, tempo, GPS, live HR | WHOOP overnight |
 | **B — Phone** | WHOOP + iPhone | phone does GPS (pocket) or tempo (forearm); WHOOP does live HR | WHOOP overnight |
+| **C — Sidecar** | WHOOP + iPhone app | **WHOOP strap IMU** + phone GPS via [sidecar/SIDECAR.md](sidecar/SIDECAR.md) | WHOOP overnight + live HR |
 
-**WHOOP alone cannot do the golf half with what this project ships today.** It
-has no onboard GPS. Standard HR Broadcast does not expose IMU data. Community
-BLE reverse engineering *has* decoded 6-axis motion from the strap (bond
-required) — but that is **not implemented here yet**; see
-[WHOOP_REPOS.md](WHOOP_REPOS.md). Details: [SUBSTITUTES.md](SUBSTITUTES.md).
+**WHOOP alone cannot do the golf half.** It has no onboard GPS. Kit B uses HR
+Broadcast only. **Kit C** bonds to the strap and reads IMU over BLE (NOOP
+protocol). Details: [SUBSTITUTES.md](SUBSTITUTES.md).
 
 ---
 

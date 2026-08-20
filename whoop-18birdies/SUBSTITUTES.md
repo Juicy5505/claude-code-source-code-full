@@ -65,12 +65,11 @@ Enable **WHOOP app → Device Settings → HR Broadcast → ON** once.
 
 ---
 
-## Kit C — research only (WHOOP IMU via community BLE)
+## Kit C — WHOOP IMU sidecar (implemented)
 
-Not shipped. Would require bonding the strap to a custom iOS app (not the
-official WHOOP app at the same time), enabling `TOGGLE_IMU_MODE`, decoding type-43
-`REALTIME_RAW_DATA`, and feeding the same swing detector. See
-[WHOOP_REPOS.md](WHOOP_REPOS.md) for repos to fork.
+Ships in `whoop-18birdies/sidecar/`. iOS app bonds to the strap (NOOP BLE
+protocol), streams IMU, detects swings, uses phone GPS, uploads to `wb serve`.
+See [sidecar/SIDECAR.md](sidecar/SIDECAR.md).
 
 **Still no GPS from the strap** even with IMU unlocked.
 

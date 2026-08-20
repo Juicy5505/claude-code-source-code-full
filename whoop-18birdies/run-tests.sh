@@ -77,6 +77,15 @@ else
   fail "watch project"
 fi
 
+say "Sidecar Xcode project generates"
+if OUT=$(python3 sidecar/test_generate_project.py 2>&1); then
+  COUNT=$(echo "$OUT" | grep -oE '^Ran [0-9]+' | grep -oE '[0-9]+' || echo 0)
+  pass "$COUNT sidecar project check(s)"
+else
+  echo "$OUT" | tail -25
+  fail "sidecar project"
+fi
+
 # --- Golden vectors -----------------------------------------------------------
 
 say "Swift golden vectors are current"

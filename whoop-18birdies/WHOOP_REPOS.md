@@ -62,4 +62,4 @@ If you want WHOOP IMU without the Apple Watch:
 3. **Keep HR Broadcast path** — Even with IMU bond, HR Broadcast is simpler for
    live bpm during round; IMU bond may conflict with official WHOOP app.
 
-Track progress in issues/PRs; this doc is reference only until code lands.
+Track progress in [sidecar/SIDECAR.md](../sidecar/SIDECAR.md).

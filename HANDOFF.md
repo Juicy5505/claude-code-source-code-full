@@ -161,11 +161,11 @@ Swift uses `.rounded(.toNearestOrEven)` for that reason. Do not "simplify" it.
 cd whoop-18birdies && ./run-tests.sh    # 129 TS + 203 Python + 24 project + vectors
 python3 second-brain/test_brain.py      # 46
 python3 tools/test_share.py             # 16
-cd whoop-18birdies/watch && ./build.sh --test   # Swift golden vectors in XCTest (Mac / CI)
+cd whoop-18birdies/watch && ./build.sh --test   # watch Swift tests (Mac / CI)
+cd whoop-18birdies/sidecar && ./build.sh --test # sidecar Swift tests (Mac / CI)
 ```
 
-The ubuntu CI job runs the first three. The macOS CI job runs `./build.sh` and
-`./build.sh --test`.
+The ubuntu CI job runs the first three. macOS CI runs watch and sidecar `./build.sh --test`.
 
 ---
 
@@ -174,12 +174,12 @@ The ubuntu CI job runs the first three. The macOS CI job runs `./build.sh` and
 Each of these cost real time to establish. They are not open.
 
 - **WHOOP 5.0 has no GPS.** It borrows the phone's. (WHOOP's own statement.)
-- **Official API + HR Broadcast expose no IMU.** This project uses that path
-  (`hr_monitor.py`). A 2023 BLE post failed to recover command checksums; **2025–2026
-  community RE** (NOOP, my-whoop, openwhoop) *does* decode 6-axis IMU with bond +
-  `TOGGLE_IMU_MODE` — see `whoop-18birdies/WHOOP_BLE_NOTES.md` and
-  `WHOOP_REPOS.md`. **Not implemented here.** Supported substitute remains
-  **WHOOP + iPhone** or **WHOOP + Watch** (`SUBSTITUTES.md`).
+- **Official API + HR Broadcast expose no IMU.** Kit B uses that path
+  (`hr_monitor.py`). Community RE (NOOP, my-whoop) decodes 6-axis IMU with bond +
+  `TOGGLE_IMU_MODE` — see `WHOOP_BLE_NOTES.md`. **Kit C sidecar** implements it:
+  `whoop-18birdies/sidecar/`.
+- **Supported golf substitutes:** Kit A (watch), Kit B (phone + HR Broadcast),
+  Kit C (sidecar IMU + phone GPS). See `SUBSTITUTES.md`.
 - **Swing path and face angle need a launch monitor.** No wrist or pocket sensor
   produces them. Do not promise them in the UI.
 - **18Birdies has no public API.**

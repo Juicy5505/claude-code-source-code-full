@@ -68,6 +68,7 @@ jobs:
         run: |
           bash -n whoop-18birdies/run-tests.sh
           bash -n whoop-18birdies/watch/build.sh
+          bash -n whoop-18birdies/sidecar/build.sh
           bash -n second-brain/install.sh
 
       # The Python here runs on a phone under Pythonista, where there is no
@@ -124,4 +125,20 @@ jobs:
 
       - name: Unit tests (watchOS simulator)
         working-directory: whoop-18birdies/watch
+        run: ./build.sh --test
+
+  sidecar-build:
+    name: Sidecar (xcodebuild)
+    runs-on: macos-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile check (iOS simulator, signing off)
+        working-directory: whoop-18birdies/sidecar
+        run: ./build.sh
+
+      - name: Unit tests (iOS simulator)
+        working-directory: whoop-18birdies/sidecar
         run: ./build.sh --test
