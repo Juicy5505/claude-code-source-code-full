@@ -1,10 +1,18 @@
 # Handoff — read this first
 
 You are picking this up in a **local** Claude Code session on a Mac (VS Code or
-Terminal — same thing). The work so far was done in a **cloud** session, which
-is why one thing is still unverified: nothing here has ever been compiled.
+Terminal — same thing).
 
-Branch: `claude/whoop-18birdies-integration-n630ma` · PR #1 (draft) · 50+ commits.
+**The watch app compiles and its Swift tests pass** — the `Watch (xcodebuild)`
+CI job on `macos-latest` builds it, runs `SwingDetectorTests` in a watchOS
+simulator, and verifies the shipped `Info.plist` on every push. That used to be
+the open question and no longer is.
+
+What is still unverified is everything a simulator cannot exercise: this has
+never run on a physical Apple Watch. The phone-GPS trap, background suspension
+with the wrist down, and five hours of battery are all untested.
+
+Branch: `claude/whoop-18birdies-integration-n630ma` · PR #1 (draft).
 
 ```bash
 git pull origin claude/whoop-18birdies-integration-n630ma
@@ -36,8 +44,23 @@ DEVELOPMENT_TEAM=XXXXXXXXXX ./build.sh --device   # ten chars, developer.apple.c
 Swift compiles. If it is red, open the log — `build.sh` prints only the error
 lines, not the full clang invocation wall.
 
-Four actor-isolation / import defects were found and fixed by reading before
-any compiler ran. A fifth (bad peak index silently returning wrong mechanics)
+### What reading caught, and what only building caught
+
+Four actor-isolation / import defects were found and fixed by reading before any
+compiler ran. Two things reading could NOT have caught, both found by the macOS
+CI job on its first runs:
+
+- **Xcode was silently discarding the background modes.** They were
+  `INFOPLIST_KEY_WKBackgroundModes` / `INFOPLIST_KEY_UIBackgroundModes`, which
+  are not names Xcode recognises; it drops unrecognised `INFOPLIST_KEY_`
+  settings without a warning, and the built bundle came back with *no background
+  modes at all*. Without them the round stops recording when your wrist drops,
+  and the app throws on the first tee. They now live in a real
+  `WhoopGolfWatchApp/Info.plist`, and `build.sh` reads all six required keys
+  back out of the built app so this cannot regress quietly.
+- A Swift frontend crash on multiline string interpolation in the tests.
+
+A fifth defect found by reading (bad peak index silently returning wrong mechanics)
 was caught in Python and mirrored in Swift. Still run `./build.sh` locally once
 before your first round — API signature nits are normal on first compile.
 
@@ -134,7 +157,7 @@ Swift uses `.rounded(.toNearestOrEven)` for that reason. Do not "simplify" it.
 ## 5. Tests — all currently green
 
 ```bash
-cd whoop-18birdies && ./run-tests.sh    # 129 TS + 203 Python + 19 project + vectors
+cd whoop-18birdies && ./run-tests.sh    # 129 TS + 203 Python + 24 project + vectors
 python3 second-brain/test_brain.py      # 46
 python3 tools/test_share.py             # 16
 cd whoop-18birdies/watch && ./build.sh --test   # Swift golden vectors in XCTest (Mac / CI)
