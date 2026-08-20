@@ -21,6 +21,7 @@ struct WhoopGolfApp: App {
 @MainActor
 struct ModePicker: View {
     @State private var mode: String?
+    @State private var showSettings = false
     @State private var pending = 0
 
     var body: some View {
@@ -29,6 +30,8 @@ struct ModePicker: View {
             // you to the picker. `dismiss()` cannot: this view is rendered
             // inline at the root of a WindowGroup, with no presentation to end.
             SessionView(mode: mode) { self.mode = nil }
+        } else if showSettings {
+            SettingsView { showSettings = false }
         } else {
             VStack(spacing: 10) {
                 Text("Swing Logger")
@@ -57,6 +60,9 @@ struct ModePicker: View {
                     .tint(.green)
                 Button("Play a round (GPS)") { mode = "round" }
                     .buttonStyle(.bordered)
+                Button("Upload settings") { showSettings = true }
+                    .buttonStyle(.bordered)
+                    .font(.caption2)
             }
             .padding()
             .task { await drainOutbox() }

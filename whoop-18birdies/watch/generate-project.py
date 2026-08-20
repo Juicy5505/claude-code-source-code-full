@@ -46,16 +46,21 @@ HERE = Path(__file__).resolve().parent
 PROJECT = HERE / "WhoopGolf.xcodeproj"
 APP_NAME = "WhoopGolf"
 TEST_NAME = "WhoopGolfTests"
+ENTITLEMENTS_FILE = "WhoopGolf.entitlements"
 
 APP_SOURCES = [
     "WhoopGolfApp.swift",
     "SessionView.swift",
+    "SettingsView.swift",
+    "IngestSettings.swift",
     "SwingDetector.swift",
     "MotionManager.swift",
     "WorkoutManager.swift",
     "LocationManager.swift",
     "SessionModel.swift",
     "GPSSourceCheck.swift",
+    "IngestSettings.swift",
+    "SettingsView.swift",
 ]
 
 # The detector and the model, because the tests exercise both the swing maths
@@ -231,6 +236,10 @@ INFO_PLIST_PATH = "WhoopGolfWatchApp/Info.plist"
 def app_settings() -> dict:
     return {
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
+        # HealthKit. Without the entitlement the app builds and installs and then
+        # cannot start a workout session, so it loses background execution on a
+        # real watch while working perfectly in the simulator.
+        "CODE_SIGN_ENTITLEMENTS": "WhoopGolfWatchApp/WhoopGolf.entitlements",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
         "MARKETING_VERSION": "1.0",
@@ -263,6 +272,7 @@ def app_settings() -> dict:
         # The background modes are NOT here. They live in INFO_PLIST above,
         # because Xcode silently discarded them as build settings - see the
         # comment there, and the check in build.sh that caught it.
+        "CODE_SIGN_ENTITLEMENTS": f"WhoopGolfWatchApp/{ENTITLEMENTS_FILE}",
         **({"DEVELOPMENT_TEAM": development_team()} if development_team() else {}),
     }
 
@@ -308,6 +318,11 @@ def build(pbx: Pbx) -> str:
         {"lastKnownFileType": "text.json", "path": TEST_RESOURCE,
          "sourceTree": "<group>"},
     )
+    file_refs[ENTITLEMENTS_FILE] = pbx.add(
+        uid("fileref", ENTITLEMENTS_FILE), "PBXFileReference",
+        {"lastKnownFileType": "text.plist.entitlements", "path": ENTITLEMENTS_FILE,
+         "sourceTree": "<group>"},
+    )
 
     app_product = pbx.add(
         uid("product", APP_NAME), "PBXFileReference",
@@ -341,7 +356,7 @@ def build(pbx: Pbx) -> str:
     # --- groups --------------------------------------------------------------
     app_group = pbx.add(
         uid("group", "app"), "PBXGroup",
-        {"children": [file_refs[n] for n in APP_SOURCES],
+        {"children": [file_refs[n] for n in APP_SOURCES] + [file_refs[ENTITLEMENTS_FILE]],
          "path": app_dir, "sourceTree": "<group>"},
     )
     test_group = pbx.add(
@@ -545,6 +560,21 @@ SCHEME = """<?xml version="1.0" encoding="UTF-8"?>
 </Scheme>
 """
 
+ENTITLEMENTS_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+\t<key>com.apple.developer.healthkit</key>
+\t<true/>
+</dict>
+</plist>
+"""
+
+
+def write_entitlements() -> None:
+    path = HERE / "WhoopGolfWatchApp" / ENTITLEMENTS_FILE
+    path.write_text(ENTITLEMENTS_PLIST, encoding="utf-8")
+
 
 def main() -> int:
     missing = [n for n in APP_SOURCES + [TEST_FILE]
@@ -556,6 +586,8 @@ def main() -> int:
         for name in missing:
             print(f"  {name}", file=sys.stderr)
         return 1
+
+    write_entitlements()
 
     pbx = Pbx()
     root = build(pbx)
@@ -585,7 +617,7 @@ def main() -> int:
 
     print(f"Wrote {PROJECT.relative_to(HERE.parent)}")
     print(f"  {len(APP_SOURCES)} app sources, {len(TEST_SOURCES) + 1} test sources")
-    print(f"  watchOS 9.0 floor, both background modes, all usage strings")
+    print(f"  watchOS 9.0 floor, both background modes, HealthKit entitlement")
     print(f"  (run ./build.sh to verify the modes survived into the built bundle)")
     print()
     print("Next:")

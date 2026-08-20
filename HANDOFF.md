@@ -1,7 +1,8 @@
 # Handoff — read this first
 
 You are picking this up in a **local** Claude Code session on a Mac (VS Code or
-Terminal — same thing).
+Terminal — same thing). Your Mac is still needed for one thing CI cannot do:
+`./build.sh --device`, to install on the Series 5.
 
 **The watch app compiles and its Swift tests pass** — the `Watch (xcodebuild)`
 CI job on `macos-latest` builds it, runs `SwingDetectorTests` in a watchOS
@@ -132,7 +133,7 @@ whoop-18birdies/
     build.sh             ← start here
     generate-project.py  writes WhoopGolf.xcodeproj (deterministic, validated)
     test_generate_project.py   parses the .pbxproj as a plist and checks settings
-    WhoopGolfWatchApp/   the eight Swift files
+    WhoopGolfWatchApp/   the ten Swift files + HealthKit entitlements
 second-brain/            the Obsidian memory CLI (`brain`)
 tools/share.py           publish files through the repo, with credential redaction
 ```
@@ -216,8 +217,6 @@ in a way that looks like repository damage. `brain doctor` detects evicted files
 
 ## 9. Where to pick up
 
-1. If macOS CI is red: read the `watch-build` log and fix the Swift errors.
-   If green: `./build.sh --device` on your Mac to install on the Series 5.
-2. Ask the user: `watch/` or `apple/` — which project is real?
-3. Set `ingestURL` / `ingestToken` in `SessionModel.swift` before building if
-   you want rounds to reach `wb serve` (see `watch/WATCH.md`).
+1. `./build.sh --device` on your Mac to install on the Series 5.
+2. **Upload settings** on the watch: enter your Mac's LAN `wb serve` URL and token.
+3. Ask the user: `watch/` or `apple/` — which project is real?

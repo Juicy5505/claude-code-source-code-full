@@ -362,10 +362,67 @@ class TestSettingsThatCostRounds(ProjectCase):
         self.assertEqual(settings["INFOPLIST_KEY_WKApplication"], "YES")
         self.assertEqual(settings["INFOPLIST_KEY_WKWatchOnly"], "YES")
 
+    def test_healthkit_entitlement_is_wired(self):
+        settings = self.settings_for("CODE_SIGN_ENTITLEMENTS")
+        self.assertIn("CODE_SIGN_ENTITLEMENTS", settings)
+        self.assertTrue(settings["CODE_SIGN_ENTITLEMENTS"].endswith(".entitlements"))
+        entitlements = HERE / "WhoopGolfWatchApp" / gen.ENTITLEMENTS_FILE
+        self.assertTrue(entitlements.is_file(), "entitlements file missing on disk")
+        self.assertIn("com.apple.developer.healthkit", entitlements.read_text())
+
     def test_it_targets_the_watch_device_family(self):
         settings = self.settings_for("TARGETED_DEVICE_FAMILY")
         self.assertEqual(settings["TARGETED_DEVICE_FAMILY"], "4")   # 4 = watch
         self.assertEqual(settings["SDKROOT"], "watchos")
+
+
+class TestNothingIsSilentlyLeftOut(ProjectCase):
+    """A Swift file on disk that the generator does not know about.
+
+    The project is GENERATED, and build.sh regenerates it before every build —
+    so hand-editing WhoopGolf.xcodeproj to add a source does nothing: the edit is
+    overwritten and the file is never compiled. That happened: IngestSettings.swift
+    and SettingsView.swift were added to the project by hand, the regeneration
+    discarded them, and the build failed with "cannot find 'IngestSettings' in
+    scope" — a confusing error a long way from its cause.
+
+    This makes the same mistake fail here, on ubuntu, in a tenth of a second,
+    with a message that names the file and the fix.
+    """
+
+    def test_every_swift_file_in_the_app_directory_is_compiled(self):
+        on_disk = {
+            path.name
+            for path in (HERE / "WhoopGolfWatchApp").glob("*.swift")
+        }
+        declared = set(gen.APP_SOURCES)
+        missing = sorted(on_disk - declared)
+        self.assertEqual(
+            missing, [],
+            "these Swift files exist but are not in APP_SOURCES, so they will "
+            "never be compiled — add them to generate-project.py, not to the "
+            ".xcodeproj (which is regenerated)",
+        )
+
+    def test_every_declared_source_exists(self):
+        missing = [
+            name for name in gen.APP_SOURCES
+            if not (HERE / "WhoopGolfWatchApp" / name).is_file()
+        ]
+        self.assertEqual(missing, [], "APP_SOURCES names a file that is not there")
+
+    def test_the_healthkit_entitlement_is_wired_in(self):
+        # Without it the app builds and installs and then cannot start a workout
+        # session — so it loses background execution on a real watch while
+        # working perfectly in the simulator, which is where CI runs.
+        settings = self.settings_for("CODE_SIGN_ENTITLEMENTS")
+        self.assertEqual(
+            settings["CODE_SIGN_ENTITLEMENTS"],
+            "WhoopGolfWatchApp/WhoopGolf.entitlements",
+        )
+        self.assertTrue(
+            (HERE / "WhoopGolfWatchApp" / "WhoopGolf.entitlements").is_file()
+        )
 
 
 class TestSigning(ProjectCase):
