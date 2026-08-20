@@ -57,6 +57,15 @@ MAX_STOP_S = 240.0
 # than this splits one stop into several.
 STOP_RADIUS_M = 12.0
 
+# Past this, a "stop" is not a stand with noisy fixes — it is a walk that never
+# tripped the displacement test, and there was no ball struck in it.
+#
+# Set well clear of both cases rather than between them. Standing with fixes at
+# the 20 m accuracy limit sprawls tens of metres; walking, even slowly, covers
+# 0.7 m every second, so a stop long enough to matter covers hundreds. Nothing
+# real lands near 40 m, which is what makes it a safe place to cut.
+DRIFT_CEILING_M = 40.0
+
 # Fixes worse than this are noise, not position. A 50 m fix under tree cover
 # would invent a 50 m shot.
 MAX_ACCURACY_M = 20.0
@@ -101,9 +110,10 @@ MAX_SHOT_YD = 450.0
 class Stop:
     """A place you stood still long enough to have hit a shot."""
 
-    __slots__ = ("start_t", "end_t", "lat", "lon", "n_fixes", "long_wait")
+    __slots__ = ("start_t", "end_t", "lat", "lon", "n_fixes", "long_wait", "drifted")
 
-    def __init__(self, start_t, end_t, lat, lon, n_fixes, long_wait=False):
+    def __init__(self, start_t, end_t, lat, lon, n_fixes, long_wait=False,
+                 drifted=False):
         self.start_t = start_t
         self.end_t = end_t
         self.lat = lat
@@ -112,6 +122,10 @@ class Stop:
         # True when the stop ran past MAX_STOP_S. Still a stop, still a shot
         # boundary — just one worth looking at twice.
         self.long_wait = long_wait
+        # True when the fixes sprawled further than STOP_RADIUS_M. Same idea:
+        # the position is less trustworthy than usual, but the stop is real and
+        # deleting it costs two shots rather than one. See `flush`.
+        self.drifted = drifted
 
     @property
     def duration_s(self):
@@ -126,6 +140,7 @@ class Stop:
             "longitude": self.lon,
             "n_fixes": self.n_fixes,
             "long_wait": self.long_wait,
+            "drifted": self.drifted,
         }
 
     def __repr__(self):  # pragma: no cover - debugging aid
@@ -202,6 +217,7 @@ def find_stops(
     max_accuracy_m=MAX_ACCURACY_M,
     window_s=STATIONARY_WINDOW_S,
     max_displacement_m=STATIONARY_DISPLACEMENT_M,
+    drift_ceiling_m=DRIFT_CEILING_M,
 ):
     """Find the places you stood still long enough to have hit a shot.
 
@@ -228,17 +244,33 @@ def find_stops(
             return  # too brief to be addressing a ball
         lat = sum(f["latitude"] for f in group) / len(group)
         lon = sum(f["longitude"] for f in group) / len(group)
-        # A genuine stop is compact. A group that sprawls further than the
-        # radius is a slow drift that slipped past the displacement test, and
-        # counting it would put a shot where no ball was struck.
+        # How far the group sprawls. A genuine stop is compact; a slow walk
+        # that never tripped the displacement test sprawls for hundreds of
+        # metres. Between those sits an ordinary long stand whose fixes wander
+        # on GPS noise, and the three need different answers.
         spread = max(
             haversine_m(lat, lon, f["latitude"], f["longitude"]) for f in group
         )
-        if spread > radius_m:
+
+        # Dropping anything past the radius was one rule for all three, and it
+        # cost more than it saved. Stand at your ball for five minutes — a
+        # halfway hut, a lost ball, a slow group ahead — and 15 m of GPS wander
+        # is unremarkable while no single 10 s window ever exceeds 8 m. The stop
+        # was deleted, so the shot played from it disappeared, AND the previous
+        # shot was then measured to the stop after it. A 230 yd drive and a
+        # 150 yd approach came back as one 287 yd drive: not a missing shot, a
+        # FABRICATED one, at a distance plausible enough to keep.
+        #
+        # So a sprawling stop is kept and flagged, exactly as a long one is. The
+        # ceiling below still drops the case the original guard was written for,
+        # where the "stop" is really a walk: at walking pace even a slow one
+        # covers hundreds of metres, nowhere near this.
+        if spread > drift_ceiling_m:
             return
         stops.append(
             Stop(group[0]["t"], group[-1]["t"], lat, lon, len(group),
-                 long_wait=duration > max_stop_s)
+                 long_wait=duration > max_stop_s,
+                 drifted=spread > radius_m)
         )
 
     for fix, stationary in zip(usable, flags):
@@ -287,7 +319,7 @@ def shots_from_stops(stops, max_shot_yd=MAX_SHOT_YD, short_shot_yd=SHORT_SHOT_YD
 
 _STOP_KWARGS = frozenset(
     {"min_stop_s", "max_stop_s", "radius_m", "max_accuracy_m",
-     "window_s", "max_displacement_m"}
+     "window_s", "max_displacement_m", "drift_ceiling_m"}
 )
 _SHOT_KWARGS = frozenset({"max_shot_yd", "short_shot_yd"})
 
@@ -346,6 +378,12 @@ def to_session(shots, mode="pocket", sample_rate_hz=1.0):
             record["distance_yd"] = shot["distance_yd"]
         if shot["kind"] == "short":
             record["short_shot"] = True
+        if shot.get("drifted"):
+            # The fixes at this stop sprawled further than a compact stand. The
+            # shot is real — it used to be deleted, which merged two shots into
+            # one fabricated long one — but its position is the weakest in the
+            # round, so both its distance and the previous one are soft.
+            record["drifted"] = True
         if shot.get("long_wait"):
             # You stood here a long time before hitting. The shot is real, but
             # a long wait is also how a halfway hut or a lost-ball search looks,

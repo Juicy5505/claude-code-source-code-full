@@ -232,6 +232,15 @@ def report(swings, cache_path=None, meta=None):
     else:
         print("  none — distance needs GPS on two consecutive swings.")
 
+    drifted = [s for s in swings if s.get("drifted")]
+    if drifted:
+        section("GPS drift")
+        print(
+            "  {} stop(s) had fixes spread wider than a compact stand.".format(len(drifted))
+        )
+        print("  Those shots are real, but their yardages — and the yardage of")
+        print("  the shot BEFORE each of them — are the softest in the round.")
+
     section("Tempo")
     tempo = consistency(swings, "tempo_ratio")
     if tempo:

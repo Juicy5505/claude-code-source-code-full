@@ -7,6 +7,7 @@ the clustering.
 """
 
 import math
+import random
 import unittest
 
 import shot_detect
@@ -466,5 +467,94 @@ class TestStopModel(unittest.TestCase):
         self.assertEqual([s["index"] for s in shots], [1, 2])
 
 
+class TestADriftingStopIsFlaggedNotDeleted(unittest.TestCase):
+    """Deleting a sprawling stop fabricates a shot that never happened.
+
+    Stand at your ball for five minutes — halfway hut, lost ball, slow group —
+    and 15 m of GPS wander is unremarkable while no single 10 s window ever
+    exceeds the 8 m displacement test. The stop used to be dropped for spreading
+    past STOP_RADIUS_M, which deleted the shot played from it AND re-measured
+    the previous shot to the stop after it: a 230 yd drive and a 150 yd approach
+    came back as a single 287 yd drive. Not a missing shot — an invented one, at
+    a distance plausible enough that nobody would question it.
+    """
+
+    M = 1.0 / 111320.0
+
+    def fix(self, t, x, y, acc=8.0):
+        return {"t": t, "latitude": 40.0 + y * self.M,
+                "longitude": -75.0 + x * self.M, "horizontal_accuracy": acc}
+
+    def trace(self, wait_s, amplitude):
+        """Tee, a drive, a stand at the ball, an approach, the green."""
+        rng = random.Random(11)
+        fixes, t, x = [], 0.0, 0.0
+
+        def stand(duration, centre, amp):
+            nonlocal t
+            offset = 0.0
+            for _ in range(int(duration)):
+                # A slow wander: no 10 s window trips the displacement test,
+                # but the total spread grows past the compact-stop radius.
+                offset = max(-25, min(25, offset + rng.uniform(-amp, amp)))
+                fixes.append(self.fix(t, centre + offset, rng.uniform(-1, 1)))
+                t += 1.0
+
+        def walk(metres):
+            nonlocal t, x
+            for _ in range(int(metres / 1.4)):
+                x += 1.4
+                fixes.append(self.fix(t, x, rng.uniform(-1, 1)))
+                t += 1.0
+
+        stand(20, x, 0.4)
+        walk(210)
+        stand(wait_s, x, amplitude)
+        walk(137)
+        stand(20, x, 0.4)
+        return fixes
+
+    def test_the_stop_survives_a_long_wait_with_real_drift(self):
+        stops = shot_detect.find_stops(self.trace(300, 1.6))
+        self.assertEqual(len(stops), 3, "the stop you played from was deleted")
+
+    def test_and_is_flagged_so_the_soft_yardage_is_visible(self):
+        stops = shot_detect.find_stops(self.trace(300, 1.6))
+        self.assertTrue(stops[1].drifted)
+        self.assertTrue(stops[1].long_wait)
+
+    def test_two_real_shots_instead_of_one_fabricated_long_one(self):
+        shots = shot_detect.shots_from_stops(
+            shot_detect.find_stops(self.trace(300, 1.6))
+        )
+        measured = [s["distance_yd"] for s in shots if s["distance_yd"] is not None]
+        self.assertEqual(len(measured), 2)
+        # Neither may be the merged tee-to-green distance.
+        for yards in measured:
+            self.assertLess(yards, 260, "this looks like two shots merged into one")
+
+    def test_a_compact_stop_is_not_flagged(self):
+        stops = shot_detect.find_stops(self.trace(20, 0.4))
+        self.assertEqual(len(stops), 3)
+        self.assertFalse(any(s.drifted for s in stops))
+
+    def test_a_slow_walk_is_still_rejected(self):
+        # What the original guard was written for, and it still holds: a stroll
+        # that never trips the displacement test is not a stop, and counting it
+        # would put a shot where no ball was struck.
+        rng = random.Random(3)
+        fixes, t, x = [], 0.0, 0.0
+        for _ in range(400):
+            x += 0.7                       # slow walk, under the 8 m / 10 s test
+            fixes.append(self.fix(t, x, rng.uniform(-1, 1)))
+            t += 1.0
+        self.assertEqual(shot_detect.find_stops(fixes), [])
+
+    def test_the_flag_reaches_the_session_file(self):
+        shots = shot_detect.shots_from_stops(
+            shot_detect.find_stops(self.trace(300, 1.6))
+        )
+        session = shot_detect.to_session(shots)
+        self.assertTrue(any(s.get("drifted") for s in session["swings"]))
 if __name__ == "__main__":
     unittest.main(verbosity=2)
