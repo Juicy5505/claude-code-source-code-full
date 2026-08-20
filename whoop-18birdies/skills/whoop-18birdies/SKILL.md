@@ -183,11 +183,12 @@ Never present the readiness number as coming from WHOOP.
 
 ## Things to avoid
 
-- **Do not suggest WHOOP can measure the swing.** It exposes heart rate over
-  Bluetooth and nothing else — no accelerometer, no gyroscope, to any client
-  including WHOOP's own app. Swing count, tempo, yardage and swing path are
-  outside what the hardware offers anyone, not features waiting to be built.
-  Wearing it on the lead wrist does not change this.
+- **Do not suggest WHOOP measures the swing on the paths this toolkit uses.**
+  Official API and HR Broadcast (`0x2A37`) give physiology only. Unofficial BLE
+  RE (NOOP, my-whoop) can decode strap IMU with bonding — see
+  `whoop-18birdies/WHOOP_BLE_NOTES.md` — but this project does not ship that;
+  swing/tempo/yardage come from the watch or phone (Kit A/B). GPS never comes
+  from the strap.
 - **Do not promise swing path, face angle, club speed, launch angle or spin
   from any wrist or pocket sensor.** Those need the club's position in space,
   which is a launch-monitor measurement. An Apple Watch cannot do it either.

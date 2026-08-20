@@ -6,10 +6,11 @@ WHOOP app: Menu -> Device Settings -> HR Broadcast -> ON. After that the strap
 is just a BLE heart-rate monitor any nearby device can read, including this
 phone via Pythonista's `cb` module.
 
-This is the one live signal a WHOOP can contribute during a session. Its raw
-accelerometer never leaves WHOOP's pipeline, so it cannot be the swing sensor;
-but heart rate at the moment of each swing, and cardio drift across a bucket
-or a round, are real physiology measured in real time.
+This is the reliable live signal on the **no-bond** path this logger uses.
+Community BLE reverse engineering (NOOP, openwhoop, my-whoop) has since shown
+the strap can stream 6-axis IMU after bonding — see ../WHOOP_BLE_NOTES.md — but
+that is not implemented here; swing detection still uses the phone or watch.
+Heart rate at each swing and cardio drift across a round remain real physiology.
 
 The BLE packet parsing and HRV math are pure Python and tested off-device.
 Only the thin `cb` shell is Pythonista-specific.

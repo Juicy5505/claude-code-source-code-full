@@ -2,34 +2,37 @@
 
 You asked for the WHOOP to do what the Apple Watch does for golf, so either
 one can stand in when you play. Here is the honest answer, then the kit that
-actually works.
+actually works **today**.
 
 ## The short version
 
-**A WHOOP alone cannot substitute for the Apple Watch as a golf tracker.**
-Not because this project hasn't got around to it — because the strap does not
-expose the sensors that tracking needs.
+**A WHOOP alone cannot substitute for the Apple Watch as a golf tracker** using
+only official APIs or HR Broadcast. **Unofficial BLE reverse engineering** has
+since shown the strap *does* stream 6-axis IMU when bonded and commanded — but
+this project does **not** ship that yet (see [WHOOP_REPOS.md](WHOOP_REPOS.md)).
 
-| Capability | Apple Watch (this app) | WHOOP 5.0 |
-|---|---|---|
-| Live heart rate during the round | yes (HealthKit) | yes (BLE HR Broadcast) |
-| Overnight recovery / sleep / strain | no (use WHOOP for that) | yes (official API → `wb`) |
-| Onboard GPS | yes (Series 5+) | **no** — borrows the phone's |
-| Swing detection / tempo / impact force | yes (Core Motion ~100 Hz) | **no** — accelerometer exists in hardware, **not exposed** over BLE or API |
-| Shot-to-shot yardage | yes (wrist GPS) | **no** without the phone |
-| Background execution with wrist down | yes (`HKWorkoutSession`) | n/a (no display, no golf mode) |
+| Capability | Apple Watch (this app) | WHOOP — official / HR Broadcast | WHOOP — unofficial BLE RE* |
+|---|---|---|---|
+| Live heart rate during the round | yes (HealthKit) | yes (BLE HR Broadcast) | yes |
+| Overnight recovery / sleep / strain | no (use WHOOP for that) | yes (official API → `wb`) | yes (local decode in NOOP) |
+| Onboard GPS | yes (Series 5+) | **no** — borrows the phone's | **no** |
+| Swing detection / tempo / impact force | yes (Core Motion ~100 Hz) | **no** on standard path | **yes in theory** — IMU ~100 Hz, bond required |
+| Shot-to-shot yardage | yes (wrist GPS) | **no** without the phone | **no** without the phone |
+| Background execution with wrist down | yes (`HKWorkoutSession`) | n/a | n/a |
 
-Sources already in this repo: [`iphone/WHOOP_BLE_NOTES.md`](iphone/WHOOP_BLE_NOTES.md)
-(BLE teardown found only heart-rate service `0x180D` / `0x2A37`), WHOOP's own
-docs (no onboard GPS), and WHOOP community feature requests for golf shot
-tracking that do not exist as a product.
+\* Community projects: [noop-app/noop](https://github.com/noop-app/noop),
+[tigercraft4/my-whoop](https://github.com/tigercraft4/my-whoop). Not in this repo.
 
-So: **WHOOP stays the physiology half. The golf half needs either the watch or
-the phone.** Those two kits are substitutes for each other.
+Sources: [`iphone/WHOOP_BLE_NOTES.md`](iphone/WHOOP_BLE_NOTES.md) (updated 2026),
+[WHOOP_REPOS.md](WHOOP_REPOS.md), WHOOP docs (no onboard GPS).
+
+So: **WHOOP stays the physiology half.** The golf half needs watch, phone, or
+(future) a sidecar app that speaks the unofficial IMU protocol. Kits A and B are
+what works **now**.
 
 ---
 
-## Two kits that substitute
+## Two kits that substitute (supported today)
 
 Same analysis pipeline, same `swings.json` shape, same `wb serve` upload, same
 `wb golf` / `wb report` afterwards. Pick one before you leave the house.
@@ -62,17 +65,25 @@ Enable **WHOOP app → Device Settings → HR Broadcast → ON** once.
 
 ---
 
-## What you cannot get from either kit
+## Kit C — research only (WHOOP IMU via community BLE)
+
+Not shipped. Would require bonding the strap to a custom iOS app (not the
+official WHOOP app at the same time), enabling `TOGGLE_IMU_MODE`, decoding type-43
+`REALTIME_RAW_DATA`, and feeding the same swing detector. See
+[WHOOP_REPOS.md](WHOOP_REPOS.md) for repos to fork.
+
+**Still no GPS from the strap** even with IMU unlocked.
+
+---
+
+## What you cannot get from any kit
 
 - Swing path, face angle, club head speed, spin, launch angle — **launch monitor**.
 - Pushing swings into 18Birdies — **no public API**.
-- WHOOP writing swing data into its own app — **no write API**, and no motion
-  stream to write.
+- WHOOP writing swing data into its own app — **no write API** on official paths.
 
-Do not wait for a firmware unlock of WHOOP's accelerometer. The reverse
-engineering of the BLE surface found none; the official developer API is
-read-only physiology. If WHOOP ever ships golf shot tracking themselves, that
-would be a product feature — not something a client can turn on.
+Do not expect the **official** WHOOP developer API or HR Broadcast alone to
+expose accelerometer data. That requires the unofficial bond + command path above.
 
 ---
 
@@ -86,5 +97,6 @@ wb report        # recovery vs scoring (needs CSV scores)
 ```
 
 Sessions from Kit A and Kit B land in the same store and the same analysis.
-That is what "substitute" means here: not that WHOOP becomes a watch, but that
-leaving the watch at home still produces a round this toolkit can read.
+That is what "substitute" means here: not that WHOOP becomes a watch out of the
+box, but that leaving the watch at home still produces a round this toolkit can
+read.

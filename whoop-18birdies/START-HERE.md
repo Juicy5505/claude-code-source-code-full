@@ -9,9 +9,11 @@ matrix: [SUBSTITUTES.md](SUBSTITUTES.md).
 | **A — Watch** | WHOOP + Apple Watch | watch does motion, tempo, GPS, live HR | WHOOP overnight |
 | **B — Phone** | WHOOP + iPhone | phone does GPS (pocket) or tempo (forearm); WHOOP does live HR | WHOOP overnight |
 
-**WHOOP alone cannot do the golf half.** It has no onboard GPS and does not
-expose accelerometer data to any app. That is a hardware/API ceiling, not a
-missing feature here. Details and citations: [SUBSTITUTES.md](SUBSTITUTES.md).
+**WHOOP alone cannot do the golf half with what this project ships today.** It
+has no onboard GPS. Standard HR Broadcast does not expose IMU data. Community
+BLE reverse engineering *has* decoded 6-axis motion from the strap (bond
+required) — but that is **not implemented here yet**; see
+[WHOOP_REPOS.md](WHOOP_REPOS.md). Details: [SUBSTITUTES.md](SUBSTITUTES.md).
 
 ---
 
@@ -63,12 +65,12 @@ If WHOOP filed the round under another name — it sometimes guesses "Walking" �
 `wb golf --list` shows every activity name in your data. Relabel it in the WHOOP
 app as Golf, `wb sync` again.
 
-**This is the whole physiological picture of a round, and it is everything WHOOP
-can give on its own.** The strap exposes heart rate over Bluetooth and nothing
-else — no accelerometer, no gyroscope, to any app including WHOOP's own. So
-swing count, tempo, yardage and swing path are not missing features here; they
-are outside what the hardware offers anyone. Kit A (watch) or modes 2–3 below
-add them. See [SUBSTITUTES.md](SUBSTITUTES.md).
+**This is the whole physiological picture of a round on the official / HR
+Broadcast path.** For swing count, tempo, and yardage you still need Kit A
+(watch) or modes 2–3 below (phone sensors). Unofficial BLE work shows the
+strap's accelerometer *can* be read by third-party apps after bonding — see
+[`iphone/WHOOP_BLE_NOTES.md`](iphone/WHOOP_BLE_NOTES.md) — but this toolkit
+uses HR Broadcast only for live HR during Kit B. See [SUBSTITUTES.md](SUBSTITUTES.md).
 
 Enable **HR Broadcast** once for Kit B live heart rate:
 WHOOP app → Device Settings → HR Broadcast → ON.
