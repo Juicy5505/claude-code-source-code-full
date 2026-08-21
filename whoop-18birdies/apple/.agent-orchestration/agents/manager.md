@@ -1,17 +1,18 @@
 # manager — D19 both-required
 
-**Status:** ASSIGNED  
-**Wave:** per TASKS.md  
-**Mandate:** Hybrid maximize Watch + WHOOP; new rounds require both.
+**Status:** DONE  
+**Mandate:** Delegate only; no product Swift (except emergency integrator pbxproj).
 
 ## Done
-- (agent fills)
+- Spawned 12-role civilization (TASKS/STATUS/HANDOFFS/PRODUCT).
+- Stabilized dual-gate + comprehensive tracking WIP; committed.
+- Parallel waves A/B/C via Task agents; filled watch-connectivity under agent-limit.
+- Consolidated agent side-branches onto `cursor/cloud-agent-1787290942317-17qh4`.
+- Applied pbxproj membership for DualWearableRequirement, ComprehensiveShotIntelligence, OverviewView, tests.
+- Outcome **SOFTWARE_COMPLETE** (Mac build proof still required).
 
 ## Gaps
-- (agent fills)
-
-## Files
-- See TASKS.md exclusive ownership
+- Live `xcodebuild` SUCCEEDED not available on Linux cloud.
 
 ## Evidence
-- (paths, test names, build notes)
+- Commits on cloud-agent branch; PR update follows.

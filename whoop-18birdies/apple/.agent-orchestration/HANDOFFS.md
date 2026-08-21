@@ -34,8 +34,9 @@ Manager clears conflicts. Agents append; do not steal files.
 | `Shared/ComprehensiveShotIntelligence.swift` | **WhoopGolf only** | iPhone club/tracking intel; depends on `SwingPathGuidance` + `GolfSwingMetrics` / GolfModels. **Never** WhoopGolfWatch. |
 | `Shared/DualWearableRequirement.swift` | **WhoopGolf only** | Round admission; depends on `SensorModeCoordinator` / capability types. **Never** WhoopGolfWatch. |
 | `WhoopGolf/Views/OverviewView.swift` | **WhoopGolf** | Uses DualWearableRequirement; absent from pbxproj. |
-| `WhoopGolfTests/DualWearableRequirementTests.swift` | **WhoopGolfTests** | Also hosts `ComprehensiveShotIntelligenceTests`. |
-| `WhoopGolfTests/StrokeScoreShotChainTests.swift` | **WhoopGolfTests** | Missing from Sources. |
+| `WhoopGolfTests/DualWearableRequirementTests.swift` | **WhoopGolfTests** | Gate outcomes only. |
+| `WhoopGolfTests/ComprehensiveShotIntelligenceTests.swift` | **WhoopGolfTests** | Ball-start, yards-on-enrich, hybrid materialize path+club. |
+| `WhoopGolfTests/StrokeScoreShotChainTests.swift` | **WhoopGolfTests** | Path score, trail-right polarity, yards preserve, live face. |
 | (cleanup) `DualWearableFusionTests.swift` | **WhoopGolfTests** | Duplicate PBXBuildFile entries in Sources — keep one. |
 
 **Watch audit (2026-08-21, static):** WhoopGolfWatch Sources correctly **omit** ComprehensiveShotIntelligence, DualWearableRequirement, GolfModels, PhoneYardageBridge, StrokeScoreShotChain. Watch allowlist in `project.yml` is face/contract files only (`WatchLiveFace`, coaching/context, wrist/path/improver).

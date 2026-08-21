@@ -35,6 +35,22 @@ final class SwingPathGuidanceTests: XCTestCase {
         XCTAssertEqual(trail.correctedYawDegrees, -20.0)
     }
 
+    /// Stored Watch yaw is already mount-corrected; re-classify with trail-right would double-flip.
+    func testStoredTrailRightYawMustClassifyWithLeadLeftSign() {
+        let storedCorrectedYaw = -18.0
+        let bodyRelative = SwingPathGuidance.classify(
+            downswingYawDegrees: storedCorrectedYaw,
+            wrist: .leadLeft
+        )
+        let doubleFlipped = SwingPathGuidance.classify(
+            downswingYawDegrees: storedCorrectedYaw,
+            wrist: .trailRight
+        )
+        XCTAssertEqual(bodyRelative.path, .outToIn)
+        XCTAssertEqual(doubleFlipped.path, .inToOut)
+        XCTAssertEqual(WatchWristMount.trailRight.pathSign, -1)
+    }
+
     func testNegativeYawMirrorFlipsPathClassAcrossMounts() {
         let rawYaw = -20.0
         let lead = SwingPathGuidance.classify(downswingYawDegrees: rawYaw, wrist: .leadLeft)
