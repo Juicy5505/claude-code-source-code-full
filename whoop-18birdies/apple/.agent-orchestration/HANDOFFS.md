@@ -44,6 +44,7 @@ Manager clears conflicts. Agents append; do not steal files.
 
 | ID | Note |
 |----|------|
+| XS-MEM-D19 | WhoopGolf (+tests) Sources now include DualWearableRequirement / ComprehensiveShotIntelligence / OverviewView; Watch still omit — static recheck OK |
 | D19-WIP | Dual gate + comprehensive tracking committed `bd81722` |
 | H5 | Inter-swing yardage previously MET |
 | H3 | Hybrid coordinator previously MET |
