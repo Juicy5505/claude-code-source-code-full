@@ -138,10 +138,22 @@ struct GolfSessionSummaryCard: View {
                         symbol: "figure.golf"
                     )
                     MetricTile(
+                        label: "Avg path score",
+                        value: averagePathScore(from: rows),
+                        detail: "Body-relative",
+                        symbol: "arrow.triangle.branch"
+                    )
+                    MetricTile(
                         label: "Measured yards",
                         value: "\(rows.filter { $0.shotYards != nil }.count)",
                         detail: "Swing-to-swing GPS",
                         symbol: "ruler"
+                    )
+                    MetricTile(
+                        label: "Longest shot",
+                        value: longestYards(from: rows),
+                        detail: "GPS displacement",
+                        symbol: "arrow.up.right"
                     )
                 }
                 VStack(alignment: .leading, spacing: 6) {
@@ -165,15 +177,33 @@ struct GolfSessionSummaryCard: View {
                 .foregroundStyle(Color.golfMist)
         }
     }
+
+    private func averagePathScore(from rows: [GolfStrokePresentation.Row]) -> String {
+        let scores = rows.compactMap(\.score.pathScore)
+        guard !scores.isEmpty else { return "—" }
+        let avg = Double(scores.reduce(0, +)) / Double(scores.count)
+        return "\(Int(avg.rounded()))"
+    }
+
+    private func longestYards(from rows: [GolfStrokePresentation.Row]) -> String {
+        guard let yards = rows.compactMap(\.shotYards).filter({ $0.isFinite }).max() else {
+            return "—"
+        }
+        return String(format: "%.0f yd", yards)
+    }
 }
 
-/// Trends strip: miss pattern, tempo, consistency across finished rounds.
+/// Trends strip: miss pattern, tempo sparkline, consistency across finished rounds.
 struct GolfPatternTrendsCard: View {
     let rounds: [GolfRound]
     let wrist: WatchWristMount
 
     var body: some View {
         let pattern = GolfStrokePresentation.patternSummary(for: rounds, wrist: wrist)
+        let tempos = rounds
+            .flatMap { GolfStrokePresentation.rows(for: $0, wrist: wrist) }
+            .compactMap(\.score.tempoRatio)
+            .filter { $0.isFinite && $0 > 0 }
         GolfCard {
             VStack(alignment: .leading, spacing: 14) {
                 Label("STROKE PATTERNS", systemImage: "chart.xyaxis.line")
@@ -194,6 +224,12 @@ struct GolfPatternTrendsCard: View {
                     detail: pattern.tempoDetail,
                     symbol: "metronome.fill"
                 )
+                if tempos.count >= 2 {
+                    TempoSparklineView(values: Array(tempos.suffix(24)))
+                        .frame(height: 44)
+                        .accessibilityLabel("Tempo sparkline")
+                        .accessibilityValue("\(tempos.count) samples")
+                }
                 patternBlock(
                     title: "Consistency",
                     headline: pattern.consistencyHeadline,
@@ -217,6 +253,97 @@ struct GolfPatternTrendsCard: View {
                     .font(.subheadline.weight(.semibold))
                 Text(detail)
                     .font(.caption)
+                    .foregroundStyle(Color.golfMist)
+            }
+        }
+    }
+}
+
+/// Simple tempo sparkline (Tour 3:1 reference as a faint midline).
+struct TempoSparklineView: View {
+    let values: [Double]
+    private let reference = GolfImprover.tourTempo
+
+    var body: some View {
+        GeometryReader { geo in
+            let minY = min(values.min() ?? 0, reference - 0.5)
+            let maxY = max(values.max() ?? reference, reference + 0.5)
+            let span = max(maxY - minY, 0.1)
+            ZStack {
+                Path { path in
+                    let y = geo.size.height * (1 - CGFloat((reference - minY) / span))
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: geo.size.width, y: y))
+                }
+                .stroke(Color.golfMist.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+
+                Path { path in
+                    for (index, value) in values.enumerated() {
+                        let x = geo.size.width * CGFloat(index) / CGFloat(max(values.count - 1, 1))
+                        let y = geo.size.height * (1 - CGFloat((value - minY) / span))
+                        let point = CGPoint(x: x, y: y)
+                        if index == 0 {
+                            path.move(to: point)
+                        } else {
+                            path.addLine(to: point)
+                        }
+                    }
+                }
+                .stroke(Color.golfLime, style: StrokeStyle(lineWidth: 2, lineJoin: .round))
+            }
+        }
+        .padding(.vertical, 4)
+        .background(.white.opacity(0.04), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+}
+
+/// Post-round sheet: avg path score, longest swing-to-swing yards, source mix.
+struct PostRoundPathSummaryCard: View {
+    let round: GolfRound
+    let wrist: WatchWristMount
+
+    var body: some View {
+        let stats = RoundOverviewStats.make(from: round, wrist: wrist)
+        let pattern = GolfStrokePresentation.patternSummary(for: [round], wrist: wrist)
+        let sources = Set(round.swings.map(\.provenance.source.title)).sorted()
+        GolfCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("PATH + YARDS")
+                    .font(.caption.weight(.bold))
+                    .tracking(1)
+                    .foregroundStyle(Color.golfMist)
+                Text("Post-round stroke sheet")
+                    .font(.headline)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    MetricTile(
+                        label: "Avg path score",
+                        value: stats.averagePathScore.map(String.init) ?? "—",
+                        detail: pattern.missHeadline,
+                        symbol: "arrow.triangle.branch"
+                    )
+                    MetricTile(
+                        label: "Longest shot",
+                        value: stats.longestShotYards.map { String(format: "%.0f yd", $0) } ?? "—",
+                        detail: "Phone GPS segments",
+                        symbol: "ruler"
+                    )
+                    MetricTile(
+                        label: "Total yards",
+                        value: stats.totalShotYards.map { String(format: "%.0f", $0) } ?? "—",
+                        detail: "Sum of measured shots",
+                        symbol: "sum"
+                    )
+                    MetricTile(
+                        label: "Sources",
+                        value: sources.isEmpty ? "—" : "\(sources.count)",
+                        detail: sources.joined(separator: " · "),
+                        symbol: "sensor.tag.radiowaves.forward"
+                    )
+                }
+                Text(pattern.tempoHeadline)
+                    .font(.caption.weight(.semibold))
+                Text(pattern.consistencyDetail)
+                    .font(.caption2)
                     .foregroundStyle(Color.golfMist)
             }
         }

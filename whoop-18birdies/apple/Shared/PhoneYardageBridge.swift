@@ -136,7 +136,7 @@ enum PhoneYardageBridge {
             matchedTargets = nil
         }
         let overlay = greenYards(from: phoneFix, targets: matchedTargets)
-        return WatchLiveFace(
+        let base = WatchLiveFace(
             holeNumber: holeNumber,
             frontYards: overlay.frontYards,
             middleYards: overlay.middleYards,
@@ -145,6 +145,17 @@ enum PhoneYardageBridge {
             wristMount: wristMount,
             courseName: courseName
         )
+        // Attach body-relative path score / label / stroke count for the Watch face.
+        guard !swings.isEmpty else { return base }
+        let journal = StrokeScoreShotChain.buildJournal(
+            roundID: UUID(),
+            courseName: courseName ?? "live",
+            startedAt: swings.map(\.capturedAt).min() ?? Date(),
+            swings: swings,
+            holeForSwing: { _ in holeNumber },
+            wrist: wristMount
+        )
+        return StrokeScoreShotChain.enrichLiveFace(base, journal: journal)
     }
 
     /// Explicit fail-closed: MapKit / facility search never becomes a green map

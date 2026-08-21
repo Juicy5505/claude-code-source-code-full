@@ -499,6 +499,40 @@ enum StrokeScoreShotChain {
         return enriched
     }
 
+    /// Persist path score + explanation + tip onto each `GolfSwingMetrics` row
+    /// while keeping shot intervals (swing-to-swing yards) intact.
+    static func enrichSwingMetrics(
+        _ swings: [GolfSwingMetrics],
+        pathHints: [UUID: PathHint] = [:],
+        wrist: WatchWristMount = .golferDefault
+    ) -> [GolfSwingMetrics] {
+        let ordered = swings.sorted { $0.capturedAt < $1.capturedAt }
+        guard !ordered.isEmpty else { return swings }
+
+        let journal = buildJournal(
+            roundID: UUID(),
+            courseName: "live",
+            startedAt: ordered.first?.capturedAt ?? Date(),
+            swings: ordered,
+            holeForSwing: { _ in nil },
+            pathHints: pathHints,
+            clubs: [:],
+            wrist: wrist
+        )
+
+        let byID = Dictionary(uniqueKeysWithValues: journal.verifiedSwings.map { ($0.id, $0) })
+        return ordered.map { swing in
+            guard let verified = byID[swing.id] else { return swing }
+            return swing.withStrokeCoaching(
+                pathScore: verified.score,
+                pathExplanation: verified.explanation,
+                improverTip: verified.coaching.tip.postSwing,
+                pathClass: verified.motion.pathClass.rawValue,
+                pathYawDegrees: verified.motion.correctedYawDegrees ?? swing.pathYawDegrees
+            )
+        }
+    }
+
     // MARK: - Verify one stroke
 
     static func verify(

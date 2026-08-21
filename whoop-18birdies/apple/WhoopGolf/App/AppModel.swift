@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 final class AppModel: ObservableObject {
     enum Tab: Hashable {
+        case overview
         case today
         case round
         case trends
@@ -40,7 +41,7 @@ final class AppModel: ObservableObject {
         case failed(String)
     }
 
-    @Published var selectedTab: Tab = .today
+    @Published var selectedTab: Tab = .overview
     @Published private(set) var dataMode: DataMode = .unconfigured
     @Published private(set) var readiness: ReadinessSnapshot?
     @Published private(set) var rounds: [GolfRound] = []

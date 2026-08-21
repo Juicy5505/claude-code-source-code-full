@@ -80,6 +80,10 @@ private struct StrokeBoardRowView: View {
                     Label("\(hr) bpm", systemImage: "heart.fill")
                 }
                 Label(String(format: "%.1f g", row.peakG), systemImage: "gyroscope")
+                Text(row.provenanceLabel)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(.white.opacity(0.08), in: Capsule())
             }
             .font(.caption2.weight(.semibold))
             .foregroundStyle(Color.golfMist)

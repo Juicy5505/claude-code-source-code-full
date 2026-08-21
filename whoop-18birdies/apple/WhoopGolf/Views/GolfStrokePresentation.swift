@@ -62,14 +62,53 @@ enum GolfStrokePresentation {
         wrist: WatchWristMount = .golferDefault
     ) -> Row {
         let yaw = inferredDownswingYawDegrees(from: swing)
-        let classified = SwingPathGuidance.classify(downswingYawDegrees: yaw, wrist: wrist)
-        let score = GolfImprover.strokeScore(
-            path: classified.path,
-            correctedYawDegrees: classified.correctedYawDegrees,
+        // Stored path_yaw_deg is already mount-corrected — classify with leadLeft
+        // (pathSign +1) so trail-right polarity is not flipped twice.
+        let path = swing.resolvedPathClass != .unknown
+            ? swing.resolvedPathClass
+            : (yaw.map {
+                SwingPathGuidance.classify(downswingYawDegrees: $0, wrist: .leadLeft).path
+            } ?? .unknown)
+        let live = GolfImprover.strokeScore(
+            path: path,
+            correctedYawDegrees: yaw,
             tempoRatio: swing.tempoRatio,
             wrist: wrist,
             id: swing.id
         )
+        let score: SwingStrokeScore
+        if let persisted = swing.pathScore {
+            let explanation = swing.pathExplanation ?? live.explanation
+            let tip: ImproverTip
+            if let improverTip = swing.improverTip, improverTip != live.tip.postSwing {
+                tip = ImproverTip(
+                    focus: live.tip.focus,
+                    cue: live.tip.cue,
+                    drill: live.tip.drill,
+                    alternateDrill: live.tip.alternateDrill,
+                    wristFeel: live.tip.wristFeel,
+                    missAdvice: live.tip.missAdvice,
+                    postSwing: improverTip
+                )
+            } else {
+                tip = live.tip
+            }
+            let label = live.pathLabel
+            score = SwingStrokeScore(
+                id: live.id,
+                path: live.path,
+                correctedYawDegrees: yaw ?? live.correctedYawDegrees,
+                pathScore: persisted,
+                severity: live.severity,
+                pathLabel: label,
+                explanation: explanation,
+                scoreHeadline: "\(label) · \(persisted)",
+                tempoRatio: live.tempoRatio,
+                tip: tip
+            )
+        } else {
+            score = live
+        }
         let interval = swing.shotInterval
         let latitude = swing.location?.hasValidCoordinate == true ? swing.location?.latitude : nil
         let longitude = swing.location?.hasValidCoordinate == true ? swing.location?.longitude : nil
@@ -79,7 +118,7 @@ enum GolfStrokePresentation {
             hole: hole,
             capturedAt: swing.capturedAt,
             score: score,
-            shotYards: interval?.straightLineDisplacementYards,
+            shotYards: swing.shotYards ?? interval?.straightLineDisplacementYards,
             yardsUncertainty: interval?.distanceUncertaintyYards,
             yardsStatus: interval?.distanceStatus,
             peakG: swing.peakG,
@@ -164,11 +203,12 @@ enum GolfStrokePresentation {
         )
     }
 
-    /// Prefer explicit Watch yaw when present; otherwise leave nil (honest unknown).
+    /// Prefer explicit Watch mount-corrected yaw when present.
     /// Does not invent signed path from WHOOP travel magnitude alone.
     private static func inferredDownswingYawDegrees(from swing: GolfSwingMetrics) -> Double? {
-        // Future stroke-score / fusion agents may attach scored yaw on the swing.
-        // Until then, only tempo + interval yards are guaranteed on GolfSwingMetrics.
+        if let yaw = swing.pathYawDegrees, yaw.isFinite {
+            return yaw
+        }
         _ = swing.wristAnalysis
         return nil
     }

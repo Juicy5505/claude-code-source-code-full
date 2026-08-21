@@ -214,6 +214,10 @@ private struct PostRoundDetailView: View {
                 LazyVStack(alignment: .leading, spacing: 18) {
                     hero
                     sourceStatus
+                    PostRoundPathSummaryCard(
+                        round: reviewedRound,
+                        wrist: model.watchWristMount
+                    )
                     roundSummary
                     scorecard
                     unassignedSwings

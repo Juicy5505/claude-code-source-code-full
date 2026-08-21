@@ -470,6 +470,11 @@ actor WhoopMotionImportService {
                 round.swings.append(contentsOf: missingSwings)
             }
             round.finalizeWHOOPTriggeredShotIntervals()
+            // Persist path score / explanation after swing-to-swing yards land.
+            round.swings = StrokeScoreShotChain.enrichSwingMetrics(
+                round.swings,
+                wrist: .golferDefault
+            )
 
             // Persistence ordering is intentional: registry terminality cannot
             // precede the atomic round write.
@@ -707,6 +712,10 @@ actor WhoopMotionImportService {
                 round.swings.append(contentsOf: importedSwings)
             }
             round.finalizeWHOOPTriggeredShotIntervals()
+            round.swings = StrokeScoreShotChain.enrichSwingMetrics(
+                round.swings,
+                wrist: .golferDefault
+            )
 
             // A fully reviewed batch becomes terminal only after this atomic
             // round write. If the following registry write fails, deterministic

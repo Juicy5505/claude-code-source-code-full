@@ -122,6 +122,12 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
     let pathYawDegrees: Double?
     /// Body-relative path class string matching `SwingPathClass.rawValue`.
     let pathClass: String?
+    /// Persisted body-relative path score (0…100). Older rounds omit this.
+    let pathScore: Int?
+    /// Plain-language path / tempo explanation for the stroke board.
+    let pathExplanation: String?
+    /// Short improver tip / post-swing cue persisted with the stroke.
+    let improverTip: String?
     let provenance: DataProvenance
     let location: SwingLocationObservation?
     let locationCorrelationMethod: SwingLocationCorrelationMethod?
@@ -139,6 +145,9 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
         wristAnalysis: WhoopMotionWristAnalysis? = nil,
         pathYawDegrees: Double? = nil,
         pathClass: String? = nil,
+        pathScore: Int? = nil,
+        pathExplanation: String? = nil,
+        improverTip: String? = nil,
         provenance: DataProvenance,
         location: SwingLocationObservation? = nil,
         locationCorrelationMethod: SwingLocationCorrelationMethod? = nil,
@@ -155,6 +164,9 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
         self.wristAnalysis = wristAnalysis
         self.pathYawDegrees = pathYawDegrees
         self.pathClass = pathClass
+        self.pathScore = pathScore
+        self.pathExplanation = pathExplanation
+        self.improverTip = improverTip
         self.provenance = provenance
         self.location = location
         self.locationCorrelationMethod = locationCorrelationMethod
@@ -167,6 +179,47 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
             return .unknown
         }
         return resolved
+    }
+
+    /// Swing-to-swing GPS yards when the following swing finalized this segment.
+    var shotYards: Double? {
+        guard let interval = shotInterval,
+              interval.distanceStatus == .measured,
+              let yards = interval.straightLineDisplacementYards,
+              yards.isFinite else {
+            return nil
+        }
+        return yards
+    }
+
+    /// Copy with persisted path score / explanation / tip (D19 stroke journal).
+    func withStrokeCoaching(
+        pathScore: Int?,
+        pathExplanation: String?,
+        improverTip: String?,
+        pathClass: String? = nil,
+        pathYawDegrees: Double? = nil
+    ) -> GolfSwingMetrics {
+        GolfSwingMetrics(
+            id: id,
+            capturedAt: capturedAt,
+            peakG: peakG,
+            backswingSeconds: backswingSeconds,
+            downswingSeconds: downswingSeconds,
+            tempoRatio: tempoRatio,
+            heartRateBPM: heartRateBPM,
+            detectionConfidence: detectionConfidence,
+            wristAnalysis: wristAnalysis,
+            pathYawDegrees: pathYawDegrees ?? self.pathYawDegrees,
+            pathClass: pathClass ?? self.pathClass,
+            pathScore: pathScore,
+            pathExplanation: pathExplanation,
+            improverTip: improverTip,
+            provenance: provenance,
+            location: location,
+            locationCorrelationMethod: locationCorrelationMethod,
+            shotInterval: shotInterval
+        )
     }
 }
 

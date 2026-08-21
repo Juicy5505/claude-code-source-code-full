@@ -5,6 +5,10 @@ struct AppShell: View {
 
     var body: some View {
         TabView(selection: $model.selectedTab) {
+            OverviewView()
+                .tag(AppModel.Tab.overview)
+                .tabItem { Label("Overview", systemImage: "square.grid.2x2.fill") }
+
             TodayView()
                 .tag(AppModel.Tab.today)
                 .tabItem { Label("Today", systemImage: "gauge.with.dots.needle.50percent") }

@@ -278,56 +278,59 @@ actor WatchSessionImporter {
                     return .pendingUserLink(sessionID: payload.sessionID)
                 }
 
-                let importedSwings = SwingShotIntervalCalculator.finalizingIntervals(
-                    in: payload.swings
-                    .map { swing in
-                        let location = swing.location.map { location in
-                            SwingLocationObservation(
-                                latitude: location.latitude,
-                                longitude: location.longitude,
-                                altitudeMeters: location.altitude,
-                                horizontalAccuracyMeters: location.horizontalAccuracy,
-                                // Watch session schema 1 does not carry a
-                                // separate GPS timestamp, so the adapter
-                                // records its explicit same-swing timestamp.
+                let importedSwings = StrokeScoreShotChain.enrichSwingMetrics(
+                    SwingShotIntervalCalculator.finalizingIntervals(
+                        in: payload.swings
+                        .map { swing in
+                            let location = swing.location.map { location in
+                                SwingLocationObservation(
+                                    latitude: location.latitude,
+                                    longitude: location.longitude,
+                                    altitudeMeters: location.altitude,
+                                    horizontalAccuracyMeters: location.horizontalAccuracy,
+                                    // Watch session schema 1 does not carry a
+                                    // separate GPS timestamp, so the adapter
+                                    // records its explicit same-swing timestamp.
+                                    capturedAt: swing.timestamp,
+                                    provenance: DataProvenance(
+                                        source: .appleWatch,
+                                        observedAt: swing.timestamp,
+                                        receivedAt: received.receivedAt,
+                                        quality: location.horizontalAccuracy.map {
+                                            $0 <= SwingShotIntervalCalculator.maximumHorizontalAccuracyMeters
+                                                ? .verified : .unavailable
+                                        } ?? .unavailable,
+                                        algorithmVersion: "watch-session-schema-\(payload.schemaVersion)"
+                                    )
+                                )
+                            }
+                            return GolfSwingMetrics(
+                                id: WatchSwingIdentity(
+                                    sessionID: payload.sessionID,
+                                    index: swing.index
+                                ).uuid,
                                 capturedAt: swing.timestamp,
+                                peakG: swing.peakG,
+                                backswingSeconds: swing.backswingSeconds,
+                                downswingSeconds: swing.downswingSeconds,
+                                tempoRatio: swing.tempoRatio,
+                                heartRateBPM: swing.heartRateBPM,
+                                pathYawDegrees: swing.pathYawDegrees,
+                                pathClass: swing.pathClass,
                                 provenance: DataProvenance(
                                     source: .appleWatch,
                                     observedAt: swing.timestamp,
                                     receivedAt: received.receivedAt,
-                                    quality: location.horizontalAccuracy.map {
-                                        $0 <= SwingShotIntervalCalculator.maximumHorizontalAccuracyMeters
-                                            ? .verified : .unavailable
-                                    } ?? .unavailable,
+                                    quality: .verified,
                                     algorithmVersion: "watch-session-schema-\(payload.schemaVersion)"
-                                )
+                                ),
+                                location: location,
+                                locationCorrelationMethod: location == nil
+                                    ? nil : .sensorSynchronized
                             )
                         }
-                        return GolfSwingMetrics(
-                            id: WatchSwingIdentity(
-                                sessionID: payload.sessionID,
-                                index: swing.index
-                            ).uuid,
-                            capturedAt: swing.timestamp,
-                            peakG: swing.peakG,
-                            backswingSeconds: swing.backswingSeconds,
-                            downswingSeconds: swing.downswingSeconds,
-                            tempoRatio: swing.tempoRatio,
-                            heartRateBPM: swing.heartRateBPM,
-                            pathYawDegrees: swing.pathYawDegrees,
-                            pathClass: swing.pathClass,
-                            provenance: DataProvenance(
-                                source: .appleWatch,
-                                observedAt: swing.timestamp,
-                                receivedAt: received.receivedAt,
-                                quality: .verified,
-                                algorithmVersion: "watch-session-schema-\(payload.schemaVersion)"
-                            ),
-                            location: location,
-                            locationCorrelationMethod: location == nil
-                                ? nil : .sensorSynchronized
-                        )
-                    }
+                    ),
+                    wrist: WatchWristMount.load()
                 )
                 let existingSwingIDs = Set(round.swings.map(\.id))
                 round.swings.append(

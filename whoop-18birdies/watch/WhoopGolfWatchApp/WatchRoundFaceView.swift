@@ -43,10 +43,17 @@ struct WatchRoundFaceView: View {
             Text("PATH")
                 .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(.secondary)
-            Text(stroke.scoreHeadline)
+            Text(displayScoreHeadline)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(path == .unknown ? Color.secondary : Color.green)
+                .foregroundStyle(path == .unknown && liveFace.lastPathScore == nil
+                    ? Color.secondary
+                    : Color.green)
                 .multilineTextAlignment(.center)
+            if let phoneScore = liveFace.lastPathScore {
+                Text("\(phoneScore)")
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.green)
+            }
             Text(stroke.explanation)
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
@@ -57,8 +64,18 @@ struct WatchRoundFaceView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.green)
             }
+            Text("Wrist · \(wrist.coachingName)")
+                .font(.system(size: 9))
+                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 4)
+    }
+
+    private var displayScoreHeadline: String {
+        if let label = liveFace.lastPathLabel, let score = liveFace.lastPathScore {
+            return "\(label) · \(score)"
+        }
+        return stroke.scoreHeadline
     }
 
     private var improverScreen: some View {
