@@ -459,7 +459,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.sidecar.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				DEVELOPMENT_TEAM = TV4GX7YKQM;
 			};
 			name = Debug;
 		};
@@ -482,7 +481,6 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Fallback swing detection from phone motion.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
-				DEVELOPMENT_TEAM = TV4GX7YKQM;
 			};
 			name = Release;
 		};
@@ -495,7 +493,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.sidecar.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				DEVELOPMENT_TEAM = TV4GX7YKQM;
 			};
 			name = Release;
 		};
@@ -518,7 +515,6 @@
 				INFOPLIST_KEY_NSMotionUsageDescription = "Fallback swing detection from phone motion.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
-				DEVELOPMENT_TEAM = TV4GX7YKQM;
 			};
 			name = Debug;
 		};

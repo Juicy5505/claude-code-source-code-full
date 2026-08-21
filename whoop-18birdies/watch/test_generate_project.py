@@ -155,6 +155,12 @@ def generate_into_copy(env: dict):
     fake = Path(tmp) / "watch"
     shutil.copytree(HERE, fake,
                     ignore=shutil.ignore_patterns("WhoopGolf.xcodeproj", "__pycache__"))
+    # The generator now reaches across the package boundary for apple/Shared,
+    # and refuses to emit a project when that directory is absent (its sources
+    # would reference types that can never compile). The copy must therefore
+    # look like the real checkout: watch/ and apple/Shared/ side by side.
+    shutil.copytree(HERE.parent / "apple" / "Shared", Path(tmp) / "apple" / "Shared",
+                    ignore=shutil.ignore_patterns("graphify-out", "__pycache__"))
     result = subprocess.run(
         [sys.executable, str(fake / "generate-project.py")],
         capture_output=True, text=True, env=env,
@@ -253,10 +259,24 @@ class TestTargets(ProjectCase):
     def test_every_app_source_is_compiled(self):
         refs = self.objects_of("PBXFileReference")
         builds = self.objects_of("PBXBuildFile")
-        app_phase = next(p for p in self.objects_of("PBXSourcesBuildPhase").values()
-                         if len(p["files"]) == len(gen.APP_SOURCES))
+        # The app phase is the LARGER sources phase (app + shared vs the tests).
+        # Matching on an exact count silently broke the moment the phase grew.
+        app_phase = max(self.objects_of("PBXSourcesBuildPhase").values(),
+                        key=lambda p: len(p["files"]))
         compiled = {refs[builds[f]["fileRef"]]["path"] for f in app_phase["files"]}
-        self.assertEqual(compiled, set(gen.APP_SOURCES))
+        expected = set(gen.APP_SOURCES) | {
+            f"../apple/Shared/{n}" for n in gen.SHARED_SOURCES
+        }
+        self.assertEqual(compiled, expected)
+
+    def test_shared_sources_are_globbed_not_listed(self):
+        # WatchRoundFaceView/WatchSessionTransfer got left out of APP_SOURCES by
+        # hand; the Shared list must not be able to fail the same way. It comes
+        # from the directory itself, so a new Shared file is picked up on the
+        # next generate — and there must be a meaningful number of them.
+        on_disk = {f.name for f in (HERE.parent / "apple" / "Shared").glob("*.swift")}
+        self.assertEqual(set(gen.SHARED_SOURCES), on_disk)
+        self.assertGreater(len(gen.SHARED_SOURCES), 10)
 
     def test_the_fixture_is_bundled_with_the_tests(self):
         # Without this the tests fatalError on launch: the JSON is not present.

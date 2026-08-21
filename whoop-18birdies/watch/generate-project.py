@@ -59,9 +59,18 @@ APP_SOURCES = [
     "LocationManager.swift",
     "SessionModel.swift",
     "GPSSourceCheck.swift",
-    "IngestSettings.swift",
-    "SettingsView.swift",
+    "WatchRoundFaceView.swift",
+    "WatchSessionTransfer.swift",
 ]
+
+# The apple companion project shares this directory, and its work made the
+# watch sources depend on model types that live in apple/Shared. Globbed, not
+# listed, so a new Shared file cannot silently be left out of this target the
+# way WatchRoundFaceView and WatchSessionTransfer were left out of APP_SOURCES.
+# Sorted for deterministic output. Every file there is Foundation/CryptoKit
+# only, so all of it compiles for watchOS.
+SHARED_DIR = HERE.parent / "apple" / "Shared"
+SHARED_SOURCES = sorted(f.name for f in SHARED_DIR.glob("*.swift"))
 
 # The detector and the model, because the tests exercise both the swing maths
 # and the haversine port. Nothing else — keeping the test target's source list
@@ -308,6 +317,19 @@ def build(pbx: Pbx) -> str:
                 "sourceTree": "<group>",
             },
         )
+    # Shared model sources, referenced across the package boundary. The key is
+    # prefixed so a Shared file may share a basename with an app file without
+    # the two colliding in this dict or in the deterministic ids.
+    for name in SHARED_SOURCES:
+        file_refs["shared:" + name] = pbx.add(
+            uid("fileref", "shared:" + name), "PBXFileReference",
+            {
+                "lastKnownFileType": "sourcecode.swift",
+                "name": name,
+                "path": f"../apple/Shared/{name}",
+                "sourceTree": "SOURCE_ROOT",
+            },
+        )
     file_refs[TEST_FILE] = pbx.add(
         uid("fileref", TEST_FILE), "PBXFileReference",
         {"lastKnownFileType": "sourcecode.swift", "path": TEST_FILE,
@@ -343,6 +365,10 @@ def build(pbx: Pbx) -> str:
     app_build = [
         pbx.add(uid("build", "app", n), "PBXBuildFile", {"fileRef": file_refs[n]})
         for n in APP_SOURCES
+    ] + [
+        pbx.add(uid("build", "app", "shared:" + n), "PBXBuildFile",
+                {"fileRef": file_refs["shared:" + n]})
+        for n in SHARED_SOURCES
     ]
     test_build = [
         pbx.add(uid("build", "test", n), "PBXBuildFile", {"fileRef": file_refs[n]})
@@ -359,6 +385,11 @@ def build(pbx: Pbx) -> str:
         {"children": [file_refs[n] for n in APP_SOURCES] + [file_refs[ENTITLEMENTS_FILE]],
          "path": app_dir, "sourceTree": "<group>"},
     )
+    shared_group = pbx.add(
+        uid("group", "shared"), "PBXGroup",
+        {"children": [file_refs["shared:" + n] for n in SHARED_SOURCES],
+         "name": "Shared", "sourceTree": "<group>"},
+    )
     test_group = pbx.add(
         uid("group", "test"), "PBXGroup",
         {"children": [file_refs[TEST_FILE], file_refs[TEST_RESOURCE]],
@@ -371,7 +402,7 @@ def build(pbx: Pbx) -> str:
     )
     root_group = pbx.add(
         uid("group", "root"), "PBXGroup",
-        {"children": [app_group, test_group, products_group],
+        {"children": [app_group, shared_group, test_group, products_group],
          "sourceTree": "<group>"},
     )
 
@@ -580,6 +611,11 @@ def main() -> int:
     missing = [n for n in APP_SOURCES + [TEST_FILE]
                if not (HERE / "WhoopGolfWatchApp" / n).exists()
                and not (HERE / "WhoopGolfWatchAppTests" / n).exists()]
+    # The glob cannot name a missing file, but an EMPTY glob means the apple
+    # checkout is absent or moved — and generating a project whose sources
+    # reference types that will never compile is exactly what this abort is for.
+    if not SHARED_SOURCES:
+        missing.append("apple/Shared/*.swift (directory empty or missing)")
     if missing:
         print("Missing source files, refusing to generate a broken project:",
               file=sys.stderr)
