@@ -219,3 +219,23 @@ list before Mac `xcodebuild`.
 
 **Rule of thumb:** if a Shared type needs phone-only models/frameworks, it stays
 off WhoopGolfWatch Sources.
+
+---
+
+## L9 — Cloud “Xcode ready” ≠ cloud has `xcodebuild`
+
+**Symptom**
+Alex says “xcode is good to go,” but the cloud agent still cannot produce a
+green build and may be tempted to clear `NO_XCODE`.
+
+**Root cause**
+Personal Mac Xcode readiness is independent of the Linux cloud image. Clearing
+`NO_XCODE` without a local `xcodebuild` SUCCEEDED log invents proof.
+
+**Fix**
+Keep `NO_XCODE` until Mac paste results land. Ship a one-paste script
+(`apple/scripts/mac-d19-verify.sh`) with correct destinations
+(`generic/platform=watchOS`, not `platform/watchOS`) and the D19
+`-only-testing:` class list. Physical Watch install stays a separate OS gate.
+
+**Rule of thumb:** only clear NO_XCODE from a real Mac `xcodebuild` log.

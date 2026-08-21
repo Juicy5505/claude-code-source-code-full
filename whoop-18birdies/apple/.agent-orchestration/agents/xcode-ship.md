@@ -1,58 +1,54 @@
 # xcode-ship
 
-**Status:** FAILED  
+**Status:** WAITING_MAC (Alex: "xcode is good to go"; cloud recheck still **NO_XCODE**)  
 **Agent:** xcode-ship  
 **Checked:** 2026-08-21  
-**Scope:** build + report only (no product source edits)
+**Scope:** build + report only on Mac; cloud prepares the one-paste recipe
 
-## Exact results
+## Cloud recheck (this agent)
 
-| Target | Command | Result |
-|--------|---------|--------|
-| **WhoopGolf** | `xcodebuild -scheme WhoopGolf -destination 'generic/platform=iOS' build` | **BUILD FAILED** |
-| **WhoopGolfWatch** | `xcodebuild -scheme WhoopGolfWatch -destination 'generic/platform=watchOS' build` | **BUILD FAILED** |
-| **Tests compile** | `xcodebuild -scheme WhoopGolf -destination 'generic/platform=iOS' -only-testing:WhoopGolfTests build-for-testing` | **TEST BUILD FAILED** |
+| Check | Result |
+|-------|--------|
+| `uname` | Linux |
+| `which xcodebuild` | **not found** |
+| Invented green build? | **No** — NO_XCODE stays until Mac SUCCEEDED logs |
 
-Logs: `/tmp/whoopgolf-ios-build.log`, `/tmp/whoopgolf-watch-build.log`, `/tmp/whoopgolf-tests-build.log`
+## Mac one-paste (preferred)
 
-## Root cause (shared)
+```bash
+bash whoop-18birdies/apple/scripts/mac-d19-verify.sh
+```
 
-All three fail in embedded/target **WhoopGolfWatch** while compiling Watch sources. Phone app signing/validation proceeds until Watch compile aborts the scheme.
-
-## Critical compile errors (file:line, no team IDs)
-
-Unique Swift errors from latest WhoopGolfWatch + tests rebuilds:
-
-1. `whoop-18birdies/watch/WhoopGolfWatchApp/WatchSessionTransfer.swift:11:47` — `cannot find type 'WatchRoundContext' in scope`
-2. `whoop-18birdies/watch/WhoopGolfWatchApp/WatchSessionTransfer.swift:92:32` — `cannot find 'WatchRoundApplicationContextCodec' in scope`
-
-Cascading failures reported by xcodebuild (same missing symbols): `SessionModel.swift`, `SessionView.swift`, SwiftEmitModule arm64 / arm64_32 for WhoopGolfWatch.
-
-### First WhoopGolf pass (also noted)
-
-Earlier iOS log also reported:
-
-- `whoop-18birdies/watch/WhoopGolfWatchApp/SessionView.swift:64:17` — `cannot find 'WatchRoundFaceView' in scope`
-
-That line did **not** reappear as a unique error in the later isolated WhoopGolfWatch / tests runs (still blocked on `WatchRoundContext` / codec). error-fixer-learner should verify target membership for `WatchRoundFaceView.swift` + Shared round-context types.
-
-## Likely fix direction (for error-fixer-learner)
-
-- Ensure `WatchRoundContext` and `WatchRoundApplicationContextCodec` (likely under `apple/Shared/`) are members of the **WhoopGolfWatch** target (and iOS if needed).
-- Confirm `WatchRoundFaceView.swift` is in WhoopGolfWatch compile sources if SessionView still references it.
-- Do **not** change signing / team IDs.
-
-## Handoff
-
-Appended blocker **XS-1** → `HANDOFFS.md` for **error-fixer-learner**.
-
-## Commands run
+## Expanded Mac commands
 
 ```bash
 cd whoop-18birdies/apple
 xcodebuild -scheme WhoopGolf -destination 'generic/platform=iOS' build
 xcodebuild -scheme WhoopGolfWatch -destination 'generic/platform=watchOS' build
-xcodebuild -scheme WhoopGolf -destination 'generic/platform=iOS' -only-testing:WhoopGolfTests build-for-testing
+xcodebuild -scheme WhoopGolf \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -only-testing:WhoopGolfTests/DualWearableRequirementTests \
+  -only-testing:WhoopGolfTests/ComprehensiveShotIntelligenceTests \
+  -only-testing:WhoopGolfTests/StrokeScoreShotChainTests \
+  -only-testing:WhoopGolfTests/SwingPathGuidanceTests \
+  test
 ```
 
-Note: first concurrent tests attempt hit DerivedData `build.db` locked; tests were re-run alone → still **TEST BUILD FAILED** on the same WatchSessionTransfer errors.
+Do **not** pass `-derivedDataPath` under iCloud `~/Documents` (LESSONS L3).
+
+## Static readiness (pre-Mac)
+
+| Item | Status |
+|------|--------|
+| Watch Sources include `WatchRoundContext` | OK (fixes prior XS-1 missing-type failures) |
+| Watch omit phone-only Shared ban list | OK |
+| WhoopGolfTests D19 classes in pbxproj | OK |
+| Duplicate `DualWearableFusionTests` Sources entry | Cleared |
+
+## Prior Mac attempt (stale until re-run)
+
+Earlier WhoopGolfWatch failures (`cannot find type 'WatchRoundContext'`) are believed fixed by Shared membership; **re-run required** — do not treat old FAILED logs as current.
+
+## Handoff
+
+**XS-MAC** remains until Alex pastes SUCCEEDED output from `mac-d19-verify.sh`. Physical Watch install stays **XS-WATCH-OS**.

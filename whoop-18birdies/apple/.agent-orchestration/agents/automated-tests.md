@@ -1,6 +1,6 @@
 # automated-tests — D19 both-required
 
-**Status:** DONE (NO_XCODE — Mac must compile/run)  
+**Status:** DONE (sources ready; **NO_XCODE** — Mac must compile/run)  
 **Wave:** WAVE_A / regressions  
 **Mandate:** Hybrid maximize Watch + WHOOP; new rounds require both.
 
@@ -10,10 +10,10 @@
 - Yards preserved through `StrokeScoreShotChain.enrichSwingMetrics` and `ComprehensiveShotIntelligence.enrichTrackingFields`
 - Hybrid `materializedObservation` / reconcile preserves Watch path + club (WHOOP may enrich peak/tempo)
 - Ball-start bias mapping: mild→fade/draw, moderate/severe→pullFade/pushDraw, onPlane→straight, unknown→unknown
-- WhoopGolfTests Sources membership present for DualWearableRequirement / StrokeScoreShotChain / ComprehensiveShotIntelligence tests
+- WhoopGolfTests Sources membership present for DualWearableRequirement / StrokeScoreShotChain / ComprehensiveShotIntelligence / SwingPathGuidance tests
 
 ## Gaps
-- **NO_XCODE** on Linux cloud — cannot execute XCTest here; Mac must run WhoopGolfTests
+- **NO_XCODE** on Linux cloud — cannot execute XCTest here; Alex Mac Xcode is ready → run one-paste script
 
 ## Files
 - `WhoopGolfTests/DualWearableRequirementTests.swift`
@@ -23,4 +23,5 @@
 
 ## Evidence
 - **NO_XCODE** — static review only on this host
-- Mac: `xcodebuild test -scheme WhoopGolf -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:WhoopGolfTests`
+- Mac one-paste: `bash whoop-18birdies/apple/scripts/mac-d19-verify.sh`
+- Or: `xcodebuild test -scheme WhoopGolf -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:WhoopGolfTests/DualWearableRequirementTests -only-testing:WhoopGolfTests/ComprehensiveShotIntelligenceTests -only-testing:WhoopGolfTests/StrokeScoreShotChainTests -only-testing:WhoopGolfTests/SwingPathGuidanceTests`
