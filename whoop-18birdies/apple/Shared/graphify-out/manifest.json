@@ -1,0 +1,82 @@
+{
+  "AutomaticHoleTransitionEngine.swift": {
+    "mtime": 1786592477.0,
+    "ast_hash": "e9f8f4a9a2c0dc35e3cf5220b459c54a",
+    "semantic_hash": ""
+  },
+  "GolfImprover.swift": {
+    "mtime": 1787290168.3093326,
+    "ast_hash": "0a93ab9ea0778eec654324bcc0e17bd8",
+    "semantic_hash": ""
+  },
+  "GolfModels.swift": {
+    "mtime": 1786593899.0,
+    "ast_hash": "17438f027c12a37df964f492eec3e83e",
+    "semantic_hash": ""
+  },
+  "HeartRateMeasurementParser.swift": {
+    "mtime": 1786565892.0,
+    "ast_hash": "b84f7584703d04ace65dd96cdf36c62d",
+    "semantic_hash": ""
+  },
+  "PhoneYardageBridge.swift": {
+    "mtime": 1787289873.5839872,
+    "ast_hash": "d3e62a4623b8bdaa4d4413ae89009bed",
+    "semantic_hash": ""
+  },
+  "ReadinessModels.swift": {
+    "mtime": 1786576773.0,
+    "ast_hash": "32fbce090edff26f85e5a06a7b5cd920",
+    "semantic_hash": ""
+  },
+  "SensorModeCoordinator.swift": {
+    "mtime": 1787289848.2577124,
+    "ast_hash": "d3a32dbe21eeb52544f47ee847cf3279",
+    "semantic_hash": ""
+  },
+  "ShotDistanceCalculator.swift": {
+    "mtime": 1787289591.447841,
+    "ast_hash": "5594d54f3b8642b70cd7180a949e10e5",
+    "semantic_hash": ""
+  },
+  "SourceProvenance.swift": {
+    "mtime": 1786574656.0,
+    "ast_hash": "c270df2f708bdded2e91f2dbe208ffac",
+    "semantic_hash": ""
+  },
+  "SwingPathGuidance.swift": {
+    "mtime": 1787290330.6697655,
+    "ast_hash": "af19b3550a865a5dad653c696ccfd6b1",
+    "semantic_hash": ""
+  },
+  "SwingShotIntervalCalculator.swift": {
+    "mtime": 1786592477.0,
+    "ast_hash": "0c632a3cd2b5ed2a7e1650f7dbecbc69",
+    "semantic_hash": ""
+  },
+  "WatchCoachingCue.swift": {
+    "mtime": 1787290244.700616,
+    "ast_hash": "7e62028dd4dee1d2b783abe3d1485ccb",
+    "semantic_hash": ""
+  },
+  "WatchLiveFace.swift": {
+    "mtime": 1787289873.6149087,
+    "ast_hash": "a72ab1a7250976a7d058891f0863ada7",
+    "semantic_hash": ""
+  },
+  "WatchRoundContext.swift": {
+    "mtime": 1787289834.0790255,
+    "ast_hash": "bcc832fb11b1b4c411212a5549907367",
+    "semantic_hash": ""
+  },
+  "WatchWristPreference.swift": {
+    "mtime": 1787289441.0660627,
+    "ast_hash": "dbe6d905da950d91ba224cf7e8f6a1bd",
+    "semantic_hash": ""
+  },
+  "WhoopMotionTransferModels.swift": {
+    "mtime": 1786585179.0,
+    "ast_hash": "ad3fcce639304e3f85ebb222042dfea5",
+    "semantic_hash": ""
+  }
+}

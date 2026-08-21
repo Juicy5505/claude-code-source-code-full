@@ -1,0 +1,1339 @@
+#!/usr/bin/env python3
+"""brain — Obsidian as Claude Code's persistent memory.
+
+The idea in one line: a Claude Code session is amnesiac, an Obsidian vault is
+not, so every session reads the vault on the way in and writes to it on the way
+out. Standing instructions alone do not achieve that — they get crowded out of a
+long context. Hooks do, because the harness fires them whether or not the model
+remembers to. That is why this is a program and not a paragraph.
+
+Dependency-free Python 3, matching the rest of this repo. Every command is safe
+to run repeatedly; nothing here ever deletes a note.
+
+    brain init [--vault PATH] [--name NAME]   create/attach a vault for this project
+    brain where                               print the vault bound to this directory
+    brain session-start                        emit the vault's active context (hook)
+    brain prompt [TEXT]                        record a prompt verbatim (hook)
+    brain tool                                 record a file change (hook)
+    brain log TEXT [--kind KIND]               append an entry to today's session note
+    brain decision TITLE [--why ...]           record a decision as its own note
+    brain note TITLE [--folder F] [--tag T]    create a durable knowledge note
+    brain session-end                          close out today's note (hook)
+    brain graph [--query Q] [--code-only]      build/query the code graph (Graphify)
+    brain index                                rebuild the map-of-content
+    brain search QUERY                         grep the vault, newest first
+    brain recall [QUERY]                       what a new session should know
+    brain doctor                               check the whole toolchain
+    brain list                                 every vault this machine knows
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+IS_WINDOWS = os.name == "nt"
+IS_MACOS = sys.platform == "darwin"
+
+HOME = Path.home()
+REGISTRY = HOME / ".brain" / "vaults.json"
+MARKER = ".brain.json"
+DEFAULT_VAULT_ROOT = Path(os.environ.get("BRAIN_VAULT_ROOT", HOME / "Obsidian"))
+
+# Folder numbering keeps the vault sorted the way the work actually flows:
+# raw capture first, distilled knowledge after, machinery last.
+FOLDERS = [
+    "00-Inbox",
+    "01-Sessions",
+    "02-Decisions",
+    "03-Knowledge",
+    "04-Code",
+    "05-Graph",
+    "06-Integrations",
+    "99-Meta",
+]
+
+SESSION_SECTIONS = ["Prompts", "Actions", "Decisions", "Open threads"]
+
+
+# ---------------------------------------------------------------- utilities
+
+
+def now() -> datetime:
+    return datetime.now().astimezone()
+
+
+def today() -> str:
+    return now().strftime("%Y-%m-%d")
+
+
+def stamp() -> str:
+    return now().strftime("%H:%M")
+
+
+def iso() -> str:
+    return now().replace(microsecond=0).isoformat()
+
+
+def slugify(text: str, limit: int = 60) -> str:
+    """Filesystem- and wikilink-safe. Obsidian chokes on # ^ [ ] | in names."""
+    cleaned = re.sub(r"[#\^\[\]\|:/\\<>\"\*\?]", " ", text)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return (cleaned[:limit].strip() or "untitled")
+
+
+def read_json(path: Path, fallback):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return fallback
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        # Loud, not silent: a corrupt registry that we quietly replace would
+        # orphan every vault on the machine.
+        raise SystemExit(f"brain: {path} is not valid JSON ({exc}). Fix or remove it.")
+
+
+def write_json(path: Path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
+class vault_lock:
+    """Serialise read-modify-write on the vault across processes.
+
+    Claude Code fires hooks concurrently — a PostToolUse for a file edit can
+    land while a UserPromptSubmit is still rewriting today's note. Both read the
+    whole file, modify it, and write it back, so without a lock the later write
+    silently discards the earlier one and an entry vanishes from the record.
+
+    An advisory flock on a sibling file. Best-effort: if locking is unavailable
+    the work still happens, because losing an entry is better than a hook that
+    fails and disrupts the session.
+    """
+
+    def __init__(self, target: Path):
+        self.path = target.parent / f".{target.name}.lock"
+        self.handle = None
+
+    def __enter__(self):
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.handle = self.path.open("w")
+            if IS_WINDOWS:
+                # Windows has no flock. msvcrt.locking is the equivalent, and it
+                # blocks rather than failing, which is what we want here.
+                import msvcrt
+
+                self.handle.write(" ")
+                self.handle.flush()
+                self.handle.seek(0)
+                msvcrt.locking(self.handle.fileno(), msvcrt.LK_LOCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(self.handle, fcntl.LOCK_EX)
+        except (ImportError, OSError):
+            # Best-effort: losing an entry is better than a hook that fails.
+            if self.handle is not None:
+                self.handle.close()
+            self.handle = None
+        return self
+
+    def __exit__(self, *exc):
+        if self.handle is not None:
+            try:
+                if IS_WINDOWS:
+                    import msvcrt
+
+                    self.handle.seek(0)
+                    msvcrt.locking(self.handle.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(self.handle, fcntl.LOCK_UN)
+            except (ImportError, OSError):
+                pass
+            self.handle.close()
+            self.handle = None
+        return False
+
+
+def append(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(text)
+
+
+def git_root(start: Path) -> Path | None:
+    for candidate in [start, *start.parents]:
+        if (candidate / ".git").exists():
+            return candidate
+    return None
+
+
+def project_root(start: Path | None = None) -> Path:
+    """The project this vault belongs to: the git root, else the cwd."""
+    start = (start or Path.cwd()).resolve()
+    for candidate in [start, *start.parents]:
+        if (candidate / MARKER).exists():
+            return candidate
+    return git_root(start) or start
+
+
+# ------------------------------------------------------------ vault binding
+
+
+def registry() -> dict:
+    data = read_json(REGISTRY, {"vaults": {}})
+    data.setdefault("vaults", {})
+    return data
+
+
+def register(root: Path, vault: Path, name: str) -> None:
+    data = registry()
+    data["vaults"][str(root)] = {"vault": str(vault), "name": name, "boundAt": iso()}
+    write_json(REGISTRY, data)
+
+
+def find_vault(start: Path | None = None) -> Path | None:
+    """Resolve the vault for a directory: marker file first, registry second.
+
+    The marker travels with the repo (so a clone on another machine can find
+    its own vault), the registry is the machine's index (so `brain list` can
+    answer without walking the disk). Marker wins when they disagree.
+    """
+    root = project_root(start)
+    marker = root / MARKER
+    if marker.exists():
+        bound = read_json(marker, {}).get("vault")
+        if bound:
+            return Path(os.path.expanduser(bound))
+    entry = registry()["vaults"].get(str(root))
+    if entry:
+        return Path(entry["vault"])
+    return None
+
+
+def require_vault() -> Path:
+    vault = find_vault()
+    if vault is None:
+        raise SystemExit(
+            "brain: no vault bound to this project.\n"
+            "  Run:  brain init\n"
+            "  This creates one under ~/Obsidian/ and binds it here."
+        )
+    if not vault.exists():
+        raise SystemExit(
+            f"brain: vault {vault} is registered but missing.\n"
+            "  It was moved or deleted. Re-run `brain init --vault <new path>`."
+        )
+    return vault
+
+
+# ------------------------------------------------------------- vault layout
+
+
+def session_note(vault: Path, day: str | None = None) -> Path:
+    return vault / "01-Sessions" / f"{day or today()}.md"
+
+
+def ensure_session_note(vault: Path, name: str) -> Path:
+    path = session_note(vault)
+    if path.exists():
+        return path
+    body = [
+        "---",
+        f"date: {today()}",
+        f"project: {name}",
+        "type: session",
+        "tags: [session, claude-code]",
+        "---",
+        "",
+        f"# {today()} — {name}",
+        "",
+        "> Written by Claude Code. This is the raw capture layer: what was asked,",
+        "> what was done, what was decided. Distilled notes link back here.",
+        "",
+    ]
+    for section in SESSION_SECTIONS:
+        body += [f"## {section}", ""]
+    append(path, "\n".join(body))
+    return path
+
+
+def add_to_section(path: Path, section: str, entry: str) -> None:
+    """Insert under an existing '## Section', appending the section if absent.
+
+    Reading and rewriting the file (rather than appending blindly) is what keeps
+    a day's prompts together instead of interleaved with actions in arrival
+    order, which is unreadable a week later.
+    """
+    with vault_lock(path):
+        _add_to_section_locked(path, section, entry)
+
+
+def _add_to_section_locked(path: Path, section: str, entry: str) -> None:
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    heading = f"## {section}"
+    if heading not in text:
+        append(path, f"\n{heading}\n\n{entry}\n")
+        return
+    lines = text.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.strip() == heading)
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("## "):
+            end = i
+            break
+    while end > start + 1 and not lines[end - 1].strip():
+        end -= 1
+    lines[end:end] = [entry]
+    tmp = path.with_suffix(".md.tmp")
+    tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
+# ----------------------------------------------------------------- commands
+
+
+MOC_TEMPLATE = """---
+type: moc
+tags: [moc, index]
+---
+
+# {name} — Brain
+
+The map of content. Every durable note in this vault should be reachable from
+here in one or two hops; if something is not linked, `brain index` will list it
+under **Unlinked** below and it needs a home.
+
+## How this vault is used
+
+Claude Code reads this vault at the start of every session and writes to it
+throughout. The contract is in [[CLAUDE]].
+
+| Folder | Holds | Lifetime |
+|---|---|---|
+| `00-Inbox` | unfiled captures, to triage | days |
+| `01-Sessions` | one note per day: prompts, actions, decisions | permanent, append-only |
+| `02-Decisions` | one note per decision, with the reasoning | permanent |
+| `03-Knowledge` | verified facts and constraints, distilled | permanent, revised |
+| `04-Code` | code artifacts with provenance | tracks the repo |
+| `05-Graph` | Graphify knowledge-graph exports | regenerated |
+| `06-Integrations` | Hermes, n8n, Figma, OpenClaw wiring | revised |
+| `99-Meta` | how the brain itself works | revised |
+
+## Start here
+
+- [[99-Meta/Toolchain|Toolchain]] — what is installed and how it connects
+- [[99-Meta/Open Threads|Open Threads]] — what is unfinished
+
+## Sessions
+
+<!-- brain:sessions -->
+<!-- /brain:sessions -->
+
+## Decisions
+
+<!-- brain:decisions -->
+<!-- /brain:decisions -->
+
+## Knowledge
+
+<!-- brain:knowledge -->
+<!-- /brain:knowledge -->
+
+## Unlinked
+
+<!-- brain:unlinked -->
+<!-- /brain:unlinked -->
+
+Everything between a `brain:` marker and its closing tag is regenerated by
+`brain index`. Write your own notes anywhere else in this file and they are
+left alone.
+"""
+
+VAULT_CLAUDE_MD = """---
+type: contract
+tags: [meta]
+---
+
+# The memory contract
+
+This vault is the memory for the project at `{root}`. It is not documentation
+written after the fact — it is written *during* the work, by Claude Code, as the
+work happens.
+
+## Read on the way in
+
+At session start, read in this order and stop when you have enough:
+
+1. [[99-Meta/Open Threads|Open Threads]] — what was left unfinished
+2. the newest two or three notes in `01-Sessions/`
+3. `02-Decisions/` for anything touching today's task — **a decision recorded
+   here is settled; do not re-litigate it, and do not silently reverse it**
+4. `03-Knowledge/` for constraints already verified — these were checked once,
+   at cost, so trust them rather than re-deriving
+
+`brain recall` prints exactly this set.
+
+## Write on the way through
+
+| When | Command | Lands in |
+|---|---|---|
+| every prompt | automatic, `UserPromptSubmit` hook | `01-Sessions/<today>.md` → Prompts |
+| a step completes | `brain log "..."` | → Actions |
+| a choice is made | `brain decision "..." --why "..."` | `02-Decisions/` |
+| something is verified | `brain note "..." --folder 03-Knowledge` | `03-Knowledge/` |
+| session ends | automatic, `SessionEnd` hook | Open threads |
+
+Write the *reasoning*, not just the outcome. "Chose X" is worth little in three
+months; "chose X because Y turned out to be false, verified by Z" is the whole
+point of keeping a brain.
+
+## Two rules that keep this honest
+
+- **Record what actually happened.** A failed approach is more valuable than a
+  successful one, because the next session will otherwise try it again. Write
+  the failures down, with the error.
+- **Never fabricate a link.** `[[Note]]` pointing at a note that does not exist
+  is a dead end that looks like knowledge. Create the note or drop the link.
+"""
+
+TOOLCHAIN_MD = """---
+type: reference
+tags: [meta, toolchain]
+---
+
+# Toolchain
+
+What is wired into this brain, what each part is actually for, and where the
+seams are. Run `brain doctor` for the live status of every row.
+
+| Tool | Role in the brain | Talks to Claude Code via |
+|---|---|---|
+| **Obsidian** | the memory itself — files on disk, Markdown | the filesystem (no plugin needed) |
+| **Graphify** | structural index of the code — what calls what | a `/graphify` skill it registers |
+| **Hermes** | second agent, and the messaging gateway | MCP (`hermes mcp serve`) |
+| **n8n** | scheduled and event-driven automation | MCP (n8n's own server) |
+| **Figma** | product UI — the spec a screen is built against | MCP (Dev Mode or remote server) |
+| **Canva** | brand and presentation UI — decks, social, marketing | MCP (`https://mcp.canva.com/mcp`) |
+| **OpenClaw** | always-on personal assistant, iMessage on Mac | MCP / its own gateway |
+
+The seam worth understanding: **Obsidian and Graphify are both memory, but of
+different kinds.** Obsidian holds what was *decided and learned* — episodic,
+written by hand (well, by Claude). Graphify holds what the code *is* — a derived
+graph, regenerated from source, never hand-edited. Do not put prose in the graph
+or graph output in the prose folders; `05-Graph/` is the one place they meet.
+
+## Notes
+
+<!-- Append per-tool notes below as you learn things. This section is yours. -->
+"""
+
+OPEN_THREADS_MD = """---
+type: index
+tags: [meta, open]
+---
+
+# Open Threads
+
+What is unfinished, newest first. `brain session-end` appends here; close a
+thread by striking it through and adding the session note that closed it.
+
+"""
+
+
+def cmd_init(args) -> int:
+    root = project_root()
+    name = args.name or root.name
+    vault = Path(os.path.expanduser(args.vault)) if args.vault else DEFAULT_VAULT_ROOT / name
+    vault.mkdir(parents=True, exist_ok=True)
+
+    for folder in FOLDERS:
+        (vault / folder).mkdir(exist_ok=True)
+        keep = vault / folder / ".gitkeep"
+        if not any(p for p in (vault / folder).iterdir() if p.name != ".gitkeep"):
+            keep.touch()
+
+    # An .obsidian directory is what makes the folder open as a vault rather
+    # than prompting to create one.
+    obsidian = vault / ".obsidian"
+    obsidian.mkdir(exist_ok=True)
+    if not (obsidian / "app.json").exists():
+        write_json(obsidian / "app.json", {"alwaysUpdateLinks": True, "newLinkFormat": "relative"})
+
+    seeds = {
+        vault / "MOC.md": MOC_TEMPLATE.format(name=name),
+        vault / "CLAUDE.md": VAULT_CLAUDE_MD.format(root=root),
+        vault / "99-Meta" / "Toolchain.md": TOOLCHAIN_MD,
+        vault / "99-Meta" / "Open Threads.md": OPEN_THREADS_MD,
+    }
+    created = []
+    for path, body in seeds.items():
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+            created.append(path.name)
+
+    write_json(root / MARKER, {"vault": str(vault), "name": name, "boundAt": iso()})
+    register(root, vault, name)
+    ensure_session_note(vault, name)
+
+    print(f"vault:   {vault}")
+    print(f"project: {root}")
+    if created:
+        print(f"created: {', '.join(created)}")
+    print(f"marker:  {root / MARKER}  (commit this so a clone finds the same vault)")
+    return 0
+
+
+def cmd_where(args) -> int:
+    vault = find_vault()
+    if vault is None:
+        print("no vault bound; run `brain init`", file=sys.stderr)
+        return 1
+    print(vault)
+    return 0
+
+
+def cmd_list(args) -> int:
+    vaults = registry()["vaults"]
+    if not vaults:
+        print("no vaults yet; run `brain init` in a project")
+        return 0
+    width = max(len(v["name"]) for v in vaults.values())
+    for root, entry in sorted(vaults.items(), key=lambda kv: kv[1]["name"].lower()):
+        exists = "" if Path(entry["vault"]).exists() else "  (MISSING)"
+        print(f"{entry['name']:<{width}}  {entry['vault']}{exists}")
+        print(f"{'':<{width}}  ↳ {root}")
+    return 0
+
+
+def _vault_and_name() -> tuple[Path, str]:
+    vault = require_vault()
+    root = project_root()
+    entry = registry()["vaults"].get(str(root), {})
+    return vault, entry.get("name", vault.name)
+
+
+def hook_safe(fn):
+    """A hook must never fail the session it is attached to.
+
+    Claude Code surfaces a non-zero hook exit to the user, and a raw traceback
+    on stderr lands in their terminal mid-task. Every failure mode here — no
+    vault bound, vault deleted, disk full — is one where the right behaviour is
+    to record nothing and get out of the way.
+    """
+
+    def wrapped(args) -> int:
+        try:
+            return fn(args)
+        except SystemExit:
+            return 0  # require_vault's "no vault here" is normal, not an error
+        except Exception:  # noqa: BLE001 - deliberately total
+            return 0
+
+    wrapped.__name__ = fn.__name__
+    wrapped.__doc__ = fn.__doc__
+    return wrapped
+
+
+@hook_safe
+def cmd_prompt(args) -> int:
+    """Record a prompt verbatim. Wired to the UserPromptSubmit hook."""
+    text = args.text or sys.stdin.read()
+    # Hook payloads arrive as JSON on stdin; a bare string is also accepted so
+    # the command stays usable by hand.
+    text = text.strip()
+    if text.startswith("{"):
+        try:
+            text = str(json.loads(text).get("prompt", "")).strip()
+        except json.JSONDecodeError:
+            pass
+    if not text:
+        return 0
+    vault, name = _vault_and_name()
+    path = ensure_session_note(vault, name)
+    quoted = "\n".join(f"> {line}" if line.strip() else ">" for line in text.splitlines())
+    add_to_section(path, "Prompts", f"\n**{stamp()}**\n\n{quoted}\n")
+    return 0
+
+
+def cmd_log(args) -> int:
+    vault, name = _vault_and_name()
+    path = ensure_session_note(vault, name)
+    text = args.text or sys.stdin.read().strip()
+    if not text:
+        return 0
+    kind = f"`{args.kind}` " if args.kind else ""
+    add_to_section(path, "Actions", f"- **{stamp()}** {kind}{text}")
+    return 0
+
+
+def cmd_decision(args) -> int:
+    vault, name = _vault_and_name()
+    title = slugify(args.title)
+    path = vault / "02-Decisions" / f"{today()} {title}.md"
+    if path.exists():
+        print(f"exists: {path}", file=sys.stderr)
+        return 1
+    body = [
+        "---",
+        f"date: {today()}",
+        f"project: {name}",
+        "type: decision",
+        "status: accepted",
+        "tags: [decision]",
+        "---",
+        "",
+        f"# {args.title}",
+        "",
+        "## Decision",
+        "",
+        args.what or "_(what was decided)_",
+        "",
+        "## Why",
+        "",
+        args.why or "_(the reasoning — this is the part that matters later)_",
+        "",
+        "## What was rejected, and why",
+        "",
+        args.rejected or "_(the alternatives, so nobody retries them blind)_",
+        "",
+        "## Revisit if",
+        "",
+        args.revisit or "_(what would have to change for this to be wrong)_",
+        "",
+        "---",
+        f"Session: [[01-Sessions/{today()}|{today()}]]",
+        "",
+    ]
+    path.write_text("\n".join(body), encoding="utf-8")
+    add_to_section(
+        ensure_session_note(vault, name),
+        "Decisions",
+        f"- **{stamp()}** [[02-Decisions/{today()} {title}|{args.title}]]",
+    )
+    print(path)
+    return 0
+
+
+def cmd_note(args) -> int:
+    vault, name = _vault_and_name()
+    folder = args.folder if args.folder in FOLDERS else "03-Knowledge"
+    title = slugify(args.title)
+    path = vault / folder / f"{title}.md"
+    tags = ["knowledge"] + list(args.tag or [])
+    if path.exists():
+        append(path, f"\n\n---\n\n**Revised {today()}**\n\n{args.body or ''}\n")
+        print(path)
+        return 0
+    body = [
+        "---",
+        f"created: {today()}",
+        f"project: {name}",
+        "type: knowledge",
+        f"tags: [{', '.join(sorted(set(tags)))}]",
+        "---",
+        "",
+        f"# {args.title}",
+        "",
+        args.body or "_(what is true, and how it was verified)_",
+        "",
+        "---",
+        f"First recorded: [[01-Sessions/{today()}|{today()}]]",
+        "",
+    ]
+    path.write_text("\n".join(body), encoding="utf-8")
+    add_to_section(
+        ensure_session_note(vault, name),
+        "Actions",
+        f"- **{stamp()}** note → [[{folder}/{title}|{args.title}]]",
+    )
+    print(path)
+    return 0
+
+
+@hook_safe
+def cmd_tool(args) -> int:
+    """Record a file-changing tool call. Wired to the PostToolUse hook.
+
+    Only file mutations are captured, deliberately. Logging every read and grep
+    would bury the signal — what a future session needs is *which files this
+    work touched*, which is exactly the set of edits and writes.
+    """
+    try:
+        raw = args.text or sys.stdin.read()
+        payload = json.loads(raw) if raw.strip().startswith("{") else {}
+        tool = payload.get("tool_name", "")
+        target = (payload.get("tool_input") or {}).get("file_path", "")
+        if not tool or not target:
+            return 0
+        vault, name = _vault_and_name()
+        path = ensure_session_note(vault, name)
+        rel = os.path.relpath(target, project_root()) if os.path.isabs(target) else target
+        # One line per file per day — but check ONLY the Actions section.
+        # Scanning the whole note meant a prompt that merely mentioned a path in
+        # backticks poisoned the check, and every real edit to that file was
+        # then silently never recorded.
+        text = path.read_text(encoding="utf-8")
+        actions = text.split("## Actions", 1)[-1].split("\n## ", 1)[0]
+        if f"`{rel}`" in actions:
+            return 0
+        add_to_section(path, "Actions", f"- **{stamp()}** {tool.lower()} → `{rel}`")
+    except Exception:  # noqa: BLE001 - a hook must never break a tool call
+        pass
+    return 0
+
+
+@hook_safe
+def cmd_session_end(args) -> int:
+    vault, name = _vault_and_name()
+    path = session_note(vault)
+    if not path.exists():
+        return 0
+    text = args.text
+    if not text:
+        raw = "" if sys.stdin.isatty() else sys.stdin.read()
+        reason = ""
+        if raw.strip().startswith("{"):
+            try:
+                reason = str(json.loads(raw).get("reason", ""))
+            except json.JSONDecodeError:
+                pass
+        text = f"session ended ({reason})" if reason else "session ended"
+
+    # A session where nothing was asked leaves no thread worth carrying
+    # forward; appending one anyway turns Open Threads into a heartbeat log.
+    body = path.read_text(encoding="utf-8")
+    section = body.split("## Prompts", 1)[-1].split("## ", 1)[0]
+    if not section.strip():
+        return 0
+
+    add_to_section(path, "Open threads", f"- **{stamp()}** {text}")
+    threads = vault / "99-Meta" / "Open Threads.md"
+    if not threads.exists():
+        threads.write_text(OPEN_THREADS_MD, encoding="utf-8")
+    append(threads, f"- {today()} — {text} → [[01-Sessions/{today()}|session]]\n")
+    return 0
+
+
+# ------------------------------------------------------------------- recall
+
+
+def _recent(vault: Path, folder: str, limit: int) -> list[Path]:
+    files = sorted(
+        (p for p in (vault / folder).glob("*.md")),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    return files[:limit]
+
+
+def _excerpt(path: Path, lines: int = 40) -> str:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return ""
+    body = text.split("---", 2)[-1] if text.startswith("---") else text
+    kept = [ln for ln in body.splitlines() if ln.strip()][:lines]
+    return "\n".join(kept)
+
+
+def build_recall(vault: Path, name: str, query: str | None = None) -> str:
+    out = [f"# Brain — {name}", "", f"Vault: `{vault}`", ""]
+
+    threads = vault / "99-Meta" / "Open Threads.md"
+    if threads.exists():
+        open_lines = [ln for ln in threads.read_text(encoding="utf-8").splitlines()
+                      if ln.startswith("- ") and "~~" not in ln][-8:]
+        if open_lines:
+            out += ["## Open threads", ""] + open_lines + [""]
+
+    sessions = _recent(vault, "01-Sessions", 3)
+    if sessions:
+        out += ["## Recent sessions", ""]
+        for path in sessions:
+            out += [f"### {path.stem}", "", _excerpt(path, 30), ""]
+
+    decisions = _recent(vault, "02-Decisions", 8)
+    if decisions:
+        out += ["## Decisions already made (settled — do not re-litigate)", ""]
+        out += [f"- [[02-Decisions/{p.stem}|{p.stem}]]" for p in decisions] + [""]
+
+    knowledge = _recent(vault, "03-Knowledge", 10)
+    if knowledge:
+        out += ["## Verified knowledge (trust these; they cost something to establish)", ""]
+        out += [f"- [[03-Knowledge/{p.stem}|{p.stem}]]" for p in knowledge] + [""]
+
+    if query:
+        hits = search_vault(vault, query, limit=10)
+        if hits:
+            out += [f"## Matching '{query}'", ""] + [f"- {h}" for h in hits] + [""]
+
+    out += [
+        "---",
+        "Write back as you work: `brain log`, `brain decision`, `brain note`.",
+        "The contract is in the vault's `CLAUDE.md`.",
+    ]
+    return "\n".join(out)
+
+
+def cmd_recall(args) -> int:
+    vault, name = _vault_and_name()
+    print(build_recall(vault, name, args.query))
+    return 0
+
+
+def cmd_session_start(args) -> int:
+    """SessionStart hook: inject the brain into the fresh session's context.
+
+    Must never fail the session. An unbound project prints one nudging line
+    rather than an error, because most directories are not brain-backed and a
+    hook that shouts on every unrelated session gets disabled within a day.
+    """
+    try:
+        vault = find_vault()
+        if vault is None or not vault.exists():
+            return 0
+        root = project_root()
+        name = registry()["vaults"].get(str(root), {}).get("name", vault.name)
+        ensure_session_note(vault, name)
+        print(build_recall(vault, name))
+    except Exception as exc:  # noqa: BLE001 - a hook must not break the session
+        print(f"<!-- brain: recall unavailable ({exc}) -->")
+    return 0
+
+
+def search_vault(vault: Path, query: str, limit: int = 25) -> list[str]:
+    pattern = re.compile(re.escape(query), re.IGNORECASE)
+    scored: list[tuple[float, str]] = []
+    for path in vault.rglob("*.md"):
+        if ".obsidian" in path.parts:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for i, line in enumerate(text.splitlines(), 1):
+            if pattern.search(line):
+                rel = path.relative_to(vault)
+                scored.append((path.stat().st_mtime, f"{rel}:{i}: {line.strip()[:120]}"))
+                break
+    scored.sort(reverse=True)
+    return [s for _, s in scored[:limit]]
+
+
+def cmd_search(args) -> int:
+    vault = require_vault()
+    hits = search_vault(vault, args.query, args.limit)
+    if not hits:
+        print(f"no match for {args.query!r} in {vault}")
+        return 1
+    for hit in hits:
+        print(hit)
+    return 0
+
+
+
+def _generated(line: str) -> bool:
+    """True for a line this tool wrote into a generated block.
+
+    Used only by the one-time migration off unbounded markers. Deliberately
+    narrow: a wikilink bullet, the italic empty placeholder, or blank. Anything
+    else is someone's prose and is left exactly where it is.
+    """
+    stripped = line.strip()
+    if not stripped:
+        return True
+    if stripped.startswith("- [["):
+        return True
+    return stripped.startswith("_(") and stripped.endswith(")_")
+
+
+def _replace_block(text: str, key: str, lines: list[str]) -> str:
+    """Rewrite one generated block, bounded by an explicit closing marker.
+
+    The bounding is the whole point. An earlier version matched from the opening
+    marker to the next `## ` heading or the end of the file, which meant anything
+    typed below the last block — with no heading after it — was silently deleted
+    on the next `brain index`. In a tool whose entire premise is "this file is
+    your memory", quietly eating notes is the worst thing it could possibly do.
+    """
+    opening = f"<!-- brain:{key} -->"
+    closing = f"<!-- /brain:{key} -->"
+    if opening not in text:
+        return text
+
+    body = opening + "\n\n" + "\n".join(lines) + "\n\n" + closing
+    start = text.index(opening)
+
+    if closing in text[start:]:
+        end = text.index(closing, start) + len(closing)
+        return text[:start] + body + text[end:]
+
+    # Migration from an unbounded marker: consume ONLY lines that this tool
+    # would have written, and stop at the first one it would not have.
+    tail = text[start + len(opening):].split("\n")
+    consumed = 0
+    for line in tail:
+        if line.strip().startswith("## ") or not _generated(line):
+            break
+        consumed += 1
+    remainder = "\n".join(tail[consumed:])
+    return text[:start] + body + ("\n" + remainder if remainder else "\n")
+
+
+def cmd_index(args) -> int:
+    """Rebuild the MOC's generated sections, and surface orphan notes.
+
+    An orphan — a note nothing links to — is the failure mode of a vault used as
+    memory: it was written, so it feels captured, but nothing will ever lead a
+    future session back to it. Listing them is the cheap fix.
+    """
+    vault, name = _vault_and_name()
+    moc = vault / "MOC.md"
+    if not moc.exists():
+        moc.write_text(MOC_TEMPLATE.format(name=name), encoding="utf-8")
+
+    linked: set[str] = set()
+    notes: list[Path] = []
+    for path in vault.rglob("*.md"):
+        if ".obsidian" in path.parts:
+            continue
+        notes.append(path)
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for target in re.findall(r"\[\[([^\]\|]+)", text):
+            linked.add(target.split("/")[-1].strip())
+
+    def block(folder: str, limit: int) -> list[str]:
+        items = _recent(vault, folder, limit)
+        return [f"- [[{folder}/{p.stem}|{p.stem}]]" for p in items] or ["_(none yet)_"]
+
+    orphans = [
+        f"- [[{p.relative_to(vault).with_suffix('')}|{p.stem}]]"
+        for p in sorted(notes, key=lambda p: p.stat().st_mtime, reverse=True)
+        if p.stem not in linked and p.stem not in {"MOC", "CLAUDE"}
+    ][:20] or ["_(none — everything is reachable)_"]
+
+    sections = {
+        "sessions": block("01-Sessions", 10),
+        "decisions": block("02-Decisions", 20),
+        "knowledge": block("03-Knowledge", 20),
+        "unlinked": orphans,
+    }
+
+    text = moc.read_text(encoding="utf-8")
+    for key, lines in sections.items():
+        text = _replace_block(text, key, lines)
+    moc.write_text(text, encoding="utf-8")
+    print(f"indexed {len(notes)} notes; {len(orphans)} unlinked")
+    return 0
+
+
+# -------------------------------------------------------------------- graph
+
+
+def cmd_graph(args) -> int:
+    """Build or query the code graph, with its output living inside the vault.
+
+    Obsidian remembers what was *decided*; Graphify derives what the code *is*.
+    Keeping the derived graph in `05-Graph/` rather than in a stray
+    `graphify-out/` is the whole integration: the report becomes a note like any
+    other, so a decision note can link straight to the call path that justified
+    it, and a fresh session finds both through the same recall.
+
+    Never hand-edit anything under `05-Graph/` — it is regenerated.
+    """
+    vault, name = _vault_and_name()
+    root = project_root()
+    out = vault / "05-Graph"
+    graph_json = out / "graph.json"
+
+    binary = _which("graphify")
+    if not binary:
+        print(
+            "graphify is not installed.\n"
+            "  uv tool install graphifyy   (or: pipx install graphifyy)\n"
+            "  graphify install            registers the /graphify skill",
+            file=sys.stderr,
+        )
+        return 1
+
+    env = {**os.environ, "GRAPHIFY_OUT": str(out)}
+
+    if args.query:
+        if not graph_json.exists():
+            print(f"no graph yet at {graph_json} — run `brain graph` first", file=sys.stderr)
+            return 1
+        cmd = [binary, "query", args.query, "--graph", str(graph_json)]
+        if args.budget:
+            cmd += ["--budget", str(args.budget)]
+        proc = subprocess.run(cmd, cwd=root, env=env, capture_output=True, text=True)
+        answer = (proc.stdout or proc.stderr).strip()
+        print(answer)
+        if proc.returncode == 0 and answer:
+            add_to_section(
+                ensure_session_note(vault, name),
+                "Actions",
+                f'- **{stamp()}** graph query — "{args.query}"',
+            )
+        return proc.returncode
+
+    # Build. --code-only keeps it fully local and key-free: AST parsing only,
+    # nothing leaves the machine and no LLM credit is spent.
+    cmd = [binary, str(root)]
+    if args.code_only:
+        cmd = [binary, "extract", str(root), "--code-only"]
+    if args.update:
+        cmd.append("--update")
+    out.mkdir(parents=True, exist_ok=True)
+    print(f"$ {' '.join(cmd)}   (GRAPHIFY_OUT={out})")
+    proc = subprocess.run(cmd, cwd=root, env=env)
+    if proc.returncode != 0:
+        print("graphify failed — see its output above", file=sys.stderr)
+        return proc.returncode
+
+    report = out / "GRAPH_REPORT.md"
+    note = out / "Code Graph.md"
+    body = [
+        "---",
+        f"updated: {today()}",
+        f"project: {name}",
+        "type: graph",
+        "tags: [graph, graphify, derived]",
+        "---",
+        "",
+        f"# Code graph — {name}",
+        "",
+        "**Derived, not written.** Regenerated by `brain graph`; never hand-edit",
+        "anything in this folder. Link *to* it from decisions and knowledge notes,",
+        "and let those carry the reasoning.",
+        "",
+        f"- Source: `{root}`",
+        f"- Graph: `{graph_json.name}`" + ("" if graph_json.exists() else "  _(not produced)_"),
+        "- Visualisation: `graph.html`" if (out / "graph.html").exists() else "",
+        f"- Report: [[05-Graph/GRAPH_REPORT|GRAPH_REPORT]]" if report.exists() else "",
+        "",
+        "## Ask it things",
+        "",
+        "```bash",
+        'brain graph --query "what calls the swing detector?"',
+        'graphify path "MotionManager" "SessionModel"',
+        "```",
+        "",
+        "---",
+        f"Rebuilt: [[01-Sessions/{today()}|{today()}]]",
+        "",
+    ]
+    note.write_text("\n".join(line for line in body if line != ""), encoding="utf-8")
+    add_to_section(
+        ensure_session_note(vault, name),
+        "Actions",
+        f"- **{stamp()}** rebuilt the code graph → [[05-Graph/Code Graph|Code Graph]]",
+    )
+    print(f"\ngraph written into the vault: {out}")
+    return 0
+
+
+# ------------------------------------------------------------------- doctor
+
+
+def _which(name: str) -> str | None:
+    found = shutil.which(name)
+    if found:
+        return found
+    # These install outside PATH in exactly the situation where someone reports
+    # "it isn't working", so look where they actually land per platform.
+    if IS_WINDOWS:
+        extras = [
+            Path(os.environ.get("LOCALAPPDATA", HOME)) / "Programs",
+            Path(os.environ.get("APPDATA", HOME)) / "npm",
+            HOME / ".local" / "bin",
+        ]
+        suffixes = ["", ".exe", ".cmd", ".bat"]
+    else:
+        extras = [HOME / ".local" / "bin", Path("/opt/homebrew/bin"), Path("/usr/local/bin")]
+        suffixes = [""]
+
+    for extra in extras:
+        for suffix in suffixes:
+            candidate = extra / (name + suffix)
+            if candidate.exists() and os.access(candidate, os.X_OK):
+                return str(candidate)
+    return None
+
+
+def _port_open(host: str, port: int, timeout: float = 0.4) -> bool:
+    import socket
+
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def _version(cmd: list[str]) -> str | None:
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    text = (out.stdout or out.stderr).strip().splitlines()
+    return text[0][:60] if text else ""
+
+
+
+# Paths that mean a vault lives in a syncing cloud folder. Obsidian officially
+# supports iCloud, and the vault working from several machines is the point —
+# but the failure mode below is specific and silent, so it is worth naming.
+CLOUD_MARKERS = (
+    ("iCloud", "Library/Mobile Documents"),
+    ("iCloud", "Mobile Documents/com~apple~CloudDocs"),
+    ("Dropbox", "Dropbox"),
+    ("Google Drive", "Google Drive"),
+    ("OneDrive", "OneDrive"),
+)
+
+
+def _cloud_provider(path: Path) -> str | None:
+    text = str(path)
+    for name, marker in CLOUD_MARKERS:
+        if marker in text:
+            return name
+    return None
+
+
+def _evicted(vault: Path, limit: int = 2000) -> list[Path]:
+    """Notes iCloud has evicted to save space.
+
+    With "Optimize Mac Storage" on, iCloud replaces a file's contents with a
+    `.name.md.icloud` placeholder and REMOVES the real name from the directory.
+    Nothing errors — a glob for `*.md` simply does not see it. For a vault whose
+    whole job is being read at session start, that is silent amnesia: the note
+    exists, the recall omits it, and nothing anywhere says so.
+    """
+    found = []
+    for path in vault.rglob(".*.icloud"):
+        if ".obsidian" in path.parts:
+            continue
+        found.append(path)
+        if len(found) >= limit:
+            break
+    return found
+
+
+def _cloud_row(vault: Path) -> tuple[str, bool, str]:
+    provider = _cloud_provider(vault)
+    if not provider:
+        return ("vault storage", True, "on local disk")
+
+    evicted = _evicted(vault)
+    if not evicted:
+        return (
+            "vault storage",
+            True,
+            f"{provider}, fully downloaded — keep it that way with "
+            f"Finder → right-click the vault → Keep Downloaded",
+        )
+    names = ", ".join(p.name.lstrip(".").removesuffix(".icloud") for p in evicted[:3])
+    more = f" (+{len(evicted) - 3} more)" if len(evicted) > 3 else ""
+    return (
+        "vault storage",
+        False,
+        f"{provider}: {len(evicted)} note(s) evicted and INVISIBLE to recall "
+        f"— {names}{more}. Fix: right-click the vault in Finder → Keep "
+        f"Downloaded, or run `brctl download <vault>`",
+    )
+
+
+def cmd_doctor(args) -> int:
+    rows: list[tuple[str, bool, str]] = []
+
+    # --- the memory itself
+    vault = find_vault()
+    if vault and vault.exists():
+        notes = sum(1 for _ in vault.rglob("*.md"))
+        rows.append(("vault", True, f"{vault} ({notes} notes)"))
+    elif vault:
+        rows.append(("vault", False, f"registered but missing: {vault} — re-run `brain init`"))
+    else:
+        rows.append(("vault", False, "not bound here — run `brain init`"))
+
+    if vault and vault.exists():
+        rows.append(_cloud_row(vault))
+
+    app = Path("/Applications/Obsidian.app")
+    rows.append(
+        ("obsidian app", app.exists(),
+         "installed" if app.exists() else "not found — obsidian.md (the vault works without it; "
+         "this is only the reader)")
+    )
+
+    settings = HOME / ".claude" / "settings.json"
+    hooks_ok = False
+    if settings.exists():
+        hooks_ok = "brain" in settings.read_text(encoding="utf-8", errors="replace")
+    rows.append(
+        ("claude hooks", hooks_ok,
+         "wired in ~/.claude/settings.json" if hooks_ok
+         else "not wired — run `second-brain/install.sh` (without hooks, capture is manual)")
+    )
+
+    # --- the toolchain
+    claude = _which("claude")
+    rows.append(("claude code", bool(claude), claude or "not on PATH"))
+
+    graphify = _which("graphify")
+    rows.append(
+        ("graphify", bool(graphify),
+         f"{graphify}  {_version([graphify, '--version']) or ''}" if graphify
+         else "not installed — `uv tool install graphifyy` then `graphify install`")
+    )
+
+    hermes = _which("hermes")
+    if hermes:
+        detail = _version([hermes, "version"]) or "installed"
+        rows.append(("hermes", True, f"{hermes}  {detail}"))
+        rows.append(("hermes health", True, "run `hermes doctor --fix` for its own diagnosis"))
+    else:
+        rows.append(
+            ("hermes", False,
+             "not on PATH — installs to ~/.local/bin; try `source ~/.zshrc`, "
+             "else `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`")
+        )
+
+    openclaw = _which("openclaw")
+    rows.append(
+        ("openclaw", bool(openclaw), openclaw or
+         "not installed — `curl -fsSL https://openclaw.ai/install.sh | bash`")
+    )
+
+    figma_local = _port_open("127.0.0.1", 3845)
+    rows.append(
+        ("figma mcp", figma_local,
+         "desktop server up on 127.0.0.1:3845" if figma_local
+         else "local server down — open Figma desktop → Preferences → Enable Dev Mode MCP "
+              "server (or use the remote server, which needs no app running)")
+    )
+
+    # MCP registrations are the seam where 'installed' and 'connected' diverge,
+    # so read the config rather than trusting the binaries being present.
+    mcp_names: set[str] = set()
+    for path in (Path.cwd() / ".mcp.json", HOME / ".claude.json", HOME / ".claude" / "settings.json"):
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue
+            mcp_names |= set((data.get("mcpServers") or {}).keys())
+            for proj in (data.get("projects") or {}).values():
+                if isinstance(proj, dict):
+                    mcp_names |= set((proj.get("mcpServers") or {}).keys())
+    for label, needle in (("mcp: hermes", "hermes"), ("mcp: n8n", "n8n"),
+                          ("mcp: figma", "figma"), ("mcp: canva", "canva")):
+        present = any(needle in name.lower() for name in mcp_names)
+        rows.append((label, present, "registered" if present else "not registered with Claude Code"))
+
+    width = max(len(label) for label, _, _ in rows)
+    failures = 0
+    for label, ok, detail in rows:
+        mark = "ok  " if ok else "MISS"
+        failures += 0 if ok else 1
+        print(f"[{mark}] {label:<{width}}  {detail}")
+    print()
+    print(f"{len(rows) - failures}/{len(rows)} checks passing")
+    return 0 if failures == 0 else 1
+
+
+# --------------------------------------------------------------------- main
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="brain", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("init", help="create or attach a vault for this project")
+    p.add_argument("--vault", help="explicit vault path (default ~/Obsidian/<project>)")
+    p.add_argument("--name", help="project name (default: directory name)")
+    p.set_defaults(func=cmd_init)
+
+    sub.add_parser("where", help="print the vault bound here").set_defaults(func=cmd_where)
+    sub.add_parser("list", help="every vault on this machine").set_defaults(func=cmd_list)
+    sub.add_parser("session-start", help="emit recall context (SessionStart hook)").set_defaults(
+        func=cmd_session_start)
+    sub.add_parser("doctor", help="check the whole toolchain").set_defaults(func=cmd_doctor)
+    sub.add_parser("index", help="rebuild the map-of-content").set_defaults(func=cmd_index)
+
+    p = sub.add_parser("prompt", help="record a prompt verbatim (UserPromptSubmit hook)")
+    p.add_argument("text", nargs="?")
+    p.set_defaults(func=cmd_prompt)
+
+    p = sub.add_parser("log", help="append an entry to today's session note")
+    p.add_argument("text", nargs="?")
+    p.add_argument("--kind", help="short tag, e.g. build, test, fix")
+    p.set_defaults(func=cmd_log)
+
+    p = sub.add_parser("decision", help="record a decision as its own note")
+    p.add_argument("title")
+    p.add_argument("--what", help="what was decided")
+    p.add_argument("--why", help="the reasoning")
+    p.add_argument("--rejected", help="alternatives and why they lost")
+    p.add_argument("--revisit", help="what would make this wrong")
+    p.set_defaults(func=cmd_decision)
+
+    p = sub.add_parser("note", help="create or revise a durable knowledge note")
+    p.add_argument("title")
+    p.add_argument("--body")
+    p.add_argument("--folder", default="03-Knowledge", choices=FOLDERS)
+    p.add_argument("--tag", action="append")
+    p.set_defaults(func=cmd_note)
+
+    p = sub.add_parser("graph", help="build or query the code graph, into the vault")
+    p.add_argument("--query", help="ask the graph a question instead of rebuilding")
+    p.add_argument("--budget", type=int, help="cap tokens returned by a query")
+    p.add_argument("--code-only", action="store_true",
+                   help="AST only: fully local, no LLM key needed")
+    p.add_argument("--update", action="store_true", help="re-extract only changed files")
+    p.set_defaults(func=cmd_graph)
+
+    p = sub.add_parser("tool", help="record a file-changing tool call (PostToolUse hook)")
+    p.add_argument("text", nargs="?")
+    p.set_defaults(func=cmd_tool)
+
+    p = sub.add_parser("session-end", help="close out today's note (SessionEnd hook)")
+    p.add_argument("text", nargs="?")
+    p.set_defaults(func=cmd_session_end)
+
+    p = sub.add_parser("recall", help="what a new session should know")
+    p.add_argument("query", nargs="?")
+    p.set_defaults(func=cmd_recall)
+
+    p = sub.add_parser("search", help="grep the vault, newest first")
+    p.add_argument("query")
+    p.add_argument("--limit", type=int, default=25)
+    p.set_defaults(func=cmd_search)
+
+    args = parser.parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(130)

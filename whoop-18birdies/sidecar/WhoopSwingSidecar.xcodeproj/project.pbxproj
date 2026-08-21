@@ -1,0 +1,572 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D1C5ACF4C29D570827EA500 = {
+			isa = PBXBuildFile;
+			fileRef = 580C48856FBD7C92DAE5BBA3;
+		};
+		303BAFBFC470A289E4FF4591 = {
+			isa = PBXBuildFile;
+			fileRef = 4E01CB3CBC47644B8DA8F29E;
+		};
+		415005B6AFB41146A5630B73 = {
+			isa = PBXBuildFile;
+			fileRef = CCC42A07F5D84988F6AF09B5;
+		};
+		41EE5AFEB4B0D4FF4E2BE280 = {
+			isa = PBXBuildFile;
+			fileRef = C953252852C2C7EA7C8D9D72;
+		};
+		4464004080792D858A810EAB = {
+			isa = PBXBuildFile;
+			fileRef = 3306B4F60158FAC8A1B4AFCC;
+		};
+		59C92EC0A56D819D0D59740F = {
+			isa = PBXBuildFile;
+			fileRef = 4E01CB3CBC47644B8DA8F29E;
+		};
+		65BA8D70B1D867B2A2479AAB = {
+			isa = PBXBuildFile;
+			fileRef = E4041EB2B5012A4CCC74714B;
+		};
+		65F7DA04CBF73B97C3FDD5A3 = {
+			isa = PBXBuildFile;
+			fileRef = 0869EBBC3644FAEEF30B3453;
+		};
+		66CCB92B38343AE64E54E4FB = {
+			isa = PBXBuildFile;
+			fileRef = 80858E7CEF0B24831F365B73;
+		};
+		7C356B5D1D891304F2B95B36 = {
+			isa = PBXBuildFile;
+			fileRef = 67A84F899CC57144C8188E9F;
+		};
+		7FE9C5177E21697F8840BBB0 = {
+			isa = PBXBuildFile;
+			fileRef = 613AAE7935BADDD800976534;
+		};
+		82CE4D313176024077D38E07 = {
+			isa = PBXBuildFile;
+			fileRef = FCB1EB3D1773C0956685EB37;
+		};
+		84E53D4AFD5CF361AEB878B8 = {
+			isa = PBXBuildFile;
+			fileRef = B25EB61F48B7FE17B9B5B73D;
+		};
+		8E9F2A88D234CCCF2E1C3F5B = {
+			isa = PBXBuildFile;
+			fileRef = CCC42A07F5D84988F6AF09B5;
+		};
+		934BA8B8AA7E78EA88EB2419 = {
+			isa = PBXBuildFile;
+			fileRef = 6890E6A4CBEE691619A21337;
+		};
+		A7FD8B8EDCE6BAEED2156152 = {
+			isa = PBXBuildFile;
+			fileRef = 26CE3F58F53C86C574C7F104;
+		};
+		AE4442548CA2BD8E93EDDB47 = {
+			isa = PBXBuildFile;
+			fileRef = FCB1EB3D1773C0956685EB37;
+		};
+		B6DD8A859372B0654E839AA9 = {
+			isa = PBXBuildFile;
+			fileRef = 26CE3F58F53C86C574C7F104;
+		};
+		D3A3384DC49857EB4C219E74 = {
+			isa = PBXBuildFile;
+			fileRef = AFEEC0BD77F001835BF0AB23;
+		};
+		EA9DEA2D48A9DC77119E3A48 = {
+			isa = PBXBuildFile;
+			fileRef = 6890E6A4CBEE691619A21337;
+		};
+		EDC73FA187861F64D937BBDD = {
+			isa = PBXBuildFile;
+			fileRef = 1A3568F880F95BD7439B91D8;
+		};
+		F2B8B2A28FAB68DACDF35A36 = {
+			isa = PBXBuildFile;
+			fileRef = 105B71730E6522F03BA91B7B;
+		};
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3C3CDF8493887224EEB25FD0 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EF17CAD61C59FD5A3DC38D2F;
+			proxyType = 1;
+			remoteGlobalIDString = 8F18FABF50DCC7281F4473C0;
+			remoteInfo = WhoopSwingSidecar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0869EBBC3644FAEEF30B3453 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SidecarSessionView.swift;
+			sourceTree = "<group>";
+		};
+		105B71730E6522F03BA91B7B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = IMUMotionManager.swift;
+			sourceTree = "<group>";
+		};
+		128AEE6F28AE0AAAFA4387C5 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = WhoopSwingSidecar.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		16259EBA1095B86B88B6AF21 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = WhoopSwingSidecar.entitlements;
+			sourceTree = "<group>";
+		};
+		1A3568F880F95BD7439B91D8 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WhoopSwingSidecarApp.swift;
+			sourceTree = "<group>";
+		};
+		26CE3F58F53C86C574C7F104 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = BLE/WhoopFraming.swift;
+			sourceTree = "<group>";
+		};
+		3306B4F60158FAC8A1B4AFCC = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = PhoneMotionManager.swift;
+			sourceTree = "<group>";
+		};
+		4E01CB3CBC47644B8DA8F29E = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SwingDetector.swift;
+			sourceTree = "<group>";
+		};
+		580C48856FBD7C92DAE5BBA3 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WhoopFramingTests.swift;
+			sourceTree = "<group>";
+		};
+		613AAE7935BADDD800976534 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ContentView.swift;
+			sourceTree = "<group>";
+		};
+		67A84F899CC57144C8188E9F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SettingsView.swift;
+			sourceTree = "<group>";
+		};
+		6890E6A4CBEE691619A21337 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = IngestSettings.swift;
+			sourceTree = "<group>";
+		};
+		80858E7CEF0B24831F365B73 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = BLE/WhoopBLEManager.swift;
+			sourceTree = "<group>";
+		};
+		AFEEC0BD77F001835BF0AB23 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.json;
+			path = swing_vectors.json;
+			sourceTree = "<group>";
+		};
+		B25EB61F48B7FE17B9B5B73D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = BLE/WhoopCommands.swift;
+			sourceTree = "<group>";
+		};
+		C953252852C2C7EA7C8D9D72 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = BLE/WhoopUUIDs.swift;
+			sourceTree = "<group>";
+		};
+		CA27B8D741750B7F3FCBD920 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = WhoopSwingSidecarTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CCC42A07F5D84988F6AF09B5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = BLE/WhoopIMUDecoder.swift;
+			sourceTree = "<group>";
+		};
+		E4041EB2B5012A4CCC74714B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SwingDetectorTests.swift;
+			sourceTree = "<group>";
+		};
+		FCB1EB3D1773C0956685EB37 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SessionModel.swift;
+			sourceTree = "<group>";
+		};
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5477718A91291D9ADE6E3B83 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0D206CE520CAB91F427BFAE = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		098EFA8B99F59DECF32FE737 = {
+			isa = PBXGroup;
+			children = (
+				E4041EB2B5012A4CCC74714B,
+				580C48856FBD7C92DAE5BBA3,
+				AFEEC0BD77F001835BF0AB23,
+			);
+			path = WhoopSwingSidecarTests;
+			sourceTree = "<group>";
+		};
+		1A6C1CCBE5207C897A3327AC = {
+			isa = PBXGroup;
+			children = (
+				1A3568F880F95BD7439B91D8,
+				613AAE7935BADDD800976534,
+				0869EBBC3644FAEEF30B3453,
+				67A84F899CC57144C8188E9F,
+				6890E6A4CBEE691619A21337,
+				4E01CB3CBC47644B8DA8F29E,
+				FCB1EB3D1773C0956685EB37,
+				105B71730E6522F03BA91B7B,
+				3306B4F60158FAC8A1B4AFCC,
+				26CE3F58F53C86C574C7F104,
+				C953252852C2C7EA7C8D9D72,
+				B25EB61F48B7FE17B9B5B73D,
+				CCC42A07F5D84988F6AF09B5,
+				80858E7CEF0B24831F365B73,
+				16259EBA1095B86B88B6AF21,
+			);
+			path = WhoopSwingSidecar;
+			sourceTree = "<group>";
+		};
+		4B6448C060074591296EC9A4 = {
+			isa = PBXGroup;
+			children = (
+				1A6C1CCBE5207C897A3327AC,
+				098EFA8B99F59DECF32FE737,
+				AFCF8C4DD87920396B5343ED,
+			);
+			sourceTree = "<group>";
+		};
+		AFCF8C4DD87920396B5343ED = {
+			isa = PBXGroup;
+			children = (
+				128AEE6F28AE0AAAFA4387C5,
+				CA27B8D741750B7F3FCBD920,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8F18FABF50DCC7281F4473C0 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F66872C7C89FE2FD7D33407A;
+			buildPhases = (
+				B98EC09FD630191172D8F1FE,
+				5477718A91291D9ADE6E3B83,
+				58476928EAA718D8934ECEF3,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WhoopSwingSidecar;
+			productName = WhoopSwingSidecar;
+			productReference = 128AEE6F28AE0AAAFA4387C5;
+			productType = "com.apple.product-type.application";
+		};
+		AF17EDFC139158687DBB5EBB = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6321C62ABDE1CA2298EB36A5;
+			buildPhases = (
+				B02513F64154A24333AC4856,
+				E0D206CE520CAB91F427BFAE,
+				407408CB3A50891E67CB9FED,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				845682AE301FCAAFB70F9A2F,
+			);
+			name = WhoopSwingSidecarTests;
+			productName = WhoopSwingSidecarTests;
+			productReference = CA27B8D741750B7F3FCBD920;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EF17CAD61C59FD5A3DC38D2F = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 66003D50D70F4CFB230AEC09;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4B6448C060074591296EC9A4;
+			productRefGroup = AFCF8C4DD87920396B5343ED;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8F18FABF50DCC7281F4473C0,
+				AF17EDFC139158687DBB5EBB,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		407408CB3A50891E67CB9FED = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3A3384DC49857EB4C219E74,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		58476928EAA718D8934ECEF3 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B02513F64154A24333AC4856 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				303BAFBFC470A289E4FF4591,
+				AE4442548CA2BD8E93EDDB47,
+				934BA8B8AA7E78EA88EB2419,
+				B6DD8A859372B0654E839AA9,
+				8E9F2A88D234CCCF2E1C3F5B,
+				65BA8D70B1D867B2A2479AAB,
+				0D1C5ACF4C29D570827EA500,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EC09FD630191172D8F1FE = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EDC73FA187861F64D937BBDD,
+				7FE9C5177E21697F8840BBB0,
+				65F7DA04CBF73B97C3FDD5A3,
+				7C356B5D1D891304F2B95B36,
+				EA9DEA2D48A9DC77119E3A48,
+				59C92EC0A56D819D0D59740F,
+				82CE4D313176024077D38E07,
+				F2B8B2A28FAB68DACDF35A36,
+				4464004080792D858A810EAB,
+				A7FD8B8EDCE6BAEED2156152,
+				41EE5AFEB4B0D4FF4E2BE280,
+				84E53D4AFD5CF361AEB878B8,
+				415005B6AFB41146A5630B73,
+				66CCB92B38343AE64E54E4FB,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		845682AE301FCAAFB70F9A2F = {
+			isa = PBXTargetDependency;
+			target = 8F18FABF50DCC7281F4473C0;
+			targetProxy = 3C3CDF8493887224EEB25FD0;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		09E8A4DDA6D1A04C8272F488 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				ONLY_ACTIVE_ARCH = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				ENABLE_TESTABILITY = NO;
+			};
+			name = Release;
+		};
+		102F03D42C5C83CD2A758155 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.sidecar.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		28D481113C46EB651D9603DC = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WhoopSwingSidecar/WhoopSwingSidecar.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhoopSwingSidecar/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.sidecar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "WHOOP Swing";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connects to your WHOOP strap for swing detection.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Connects to your WHOOP strap for swing detection.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Fallback swing detection from phone motion.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
+			};
+			name = Release;
+		};
+		43D30FFE1F40974E68344C5E = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.sidecar.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		62605A9B7BB630DD81E89657 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WhoopSwingSidecar/WhoopSwingSidecar.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhoopSwingSidecar/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whoopgolf.sidecar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "WHOOP Swing";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Connects to your WHOOP strap for swing detection.";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Connects to your WHOOP strap for swing detection.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Fallback swing detection from phone motion.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Measures shot distances by GPS.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Tracks your round with the screen off.";
+			};
+			name = Debug;
+		};
+		A829FE47ED07DCFB932FCCE3 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				ENABLE_TESTABILITY = YES;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6321C62ABDE1CA2298EB36A5 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				102F03D42C5C83CD2A758155,
+				43D30FFE1F40974E68344C5E,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		66003D50D70F4CFB230AEC09 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A829FE47ED07DCFB932FCCE3,
+				09E8A4DDA6D1A04C8272F488,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F66872C7C89FE2FD7D33407A = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				62605A9B7BB630DD81E89657,
+				28D481113C46EB651D9603DC,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EF17CAD61C59FD5A3DC38D2F;
+}

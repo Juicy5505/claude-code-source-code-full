@@ -1,0 +1,477 @@
+{
+  "Shared/AutomaticHoleTransitionEngine.swift": {
+    "mtime": 1786592477.0,
+    "ast_hash": "e9f8f4a9a2c0dc35e3cf5220b459c54a",
+    "semantic_hash": ""
+  },
+  "Shared/GolfImprover.swift": {
+    "mtime": 1787290168.3093326,
+    "ast_hash": "0a93ab9ea0778eec654324bcc0e17bd8",
+    "semantic_hash": ""
+  },
+  "Shared/GolfModels.swift": {
+    "mtime": 1786593899.0,
+    "ast_hash": "17438f027c12a37df964f492eec3e83e",
+    "semantic_hash": ""
+  },
+  "Shared/HeartRateMeasurementParser.swift": {
+    "mtime": 1786565892.0,
+    "ast_hash": "b84f7584703d04ace65dd96cdf36c62d",
+    "semantic_hash": ""
+  },
+  "Shared/ReadinessModels.swift": {
+    "mtime": 1786576773.0,
+    "ast_hash": "32fbce090edff26f85e5a06a7b5cd920",
+    "semantic_hash": ""
+  },
+  "Shared/SensorModeCoordinator.swift": {
+    "mtime": 1787289848.2577124,
+    "ast_hash": "d3a32dbe21eeb52544f47ee847cf3279",
+    "semantic_hash": ""
+  },
+  "Shared/ShotDistanceCalculator.swift": {
+    "mtime": 1787289591.447841,
+    "ast_hash": "5594d54f3b8642b70cd7180a949e10e5",
+    "semantic_hash": ""
+  },
+  "Shared/SourceProvenance.swift": {
+    "mtime": 1786574656.0,
+    "ast_hash": "c270df2f708bdded2e91f2dbe208ffac",
+    "semantic_hash": ""
+  },
+  "Shared/SwingPathGuidance.swift": {
+    "mtime": 1787290330.6697655,
+    "ast_hash": "af19b3550a865a5dad653c696ccfd6b1",
+    "semantic_hash": ""
+  },
+  "Shared/SwingShotIntervalCalculator.swift": {
+    "mtime": 1786592477.0,
+    "ast_hash": "0c632a3cd2b5ed2a7e1650f7dbecbc69",
+    "semantic_hash": ""
+  },
+  "Shared/WatchLiveFace.swift": {
+    "mtime": 1787289873.6149087,
+    "ast_hash": "a72ab1a7250976a7d058891f0863ada7",
+    "semantic_hash": ""
+  },
+  "Shared/WatchWristPreference.swift": {
+    "mtime": 1787289441.0660627,
+    "ast_hash": "dbe6d905da950d91ba224cf7e8f6a1bd",
+    "semantic_hash": ""
+  },
+  "Shared/WhoopMotionTransferModels.swift": {
+    "mtime": 1786585179.0,
+    "ast_hash": "ad3fcce639304e3f85ebb222042dfea5",
+    "semantic_hash": ""
+  },
+  "WatchSupport/WatchSessionReceiver.swift": {
+    "mtime": 1787290244.701347,
+    "ast_hash": "0f41369e39269350548f7783d1fd1069",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/App/AppModel.swift": {
+    "mtime": 1787289982.281792,
+    "ast_hash": "07255d5d1470633ad77909eb4b0eb672",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/App/DemoFixtures.swift": {
+    "mtime": 1786566117.0,
+    "ast_hash": "2da814363d7be38e49f0f675f00becc5",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/App/WhoopGolfApp.swift": {
+    "mtime": 1786577344.0,
+    "ast_hash": "960e4b9a679a586416a376a3a9cec480",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Components/EighteenBirdiesCompanionCard.swift": {
+    "mtime": 1786592176.0,
+    "ast_hash": "b6f9a3dbcbd5786bf9a18760843a7c5d",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Components/GolfTheme.swift": {
+    "mtime": 1786566117.0,
+    "ast_hash": "5cd1c86d73a487ead48fc0274739d3ff",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/BridgePairingClient.swift": {
+    "mtime": 1786591353.0,
+    "ast_hash": "1a53727cafa62ecaac1a45b91e0cfa54",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/EighteenBirdiesCompanionLink.swift": {
+    "mtime": 1786592104.0,
+    "ast_hash": "47ef95519a7db6bb58cf38a3d2bb5878",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/GolfCourseLocator.swift": {
+    "mtime": 1786574845.0,
+    "ast_hash": "d8696eced5c09b56976ad3722c71e33b",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/HealthAuthorizationService.swift": {
+    "mtime": 1786572328.0,
+    "ast_hash": "5d25b33ebe0191e05cfe0759f248cae1",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/KeychainStore.swift": {
+    "mtime": 1786590432.0,
+    "ast_hash": "2108b030133dd6a4beae4c891a88d9cc",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/LocationRoundService.swift": {
+    "mtime": 1786587877.0,
+    "ast_hash": "c673890ad67c7bc25b3e8bab096491c0",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/RoundFileStore.swift": {
+    "mtime": 1786570521.0,
+    "ast_hash": "ebf7c13ce6e4bfffef1cd19a1767d79f",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/RoundLocationJournal.swift": {
+    "mtime": 1786577428.0,
+    "ast_hash": "40945dbd72a68a358ff58c942c5d2ff4",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WatchSessionImporter.swift": {
+    "mtime": 1786573650.0,
+    "ast_hash": "c917a42b81227ce380515a6c67a1808e",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/Whoop5DiscoveryScanner.swift": {
+    "mtime": 1786575180.0,
+    "ast_hash": "d73486e71aefdf91f51b7702bbb011b0",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopBridgeClient.swift": {
+    "mtime": 1786579424.0,
+    "ast_hash": "ae4bd35d1addf810bea073e05b1bb4fb",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopHeartRateProvider.swift": {
+    "mtime": 1786573065.0,
+    "ast_hash": "3606aa7b93813427b13b0cffeb4ec398",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/IMUMotionManager.swift": {
+    "mtime": 1787196381.8436618,
+    "ast_hash": "8e418adb24c5e21fa9659eeb54a010fc",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/SwingDetector.swift": {
+    "mtime": 1787196381.8432386,
+    "ast_hash": "a17c8131de238e8d34f643b8405fa777",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/WhoopBLEManager.swift": {
+    "mtime": 1787287076.1963346,
+    "ast_hash": "73f50bf9e499d1dd2fc5912fa4772c30",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/WhoopCommands.swift": {
+    "mtime": 1787287076.1992276,
+    "ast_hash": "ecd0d13fa93e6daeacff7f2896bf875c",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/WhoopFraming.swift": {
+    "mtime": 1787287076.1992645,
+    "ast_hash": "84cffee8fe9ad79ab9ec9c6d46e5b154",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/WhoopIMUDecoder.swift": {
+    "mtime": 1787287076.1992276,
+    "ast_hash": "a0e14852888e25f541137f646f42ce05",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopLiveIMU/WhoopUUIDs.swift": {
+    "mtime": 1787196381.8340476,
+    "ast_hash": "f1cd423daa73f2893a48f583fde9dd55",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Services/WhoopMotionImportService.swift": {
+    "mtime": 1786594017.0,
+    "ast_hash": "a2a67ce613bb33d45a7d8696e073699d",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/AppShell.swift": {
+    "mtime": 1786566184.0,
+    "ast_hash": "1f425f598ead7991c3c08ddb091c31d0",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/RoundView.swift": {
+    "mtime": 1786594287.0,
+    "ast_hash": "8f98b46fbc0ce24c655d9222dc96a088",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/SettingsView.swift": {
+    "mtime": 1787289964.678272,
+    "ast_hash": "44ddc7d152ac76d327cb07034c2be505",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/TodayView.swift": {
+    "mtime": 1787289911.1238456,
+    "ast_hash": "c5d48134f0e9870dc311f5f41be824d5",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/TrendsView.swift": {
+    "mtime": 1786585192.0,
+    "ast_hash": "7a627a99f931614e2551d38881af72ca",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/AutomaticHoleTransitionEngineTests.swift": {
+    "mtime": 1786592279.0,
+    "ast_hash": "9a5b06159f24379f732739d5129f644b",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/BridgeClientTests.swift": {
+    "mtime": 1786572795.0,
+    "ast_hash": "fa705553a996101d8ea0e602cbfe0d86",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/BridgePairingClientTests.swift": {
+    "mtime": 1786591180.0,
+    "ast_hash": "89206328fe704476c366dea9afee86a3",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/CoreModelTests.swift": {
+    "mtime": 1787287076.1789742,
+    "ast_hash": "30b2c85c38038a8e49e8220f4e57d11c",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/EighteenBirdiesCompanionLinkTests.swift": {
+    "mtime": 1786592104.0,
+    "ast_hash": "f44556f6a82e779e1d1eb8684c943115",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/GolfCourseLocatorTests.swift": {
+    "mtime": 1786574960.0,
+    "ast_hash": "56029d5cef27f8003b5e0d79fd0aac25",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/RoundLocationJournalTests.swift": {
+    "mtime": 1786576704.0,
+    "ast_hash": "6907f315fa21329f7128fd99de3d9b0a",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/SensorModeCoordinatorTests.swift": {
+    "mtime": 1786594116.0,
+    "ast_hash": "f573a5a0601da4b373b2cb2697d719f8",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/SwingPathGuidanceTests.swift": {
+    "mtime": 1787289659.3491638,
+    "ast_hash": "c5553e2282136e2611c5716c70aa60cc",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/WatchRoundContextTests.swift": {
+    "mtime": 1786573579.0,
+    "ast_hash": "159c124eb77bc7d51f3cc3bd6203b35d",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/WatchSessionImporterTests.swift": {
+    "mtime": 1786573650.0,
+    "ast_hash": "8c2ace60a598901d8121156125601f1f",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/WhoopMotionImportServiceTests.swift": {
+    "mtime": 1786594451.0,
+    "ast_hash": "0088ba5489d6182e2c7e74abf6f26825",
+    "semantic_hash": ""
+  },
+  "claude/ContentView.swift": {
+    "mtime": 1787035782.0,
+    "ast_hash": "f65047dff0e9eddbbd499476522d2925",
+    "semantic_hash": ""
+  },
+  "claude/Item.swift": {
+    "mtime": 1787035782.0,
+    "ast_hash": "980c30615d7aeb1ba4a8dc9cfa29663f",
+    "semantic_hash": ""
+  },
+  "claude/claudeApp.swift": {
+    "mtime": 1787035782.0,
+    "ast_hash": "c6f81b28b1c30931716f49047e163614",
+    "semantic_hash": ""
+  },
+  "claudeTests/claudeTests.swift": {
+    "mtime": 1787035784.0,
+    "ast_hash": "73e7b6de01b8cc3210d6471b662bfef7",
+    "semantic_hash": ""
+  },
+  "claudeUITests/claudeUITests.swift": {
+    "mtime": 1787035784.0,
+    "ast_hash": "8480ce42565780639ff50115c7512b6e",
+    "semantic_hash": ""
+  },
+  "claudeUITests/claudeUITestsLaunchTests.swift": {
+    "mtime": 1787035784.0,
+    "ast_hash": "77589a3939397ea45e69bba21523e69a",
+    "semantic_hash": ""
+  },
+  "project.yml": {
+    "mtime": 1787290342.9677048,
+    "ast_hash": "6e6c39bcb2eab8feb048cf8912776280",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png": {
+    "mtime": 1786566390.0,
+    "ast_hash": "3ac79e4a0fbe07906ece80f37851d857",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-20@2x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "0fdb0b157640f3a5a199c980397f4e1d",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-20@3x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "3e24d3e165159dcfe7275663351f5b06",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-29@2x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "ef1a57c849d06ebda62845c2ed59e12b",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-29@3x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "e158b4183bc47c692b644c01fc427c1c",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-40@2x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "0d7d9a0259202cf209c009a4fb4f14c8",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-40@3x.png": {
+    "mtime": 1786566381.0,
+    "ast_hash": "14ad61b69f425183a4a9a9a7de0cf65b",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-60@2x.png": {
+    "mtime": 1786566381.0,
+    "ast_hash": "14ad61b69f425183a4a9a9a7de0cf65b",
+    "semantic_hash": ""
+  },
+  "Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-60@3x.png": {
+    "mtime": 1786566381.0,
+    "ast_hash": "c35a083777e513284ba9b9e3477ef00c",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/HANDOFFS.md": {
+    "mtime": 1787290350.3528595,
+    "ast_hash": "c4743d2eef978f083346b8ccbe310dee",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/LESSONS.md": {
+    "mtime": 1787290328.838432,
+    "ast_hash": "de5c9b2015f36a3666faa046e17d237f",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/STATUS.md": {
+    "mtime": 1787290328.404685,
+    "ast_hash": "c9246d3a599889bdbdbf550f7435608c",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/TASKS.md": {
+    "mtime": 1787289810.5220983,
+    "ast_hash": "2930324410ac7f9a684f339d95c0f786",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/tailscale-ingest.md": {
+    "mtime": 1787289355.183486,
+    "ast_hash": "ce8587b022138eac73b0cadf9a2bf46d",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/trail-right-motion.md": {
+    "mtime": 1787290350.369955,
+    "ast_hash": "124a2a47a1ceaf7e844547cf275d398b",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/watch-round-face.md": {
+    "mtime": 1787290329.8849063,
+    "ast_hash": "930a206d03067fbf01d975be63e36e85",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/wearable-architecture.md": {
+    "mtime": 1787290329.881221,
+    "ast_hash": "95dc57a3aa0ad410ac9be470c64f33d8",
+    "semantic_hash": ""
+  },
+  "Shared/PhoneYardageBridge.swift": {
+    "mtime": 1787289873.5839872,
+    "ast_hash": "d3e62a4623b8bdaa4d4413ae89009bed",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/golf-improver-engine.md": {
+    "mtime": 1787290065.0212133,
+    "ast_hash": "a653b8ae2cea77ce452937c59a7c528c",
+    "semantic_hash": ""
+  },
+  "Shared/WatchRoundContext.swift": {
+    "mtime": 1787289834.0790255,
+    "ast_hash": "bcc832fb11b1b4c411212a5549907367",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/WatchYardageBridgeTests.swift": {
+    "mtime": 1787290273.2780101,
+    "ast_hash": "ecfef7e93c33b116e4463bcc3f239868",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/PRODUCT.md": {
+    "mtime": 1787289803.8600366,
+    "ast_hash": "99a0c2734386395e27173404f1082ec5",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/watch-healthkit.md": {
+    "mtime": 1787289898.8159547,
+    "ast_hash": "79d22a83594812708d3c4f039c725307",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/xcode-ship.md": {
+    "mtime": 1787289880.6636605,
+    "ast_hash": "8cf80cbf07ad4fbe2618a9747bc44038",
+    "semantic_hash": ""
+  },
+  "Shared/WatchCoachingCue.swift": {
+    "mtime": 1787290244.700616,
+    "ast_hash": "7e62028dd4dee1d2b783abe3d1485ccb",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/PhoneYardageBridgeTests.swift": {
+    "mtime": 1787290119.8456514,
+    "ast_hash": "8f12a625640e976faa81b08b83e2ae9c",
+    "semantic_hash": ""
+  },
+  "Shared/DualWearableFusion.swift": {
+    "mtime": 1787290369.9187703,
+    "ast_hash": "943f967bf8c83ecd525717e423d4ce93",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/GolfStrokeBoardView.swift": {
+    "mtime": 1787290365.10435,
+    "ast_hash": "60583b3f4b555714066841037e94905f",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/GolfStrokePresentation.swift": {
+    "mtime": 1787290331.0176864,
+    "ast_hash": "23397fda9663eae8e8d82ac208c2a710",
+    "semantic_hash": ""
+  },
+  "WhoopGolf/Views/WatchCompanionPanels.swift": {
+    "mtime": 1787290367.2694292,
+    "ast_hash": "b5a60df8a55ffeb512731e26c5f43288",
+    "semantic_hash": ""
+  },
+  "WhoopGolfTests/DualWearableFusionTests.swift": {
+    "mtime": 1787290369.918687,
+    "ast_hash": "158a46f77c18db46ccf917acb7376043",
+    "semantic_hash": ""
+  },
+  ".agent-orchestration/agents/phone-yardage-bridge.md": {
+    "mtime": 1787290329.8903859,
+    "ast_hash": "69d7156bff95a475e781651eabe34d30",
+    "semantic_hash": ""
+  }
+}

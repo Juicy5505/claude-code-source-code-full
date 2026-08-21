@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- watchOS reads this for its own background execution. An app with a live
+	     HKWorkoutSession keeps running with the wrist down because of it.
+	     "location" is NOT a legal value here. -->
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>workout-processing</string>
+	</array>
+	<!-- Core Location reads this one - the iOS-shaped key - on watchOS too.
+	     Apple's watchOS 4 release notes: "To track location in the background
+	     while a user is in a workout session, add UIBackgroundModes/location in
+	     the Info.plist file. (29483437)". Their SpeedySloth sample ships both
+	     keys, and a running workout session is not a substitute: it keeps the
+	     process alive, it does not confer location authority. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,1457 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 90;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D19A006B0000000000000006 /* ComprehensiveShotIntelligenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A006A0000000000000006 /* ComprehensiveShotIntelligenceTests.swift */; };
+		D19A001B0000000000000001 /* DualWearableRequirement.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A001A0000000000000001 /* DualWearableRequirement.swift */; };
+		D19A002B0000000000000002 /* ComprehensiveShotIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A002A0000000000000002 /* ComprehensiveShotIntelligence.swift */; };
+		D19A003B0000000000000003 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A003A0000000000000003 /* OverviewView.swift */; };
+		D19A004B0000000000000004 /* DualWearableRequirementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A004A0000000000000004 /* DualWearableRequirementTests.swift */; };
+		D19A005B0000000000000005 /* StrokeScoreShotChainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A005A0000000000000005 /* StrokeScoreShotChainTests.swift */; };
+		03C2B9B0E964C4459A3AD4A9 /* SensorModeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77725EF054594E5232341A11 /* SensorModeCoordinator.swift */; };
+		C1A002F1A0000000000000F1 /* DualWearableFusion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E1A0000000000000E1 /* DualWearableFusion.swift */; };
+		C1A002F2A0000000000000F2 /* DualWearableFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E2A0000000000000E2 /* DualWearableFusionTests.swift */; };
+		040958E958E945C1F84C0A23 /* GolfModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B07FDE099025DEACABB978 /* GolfModels.swift */; };
+		068C0ED751E17FECE8EAFDC8 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0F2C25C852DB628FCBFC17 /* HealthKit.framework */; };
+		06C981FED45E9BDA5BF8FD97 /* HealthAuthorizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323A1DDE69F76199576148AF /* HealthAuthorizationService.swift */; };
+		0DDAE85445C32E867FDBA6F5 /* WatchSessionImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53441C5FCE011C227E716306 /* WatchSessionImporter.swift */; };
+		0F75FCDE19D4DD701B365D50 /* HeartRateMeasurementParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06A77756A0FF58FD8EC61A45 /* HeartRateMeasurementParser.swift */; };
+		101A1FDE441C049ECC6D3A55 /* BridgeClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52335CCA8D6D4A9A416D62D4 /* BridgeClientTests.swift */; };
+		10F351D51FE4E3E5B4F6041B /* WhoopMotionImportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108C0B062C6B5FA6298487FC /* WhoopMotionImportServiceTests.swift */; };
+		13B23E1AFBF49778FF8EEC6E /* WatchSessionTransfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401781B8F64E2EE32E9BC5B4 /* WatchSessionTransfer.swift */; };
+		160665C4C5D828AFC45B4DF3 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB7B10195D8CE49A3833067 /* CoreLocation.framework */; };
+		1C84C03F412F5AC64CECA47C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BC537F0DE4CA6376DB66D5B4 /* PrivacyInfo.xcprivacy */; };
+		1E9D79D31078887A011B4EA7 /* WatchSessionImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B84536CFA7F3324CB9A1ACB /* WatchSessionImporterTests.swift */; };
+		1FF321BDA1F3ED8D4ECD9630 /* RoundFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51D82A41070694FABBF403B /* RoundFileStore.swift */; };
+		2BD48797B887BD82EFFFEF40 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F66F5D74BD5C80853D67E47 /* WatchConnectivity.framework */; };
+		2DF2D3F42316DD9119E13D7D /* Whoop5DiscoveryScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4149D3A5D6E24DACB35B071 /* Whoop5DiscoveryScanner.swift */; };
+		2F104A3F384F381D19E008F6 /* RoundLocationJournalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB628FFE65AF1235DD1409D0 /* RoundLocationJournalTests.swift */; };
+		3023728D95507866C63B74BB /* WhoopMotionTransferModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839C2D30062AF3A3F1757917 /* WhoopMotionTransferModels.swift */; };
+		365263155BEE6B27A0EF2CBC /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB7B10195D8CE49A3833067 /* CoreLocation.framework */; };
+		36A6ED839D7A64580A015F2D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C43A2474387CACA14BEDA30A /* Assets.xcassets */; };
+		39A52AB511FA3A49BDEA2980 /* CoreModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CFEDB0A03CCFAC7DFB08ED /* CoreModelTests.swift */; };
+		39F56AA2F46DCB0A467515AC /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187332F36331AF6AFE44EC3B /* MotionManager.swift */; };
+		40187DC906F2FC56FA31DE49 /* AutomaticHoleTransitionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE227643D1291F21E121D80D /* AutomaticHoleTransitionEngine.swift */; };
+		437E97C8488563950C466B82 /* RoundLocationJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64730B1AC6BCDAD4C1ECB0FE /* RoundLocationJournal.swift */; };
+		4818557B87543DC0B9F46473 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99EB6D844D96EABF9A73EC62 /* KeychainStore.swift */; };
+		5005A1A98526F57C23545607 /* LocationRoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861E5B055184D599FAC65CF2 /* LocationRoundService.swift */; };
+		5048C528811685B25789BD38 /* RoundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A81CA8864F5831F14BBEDB /* RoundView.swift */; };
+		51A4707E767DF100CF5E6356 /* EighteenBirdiesCompanionLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB86FA9D5D695A58E71640C7 /* EighteenBirdiesCompanionLink.swift */; };
+		56615FC728F057D31BEFABBE /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F66F5D74BD5C80853D67E47 /* WatchConnectivity.framework */; };
+		5726BF649B76890112820D17 /* SensorModeCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14464B21D0B64C39695A9FF4 /* SensorModeCoordinatorTests.swift */; };
+		5C43AAEB667F84C34B9002DA /* WatchSessionReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E919BAE30512069AAD50678 /* WatchSessionReceiver.swift */; };
+		621B741359BC72A621CA53F9 /* DemoFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7345138C2DA436145A646F33 /* DemoFixtures.swift */; };
+		638C026C5AA9B9C9B35269B3 /* WhoopHeartRateProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C9DEF0A10B55C053D2630 /* WhoopHeartRateProvider.swift */; };
+		67C31F765A4925DF1B5D76FF /* ShotDistanceCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C172D74F2289A78BE93C99FD /* ShotDistanceCalculator.swift */; };
+		6BA638D385D820A8D7986443 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C4F9C873E12F0A0841F793D /* CoreMotion.framework */; };
+		729505191DCFA2B02D18AD77 /* GolfCourseLocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A071C07504B7835469C7B92F /* GolfCourseLocatorTests.swift */; };
+		73EDFBB9A000D87CB5FE2B70 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B834B3CD55023B53C61DB62C /* LocationManager.swift */; };
+		7A0D3FE497951238D9691917 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CC1B4B0EBFEF276FB70CEF /* AppModel.swift */; };
+		7CB5467993F53D5E4BECE45D /* SourceProvenance.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B20D479547B15E25C953FB /* SourceProvenance.swift */; };
+		82D97B557F0197DD063DB77C /* WhoopBridgeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A7D4174852D4AA6D29A27F /* WhoopBridgeClient.swift */; };
+		8AD4DCAF7D8E570650E84AD1 /* AutomaticHoleTransitionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 413ED53A07303B7A580BDB5C /* AutomaticHoleTransitionEngineTests.swift */; };
+		9733EDB93FEC895A736EDF47 /* GolfCourseLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEF10095D41AE162EFCBD33 /* GolfCourseLocator.swift */; };
+		9EAB0CB5A877FCE85942CF89 /* WhoopMotionImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB3C8F7CBE9520A9291EEA7 /* WhoopMotionImportService.swift */; };
+		A0E41D620F6CBD100E2238AC /* EighteenBirdiesCompanionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0298B54F3A8C989D14AA8B3 /* EighteenBirdiesCompanionCard.swift */; };
+		A18B9FA58EB0D807B2291B3E /* SessionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3965CB007A10D37E35769D5D /* SessionModel.swift */; };
+		A1FBE3A3EA7E5791BD1018B5 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5698CD41AEC31BE52963E5C /* SettingsView.swift */; };
+		A449D61CD2D1C7A2263DA9AE /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C26CDA63893B9CCC36A993C /* TrendsView.swift */; };
+		C1A00313A000000000000003 /* WatchCompanionPanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00303A000000000000003 /* WatchCompanionPanels.swift */; };
+		C1A00312A000000000000002 /* GolfStrokeBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00302A000000000000002 /* GolfStrokeBoardView.swift */; };
+		C1A00311A000000000000001 /* GolfStrokePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00301A000000000000001 /* GolfStrokePresentation.swift */; };
+		A4F84244C6E90E822AEC9F06 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0F2C25C852DB628FCBFC17 /* HealthKit.framework */; };
+		A9BC0929CFDF98D7B4524D6A /* WatchRoundContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD8FC17B0D03DBC15A0C18E /* WatchRoundContextTests.swift */; };
+		BC50C1D2F564812D78981FB4 /* SwingShotIntervalCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072AF175DC9A8671E62ABDD4 /* SwingShotIntervalCalculator.swift */; };
+		C9B5E22D90371BE0B07E9047 /* BridgePairingClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56C3064BCE48B824EF323DD /* BridgePairingClientTests.swift */; };
+		D1F74E2CE4FC73C073587254 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6823C81F08C219BE689D062 /* TodayView.swift */; };
+		D60F13E4D9ED55410FE56828 /* WorkoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC0DF6E36B91F2C06846057 /* WorkoutManager.swift */; };
+		D760CB02C56C21EEFCDE3D09 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC274747F6BA034B39F67353 /* AppShell.swift */; };
+		D8483C60064D526E5395FC17 /* ReadinessModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA636E088DC39901A548458 /* ReadinessModels.swift */; };
+		DE78FA4CDA5F65BDB7739B9B /* EighteenBirdiesCompanionLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB57FE1950490EBC045B6ED2 /* EighteenBirdiesCompanionLinkTests.swift */; };
+		E5627DB134E403E3C1195318 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECC7F26F3A7F837E55652F92 /* CoreBluetooth.framework */; };
+		E8E9C443A338CC13D66E61D3 /* BridgePairingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4FD6CE6EA3A20CA4795604 /* BridgePairingClient.swift */; };
+		EF8B8083D682AD5A621ADCF6 /* SessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764EA0F6FD737A7D315CAFD7 /* SessionView.swift */; };
+		F32249BC6F8281141EDE73F1 /* WhoopGolfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4FBB6BFF5499F1C29D320C2 /* WhoopGolfApp.swift */; };
+		F934AC9CF459562742E4E5C3 /* SwingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF29A332056C7C5E13B1677 /* SwingDetector.swift */; };
+		FFC82CD6EBF525FBAE159C59 /* GolfTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA2E86A6DE801BA6E4A7ED5 /* GolfTheme.swift */; };
+		C1A001110000000000000001 /* IMUMotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A001010000000000000001 /* IMUMotionManager.swift */; };
+		C1A001130000000000000003 /* WhoopBLEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A001030000000000000003 /* WhoopBLEManager.swift */; };
+		C1A001140000000000000004 /* WhoopCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A001040000000000000004 /* WhoopCommands.swift */; };
+		C1A001150000000000000005 /* WhoopFraming.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A001050000000000000005 /* WhoopFraming.swift */; };
+		C1A001160000000000000006 /* WhoopIMUDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A001060000000000000006 /* WhoopIMUDecoder.swift */; };
+		C1A001170000000000000007 /* WhoopUUIDs.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A001070000000000000007 /* WhoopUUIDs.swift */; };
+		C1A00211A000000000000001 /* WatchWristPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00201A000000000000001 /* WatchWristPreference.swift */; };
+		C1A00212A000000000000002 /* SwingPathGuidance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00202A000000000000002 /* SwingPathGuidance.swift */; };
+		C1A00213A000000000000003 /* GolfImprover.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00203A000000000000003 /* GolfImprover.swift */; };
+		8E3B05B3BAE5BEEF24254B69 /* DualWearableFusion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E1A0000000000000E1 /* DualWearableFusion.swift */; };
+		CCB79715E0A57ABA14CAB8AE /* StrokeScoreShotChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7265F342C6D5C24B7BA7DCC /* StrokeScoreShotChain.swift */; };
+		8BCE4763650C674191BF4711 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718BCF1B1D7DC22FFFC680C2 /* SettingsView.swift */; };
+		5BC2B9E2D1C4E5A79FFFBEB0 /* WhoopGolfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB7A4E005840734AB1F439B /* WhoopGolfApp.swift */; };
+		F8D8C20926F2201FCA3E8A69 /* SwingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398E85B279EE8D9B9124BE7 /* SwingDetector.swift */; };
+		C1A00214A000000000000004 /* WatchLiveFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00204A000000000000004 /* WatchLiveFace.swift */; };
+		C1A0022CA000000000000012 /* WatchCoachingCue.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0020CA000000000000012 /* WatchCoachingCue.swift */; };
+		C1A0021CA000000000000012 /* WatchCoachingCue.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0020CA000000000000012 /* WatchCoachingCue.swift */; };
+		C1A0022A00000000000000B0 /* PhoneYardageBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0020B00000000000000B0 /* PhoneYardageBridgeTests.swift */; };
+		C1A0021BA000000000000011 /* PhoneYardageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0020BA000000000000011 /* PhoneYardageBridge.swift */; };
+		C1A0021AA000000000000010 /* WatchRoundContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0020AA000000000000010 /* WatchRoundContext.swift */; };
+		C1A00221A000000000000001 /* WatchWristPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00201A000000000000001 /* WatchWristPreference.swift */; };
+		C1A00222A000000000000002 /* SwingPathGuidance.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00202A000000000000002 /* SwingPathGuidance.swift */; };
+		C1A00223A000000000000003 /* GolfImprover.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00203A000000000000003 /* GolfImprover.swift */; };
+		C1A00224A000000000000004 /* WatchLiveFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00204A000000000000004 /* WatchLiveFace.swift */; };
+		C1A0022AA000000000000010 /* WatchRoundContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0020AA000000000000010 /* WatchRoundContext.swift */; };
+		C1A00225A000000000000005 /* GPSSourceCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00205A000000000000005 /* GPSSourceCheck.swift */; };
+		C1A00226A000000000000006 /* IngestSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00206A000000000000006 /* IngestSettings.swift */; };
+		C1A00228A000000000000008 /* SwingPathGuidanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00208A000000000000008 /* SwingPathGuidanceTests.swift */; };
+		C1A00228A000000000000009 /* WatchYardageBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00208A000000000000009 /* WatchYardageBridgeTests.swift */; };
+		C1A00229A000000000000009 /* WatchRoundFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00209A000000000000009 /* WatchRoundFaceView.swift */; };
+		C1A003040000000000000004 /* WhoopGolfWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3DC507CB8EC5AF4C2DFED47E /* WhoopGolfWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0EBF655FF3FFCC665A2C8B2B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA6FA0836F7BFDF76496D937 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 06AA7E66F53928AA9A7774FC;
+			remoteInfo = WhoopGolf;
+		};
+		FA710F473034380800812BFB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA6FA0836F7BFDF76496D937 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA710F373034380600812BFB;
+			remoteInfo = claude;
+		};
+		FA710F513034380800812BFB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA6FA0836F7BFDF76496D937 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA710F373034380600812BFB;
+			remoteInfo = claude;
+		};
+		C1A003010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA6FA0836F7BFDF76496D937 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0DD89A3CD484DE44901DD8E2;
+			remoteInfo = WhoopGolfWatch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C1A003030000000000000003 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				C1A003040000000000000004 /* WhoopGolfWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		D19A006A0000000000000006 /* ComprehensiveShotIntelligenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComprehensiveShotIntelligenceTests.swift; sourceTree = "<group>"; };
+		D19A001A0000000000000001 /* DualWearableRequirement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualWearableRequirement.swift; sourceTree = "<group>"; };
+		D19A002A0000000000000002 /* ComprehensiveShotIntelligence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComprehensiveShotIntelligence.swift; sourceTree = "<group>"; };
+		D19A003A0000000000000003 /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
+		D19A004A0000000000000004 /* DualWearableRequirementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualWearableRequirementTests.swift; sourceTree = "<group>"; };
+		D19A005A0000000000000005 /* StrokeScoreShotChainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeScoreShotChainTests.swift; sourceTree = "<group>"; };
+		02CC1B4B0EBFEF276FB70CEF /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		06A77756A0FF58FD8EC61A45 /* HeartRateMeasurementParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateMeasurementParser.swift; sourceTree = "<group>"; };
+		072AF175DC9A8671E62ABDD4 /* SwingShotIntervalCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingShotIntervalCalculator.swift; sourceTree = "<group>"; };
+		0FF29A332056C7C5E13B1677 /* SwingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingDetector.swift; sourceTree = "<group>"; };
+		108C0B062C6B5FA6298487FC /* WhoopMotionImportServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopMotionImportServiceTests.swift; sourceTree = "<group>"; };
+		14464B21D0B64C39695A9FF4 /* SensorModeCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorModeCoordinatorTests.swift; sourceTree = "<group>"; };
+		187332F36331AF6AFE44EC3B /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
+		1B84536CFA7F3324CB9A1ACB /* WatchSessionImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionImporterTests.swift; sourceTree = "<group>"; };
+		2C4F9C873E12F0A0841F793D /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		323A1DDE69F76199576148AF /* HealthAuthorizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthAuthorizationService.swift; sourceTree = "<group>"; };
+		32A7D4174852D4AA6D29A27F /* WhoopBridgeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopBridgeClient.swift; sourceTree = "<group>"; };
+		35B07FDE099025DEACABB978 /* GolfModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfModels.swift; sourceTree = "<group>"; };
+		37A81CA8864F5831F14BBEDB /* RoundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundView.swift; sourceTree = "<group>"; };
+		3965CB007A10D37E35769D5D /* SessionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionModel.swift; sourceTree = "<group>"; };
+		3DC507CB8EC5AF4C2DFED47E /* WhoopGolfWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhoopGolfWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		401781B8F64E2EE32E9BC5B4 /* WatchSessionTransfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionTransfer.swift; sourceTree = "<group>"; };
+		413ED53A07303B7A580BDB5C /* AutomaticHoleTransitionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticHoleTransitionEngineTests.swift; sourceTree = "<group>"; };
+		4C0F2C25C852DB628FCBFC17 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		4FEF10095D41AE162EFCBD33 /* GolfCourseLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfCourseLocator.swift; sourceTree = "<group>"; };
+		52335CCA8D6D4A9A416D62D4 /* BridgeClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeClientTests.swift; sourceTree = "<group>"; };
+		53441C5FCE011C227E716306 /* WatchSessionImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionImporter.swift; sourceTree = "<group>"; };
+		5383F0BFEDFB4B4B6027F9F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		64730B1AC6BCDAD4C1ECB0FE /* RoundLocationJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundLocationJournal.swift; sourceTree = "<group>"; };
+		6C26CDA63893B9CCC36A993C /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		C1A00303A000000000000003 /* WatchCompanionPanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCompanionPanels.swift; sourceTree = "<group>"; };
+		C1A00302A000000000000002 /* GolfStrokeBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfStrokeBoardView.swift; sourceTree = "<group>"; };
+		C1A00301A000000000000001 /* GolfStrokePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfStrokePresentation.swift; sourceTree = "<group>"; };
+		6FA2E86A6DE801BA6E4A7ED5 /* GolfTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfTheme.swift; sourceTree = "<group>"; };
+		7345138C2DA436145A646F33 /* DemoFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoFixtures.swift; sourceTree = "<group>"; };
+		74B24EDB8B87BC1C3F1D2E83 /* WhoopGolf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhoopGolf.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		764EA0F6FD737A7D315CAFD7 /* SessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionView.swift; sourceTree = "<group>"; };
+		77725EF054594E5232341A11 /* SensorModeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorModeCoordinator.swift; sourceTree = "<group>"; };
+		C1A002E1A0000000000000E1 /* DualWearableFusion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualWearableFusion.swift; sourceTree = "<group>"; };
+		C1A002E2A0000000000000E2 /* DualWearableFusionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualWearableFusionTests.swift; sourceTree = "<group>"; };
+		7F66F5D74BD5C80853D67E47 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		839C2D30062AF3A3F1757917 /* WhoopMotionTransferModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopMotionTransferModels.swift; sourceTree = "<group>"; };
+		8412BB6245D7815CC2F2DE00 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		861E5B055184D599FAC65CF2 /* LocationRoundService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRoundService.swift; sourceTree = "<group>"; };
+		893C9DEF0A10B55C053D2630 /* WhoopHeartRateProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopHeartRateProvider.swift; sourceTree = "<group>"; };
+		8DD8FC17B0D03DBC15A0C18E /* WatchRoundContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRoundContextTests.swift; sourceTree = "<group>"; };
+		8E919BAE30512069AAD50678 /* WatchSessionReceiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSessionReceiver.swift; sourceTree = "<group>"; };
+		99EB6D844D96EABF9A73EC62 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		9CA636E088DC39901A548458 /* ReadinessModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessModels.swift; sourceTree = "<group>"; };
+		A071C07504B7835469C7B92F /* GolfCourseLocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfCourseLocatorTests.swift; sourceTree = "<group>"; };
+		A51D82A41070694FABBF403B /* RoundFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundFileStore.swift; sourceTree = "<group>"; };
+		A9855684B17A3D8A719D821F /* WhoopGolf.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WhoopGolf.entitlements; sourceTree = "<group>"; };
+		AB4FD6CE6EA3A20CA4795604 /* BridgePairingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgePairingClient.swift; sourceTree = "<group>"; };
+		B297F38D7BE7F58477189B21 /* WhoopGolfWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WhoopGolfWatch.entitlements; sourceTree = "<group>"; };
+		B2CFEDB0A03CCFAC7DFB08ED /* CoreModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreModelTests.swift; sourceTree = "<group>"; };
+		B834B3CD55023B53C61DB62C /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		BAC0DF6E36B91F2C06846057 /* WorkoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutManager.swift; sourceTree = "<group>"; };
+		BC537F0DE4CA6376DB66D5B4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C172D74F2289A78BE93C99FD /* ShotDistanceCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShotDistanceCalculator.swift; sourceTree = "<group>"; };
+		C43A2474387CACA14BEDA30A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C5698CD41AEC31BE52963E5C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CB57FE1950490EBC045B6ED2 /* EighteenBirdiesCompanionLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EighteenBirdiesCompanionLinkTests.swift; sourceTree = "<group>"; };
+		CB628FFE65AF1235DD1409D0 /* RoundLocationJournalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundLocationJournalTests.swift; sourceTree = "<group>"; };
+		D0298B54F3A8C989D14AA8B3 /* EighteenBirdiesCompanionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EighteenBirdiesCompanionCard.swift; sourceTree = "<group>"; };
+		D4FBB6BFF5499F1C29D320C2 /* WhoopGolfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopGolfApp.swift; sourceTree = "<group>"; };
+		DB86FA9D5D695A58E71640C7 /* EighteenBirdiesCompanionLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EighteenBirdiesCompanionLink.swift; sourceTree = "<group>"; };
+		DC274747F6BA034B39F67353 /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
+		E4149D3A5D6E24DACB35B071 /* Whoop5DiscoveryScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Whoop5DiscoveryScanner.swift; sourceTree = "<group>"; };
+		E56C3064BCE48B824EF323DD /* BridgePairingClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgePairingClientTests.swift; sourceTree = "<group>"; };
+		E6823C81F08C219BE689D062 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		EBB3C8F7CBE9520A9291EEA7 /* WhoopMotionImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopMotionImportService.swift; sourceTree = "<group>"; };
+		ECC7F26F3A7F837E55652F92 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		EE227643D1291F21E121D80D /* AutomaticHoleTransitionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticHoleTransitionEngine.swift; sourceTree = "<group>"; };
+		F0B20D479547B15E25C953FB /* SourceProvenance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceProvenance.swift; sourceTree = "<group>"; };
+		F17F5C4A6AD55ADC79032DED /* WhoopGolfTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhoopGolfTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA710F383034380600812BFB /* claude.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = claude.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA710F463034380800812BFB /* claudeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = claudeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA710F503034380800812BFB /* claudeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = claudeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAB7B10195D8CE49A3833067 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		C1A001010000000000000001 /* IMUMotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMUMotionManager.swift; sourceTree = "<group>"; };
+		C1A001030000000000000003 /* WhoopBLEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopBLEManager.swift; sourceTree = "<group>"; };
+		C1A001040000000000000004 /* WhoopCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopCommands.swift; sourceTree = "<group>"; };
+		C1A001050000000000000005 /* WhoopFraming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopFraming.swift; sourceTree = "<group>"; };
+		C1A001060000000000000006 /* WhoopIMUDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopIMUDecoder.swift; sourceTree = "<group>"; };
+		C1A001070000000000000007 /* WhoopUUIDs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopUUIDs.swift; sourceTree = "<group>"; };
+		C1A00201A000000000000001 /* WatchWristPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWristPreference.swift; sourceTree = "<group>"; };
+		C1A00202A000000000000002 /* SwingPathGuidance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingPathGuidance.swift; sourceTree = "<group>"; };
+		C1A00203A000000000000003 /* GolfImprover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfImprover.swift; sourceTree = "<group>"; };
+		E7265F342C6D5C24B7BA7DCC /* StrokeScoreShotChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeScoreShotChain.swift; sourceTree = "<group>"; };
+		718BCF1B1D7DC22FFFC680C2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7CB7A4E005840734AB1F439B /* WhoopGolfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhoopGolfApp.swift; sourceTree = "<group>"; };
+		A398E85B279EE8D9B9124BE7 /* SwingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingDetector.swift; sourceTree = "<group>"; };
+		C1A00204A000000000000004 /* WatchLiveFace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLiveFace.swift; sourceTree = "<group>"; };
+		C1A0020CA000000000000012 /* WatchCoachingCue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCoachingCue.swift; sourceTree = "<group>"; };
+		C1A0020B00000000000000B0 /* PhoneYardageBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneYardageBridgeTests.swift; sourceTree = "<group>"; };
+		C1A0020BA000000000000011 /* PhoneYardageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneYardageBridge.swift; sourceTree = "<group>"; };
+		C1A0020AA000000000000010 /* WatchRoundContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRoundContext.swift; sourceTree = "<group>"; };
+		C1A00205A000000000000005 /* GPSSourceCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPSSourceCheck.swift; sourceTree = "<group>"; };
+		C1A00206A000000000000006 /* IngestSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngestSettings.swift; sourceTree = "<group>"; };
+		C1A00209A000000000000009 /* WatchRoundFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRoundFaceView.swift; sourceTree = "<group>"; };
+		C1A00208A000000000000008 /* SwingPathGuidanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingPathGuidanceTests.swift; sourceTree = "<group>"; };
+		C1A00208A000000000000009 /* WatchYardageBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchYardageBridgeTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		FA710F393034380600812BFB /* claude */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = claude;
+			sourceTree = "<group>";
+		};
+		FA710F493034380800812BFB /* claudeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = claudeTests;
+			sourceTree = "<group>";
+		};
+		FA710F533034380800812BFB /* claudeUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = claudeUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		38402A01EC28A8EA50AD0069 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				A4F84244C6E90E822AEC9F06 /* HealthKit.framework in Frameworks */,
+				365263155BEE6B27A0EF2CBC /* CoreLocation.framework in Frameworks */,
+				E5627DB134E403E3C1195318 /* CoreBluetooth.framework in Frameworks */,
+				56615FC728F057D31BEFABBE /* WatchConnectivity.framework in Frameworks */,
+			);
+		};
+		C2EF8AAABC9D5146AEE30957 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				068C0ED751E17FECE8EAFDC8 /* HealthKit.framework in Frameworks */,
+				160665C4C5D828AFC45B4DF3 /* CoreLocation.framework in Frameworks */,
+				6BA638D385D820A8D7986443 /* CoreMotion.framework in Frameworks */,
+				2BD48797B887BD82EFFFEF40 /* WatchConnectivity.framework in Frameworks */,
+			);
+		};
+		FA710F353034380600812BFB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		FA710F433034380800812BFB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		FA710F4D3034380800812BFB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A9F58E4ABD2E17A40F9CD1E /* WhoopGolf */ = {
+			isa = PBXGroup;
+			children = (
+				5383F0BFEDFB4B4B6027F9F7 /* Info.plist */,
+				A9855684B17A3D8A719D821F /* WhoopGolf.entitlements */,
+				A852DF4DAEDA1EB559355B04 /* App */,
+				90DD605098A52A46727F3451 /* Components */,
+				4C2E15D6864CB67F66283284 /* Services */,
+				BEEE27C5D575FF510693001C /* Views */,
+			);
+			path = WhoopGolf;
+			sourceTree = "<group>";
+		};
+		485A6F63FE235D5D3C69E22C = {
+			isa = PBXGroup;
+			children = (
+				B08AF2AB9A9EC856E0B25D1D /* Resources */,
+				B1A40E9E3A067B1A3C39B763 /* Shared */,
+				5753190AD8BB05CCC9DA7C42 /* WatchSupport */,
+				DCD89119E686FA8688A648DA /* whoop-18birdies */,
+				0A9F58E4ABD2E17A40F9CD1E /* WhoopGolf */,
+				A6925BF90ACF09DCD51D3CF9 /* WhoopGolfTests */,
+				FA710F393034380600812BFB /* claude */,
+				FA710F493034380800812BFB /* claudeTests */,
+				FA710F533034380800812BFB /* claudeUITests */,
+				74A785F1FB520145C5441727 /* Frameworks */,
+				9E7A6ED79234E6197DDADBF8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4C2E15D6864CB67F66283284 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AB4FD6CE6EA3A20CA4795604 /* BridgePairingClient.swift */,
+				DB86FA9D5D695A58E71640C7 /* EighteenBirdiesCompanionLink.swift */,
+				4FEF10095D41AE162EFCBD33 /* GolfCourseLocator.swift */,
+				323A1DDE69F76199576148AF /* HealthAuthorizationService.swift */,
+				99EB6D844D96EABF9A73EC62 /* KeychainStore.swift */,
+				861E5B055184D599FAC65CF2 /* LocationRoundService.swift */,
+				A51D82A41070694FABBF403B /* RoundFileStore.swift */,
+				64730B1AC6BCDAD4C1ECB0FE /* RoundLocationJournal.swift */,
+				53441C5FCE011C227E716306 /* WatchSessionImporter.swift */,
+				E4149D3A5D6E24DACB35B071 /* Whoop5DiscoveryScanner.swift */,
+				32A7D4174852D4AA6D29A27F /* WhoopBridgeClient.swift */,
+				893C9DEF0A10B55C053D2630 /* WhoopHeartRateProvider.swift */,
+				EBB3C8F7CBE9520A9291EEA7 /* WhoopMotionImportService.swift */,
+				C1A001200000000000000020 /* WhoopLiveIMU */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C1A001200000000000000020 /* WhoopLiveIMU */ = {
+			isa = PBXGroup;
+			children = (
+				C1A001010000000000000001 /* IMUMotionManager.swift */,
+						C1A001030000000000000003 /* WhoopBLEManager.swift */,
+				C1A001040000000000000004 /* WhoopCommands.swift */,
+				C1A001050000000000000005 /* WhoopFraming.swift */,
+				C1A001060000000000000006 /* WhoopIMUDecoder.swift */,
+				C1A001070000000000000007 /* WhoopUUIDs.swift */,
+				A398E85B279EE8D9B9124BE7 /* SwingDetector.swift */,
+			);
+			path = WhoopLiveIMU;
+			sourceTree = "<group>";
+		};
+		5753190AD8BB05CCC9DA7C42 /* WatchSupport */ = {
+			isa = PBXGroup;
+			children = (
+				8412BB6245D7815CC2F2DE00 /* Info.plist */,
+				8E919BAE30512069AAD50678 /* WatchSessionReceiver.swift */,
+				B297F38D7BE7F58477189B21 /* WhoopGolfWatch.entitlements */,
+			);
+			path = WatchSupport;
+			sourceTree = "<group>";
+		};
+		74A785F1FB520145C5441727 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				ECC7F26F3A7F837E55652F92 /* CoreBluetooth.framework */,
+				FAB7B10195D8CE49A3833067 /* CoreLocation.framework */,
+				2C4F9C873E12F0A0841F793D /* CoreMotion.framework */,
+				4C0F2C25C852DB628FCBFC17 /* HealthKit.framework */,
+				7F66F5D74BD5C80853D67E47 /* WatchConnectivity.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7757DB8CC351E8CDBC594CB3 /* watch */ = {
+			isa = PBXGroup;
+			children = (
+				E12183759ED85A45A8600986 /* WhoopGolfWatchApp */,
+			);
+			path = watch;
+			sourceTree = "<group>";
+		};
+		90DD605098A52A46727F3451 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				D0298B54F3A8C989D14AA8B3 /* EighteenBirdiesCompanionCard.swift */,
+				6FA2E86A6DE801BA6E4A7ED5 /* GolfTheme.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		9E7A6ED79234E6197DDADBF8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				74B24EDB8B87BC1C3F1D2E83 /* WhoopGolf.app */,
+				F17F5C4A6AD55ADC79032DED /* WhoopGolfTests.xctest */,
+				3DC507CB8EC5AF4C2DFED47E /* WhoopGolfWatch.app */,
+				FA710F383034380600812BFB /* claude.app */,
+				FA710F463034380800812BFB /* claudeTests.xctest */,
+				FA710F503034380800812BFB /* claudeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A6925BF90ACF09DCD51D3CF9 /* WhoopGolfTests */ = {
+			isa = PBXGroup;
+			children = (
+				413ED53A07303B7A580BDB5C /* AutomaticHoleTransitionEngineTests.swift */,
+				52335CCA8D6D4A9A416D62D4 /* BridgeClientTests.swift */,
+				E56C3064BCE48B824EF323DD /* BridgePairingClientTests.swift */,
+				B2CFEDB0A03CCFAC7DFB08ED /* CoreModelTests.swift */,
+				CB57FE1950490EBC045B6ED2 /* EighteenBirdiesCompanionLinkTests.swift */,
+				A071C07504B7835469C7B92F /* GolfCourseLocatorTests.swift */,
+				CB628FFE65AF1235DD1409D0 /* RoundLocationJournalTests.swift */,
+				14464B21D0B64C39695A9FF4 /* SensorModeCoordinatorTests.swift */,
+				C1A002E2A0000000000000E2 /* DualWearableFusionTests.swift */,
+				D19A005A0000000000000005 /* StrokeScoreShotChainTests.swift */,
+				D19A004A0000000000000004 /* DualWearableRequirementTests.swift */,
+				D19A006A0000000000000006 /* ComprehensiveShotIntelligenceTests.swift */,
+				8DD8FC17B0D03DBC15A0C18E /* WatchRoundContextTests.swift */,
+				C1A00208A000000000000008 /* SwingPathGuidanceTests.swift */,
+				C1A00208A000000000000009 /* WatchYardageBridgeTests.swift */,
+				C1A0020B00000000000000B0 /* PhoneYardageBridgeTests.swift */,
+				1B84536CFA7F3324CB9A1ACB /* WatchSessionImporterTests.swift */,
+				108C0B062C6B5FA6298487FC /* WhoopMotionImportServiceTests.swift */,
+			);
+			path = WhoopGolfTests;
+			sourceTree = "<group>";
+		};
+		A852DF4DAEDA1EB559355B04 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				02CC1B4B0EBFEF276FB70CEF /* AppModel.swift */,
+				7345138C2DA436145A646F33 /* DemoFixtures.swift */,
+				D4FBB6BFF5499F1C29D320C2 /* WhoopGolfApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		B08AF2AB9A9EC856E0B25D1D /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C43A2474387CACA14BEDA30A /* Assets.xcassets */,
+				BC537F0DE4CA6376DB66D5B4 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B1A40E9E3A067B1A3C39B763 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+						EE227643D1291F21E121D80D /* AutomaticHoleTransitionEngine.swift */,
+				35B07FDE099025DEACABB978 /* GolfModels.swift */,
+				06A77756A0FF58FD8EC61A45 /* HeartRateMeasurementParser.swift */,
+				9CA636E088DC39901A548458 /* ReadinessModels.swift */,
+				77725EF054594E5232341A11 /* SensorModeCoordinator.swift */,
+				C1A002E1A0000000000000E1 /* DualWearableFusion.swift */,
+				D19A002A0000000000000002 /* ComprehensiveShotIntelligence.swift */,
+				D19A001A0000000000000001 /* DualWearableRequirement.swift */,
+				C172D74F2289A78BE93C99FD /* ShotDistanceCalculator.swift */,
+				F0B20D479547B15E25C953FB /* SourceProvenance.swift */,
+				072AF175DC9A8671E62ABDD4 /* SwingShotIntervalCalculator.swift */,
+				839C2D30062AF3A3F1757917 /* WhoopMotionTransferModels.swift */,
+				C1A00203A000000000000003 /* GolfImprover.swift */,
+				C1A00202A000000000000002 /* SwingPathGuidance.swift */,
+				C1A00204A000000000000004 /* WatchLiveFace.swift */,
+				C1A0020BA000000000000011 /* PhoneYardageBridge.swift */,
+				C1A0020AA000000000000010 /* WatchRoundContext.swift */,
+				C1A00201A000000000000001 /* WatchWristPreference.swift */,
+				C1A0020CA000000000000012 /* WatchCoachingCue.swift */,
+				E7265F342C6D5C24B7BA7DCC /* StrokeScoreShotChain.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		BEEE27C5D575FF510693001C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				DC274747F6BA034B39F67353 /* AppShell.swift */,
+				D19A003A0000000000000003 /* OverviewView.swift */,
+				37A81CA8864F5831F14BBEDB /* RoundView.swift */,
+				C5698CD41AEC31BE52963E5C /* SettingsView.swift */,
+				E6823C81F08C219BE689D062 /* TodayView.swift */,
+				6C26CDA63893B9CCC36A993C /* TrendsView.swift */,
+				C1A00303A000000000000003 /* WatchCompanionPanels.swift */,
+				C1A00302A000000000000002 /* GolfStrokeBoardView.swift */,
+				C1A00301A000000000000001 /* GolfStrokePresentation.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		DCD89119E686FA8688A648DA /* whoop-18birdies */ = {
+			isa = PBXGroup;
+			children = (
+				7757DB8CC351E8CDBC594CB3 /* watch */,
+			);
+			name = "whoop-18birdies";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		E12183759ED85A45A8600986 /* WhoopGolfWatchApp */ = {
+			isa = PBXGroup;
+			children = (
+				B834B3CD55023B53C61DB62C /* LocationManager.swift */,
+				187332F36331AF6AFE44EC3B /* MotionManager.swift */,
+				C1A00205A000000000000005 /* GPSSourceCheck.swift */,
+				C1A00206A000000000000006 /* IngestSettings.swift */,
+				3965CB007A10D37E35769D5D /* SessionModel.swift */,
+				764EA0F6FD737A7D315CAFD7 /* SessionView.swift */,
+						C1A00209A000000000000009 /* WatchRoundFaceView.swift */,
+				0FF29A332056C7C5E13B1677 /* SwingDetector.swift */,
+				401781B8F64E2EE32E9BC5B4 /* WatchSessionTransfer.swift */,
+						BAC0DF6E36B91F2C06846057 /* WorkoutManager.swift */,
+				718BCF1B1D7DC22FFFC680C2 /* SettingsView.swift */,
+				7CB7A4E005840734AB1F439B /* WhoopGolfApp.swift */,
+			);
+			path = WhoopGolfWatchApp;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		06AA7E66F53928AA9A7774FC /* WhoopGolf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0083EDFC1802AC0E5FAABC66 /* Build configuration list for PBXNativeTarget "WhoopGolf" */;
+			buildPhases = (
+				75F26C092DDA423EC7D63D69 /* Sources */,
+				F7F80FD690600BB084AF4902 /* Resources */,
+				38402A01EC28A8EA50AD0069 /* Frameworks */,
+				C1A003030000000000000003 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1A003020000000000000002 /* PBXTargetDependency */,
+			);
+			name = WhoopGolf;
+			productName = WhoopGolf;
+			productReference = 74B24EDB8B87BC1C3F1D2E83 /* WhoopGolf.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0DD89A3CD484DE44901DD8E2 /* WhoopGolfWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3EFD66ECB540D088C874CCBF /* Build configuration list for PBXNativeTarget "WhoopGolfWatch" */;
+			buildPhases = (
+				0A6E67CFDF57A45515D00771 /* Sources */,
+				C2EF8AAABC9D5146AEE30957 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			name = WhoopGolfWatch;
+			productName = WhoopGolfWatch;
+			productReference = 3DC507CB8EC5AF4C2DFED47E /* WhoopGolfWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A15391062D43064208260099 /* WhoopGolfTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A12E5AE2189FEBC0F0D51DE /* Build configuration list for PBXNativeTarget "WhoopGolfTests" */;
+			buildPhases = (
+				E2FA1767FB64281596CE8833 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A241D318B324BE3D257FD7C /* PBXTargetDependency */,
+			);
+			name = WhoopGolfTests;
+			productName = WhoopGolfTests;
+			productReference = F17F5C4A6AD55ADC79032DED /* WhoopGolfTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FA710F373034380600812BFB /* claude */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA710F5E3034380800812BFB /* Build configuration list for PBXNativeTarget "claude" */;
+			buildPhases = (
+				FA710F343034380600812BFB /* Sources */,
+				FA710F353034380600812BFB /* Frameworks */,
+				FA710F363034380600812BFB /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				FA710F393034380600812BFB /* claude */,
+			);
+			name = claude;
+			productName = claude;
+			productReference = FA710F383034380600812BFB /* claude.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FA710F453034380800812BFB /* claudeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA710F5F3034380800812BFB /* Build configuration list for PBXNativeTarget "claudeTests" */;
+			buildPhases = (
+				FA710F423034380800812BFB /* Sources */,
+				FA710F433034380800812BFB /* Frameworks */,
+				FA710F443034380800812BFB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FA710F483034380800812BFB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FA710F493034380800812BFB /* claudeTests */,
+			);
+			name = claudeTests;
+			productName = claudeTests;
+			productReference = FA710F463034380800812BFB /* claudeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FA710F4F3034380800812BFB /* claudeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA710F603034380800812BFB /* Build configuration list for PBXNativeTarget "claudeUITests" */;
+			buildPhases = (
+				FA710F4C3034380800812BFB /* Sources */,
+				FA710F4D3034380800812BFB /* Frameworks */,
+				FA710F4E3034380800812BFB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FA710F523034380800812BFB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FA710F533034380800812BFB /* claudeUITests */,
+			);
+			name = claudeUITests;
+			productName = claudeUITests;
+			productReference = FA710F503034380800812BFB /* claudeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EA6FA0836F7BFDF76496D937 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					06AA7E66F53928AA9A7774FC = {
+						ProvisioningStyle = Automatic;
+					};
+					0DD89A3CD484DE44901DD8E2 = {
+						ProvisioningStyle = Automatic;
+					};
+					A15391062D43064208260099 = {
+						ProvisioningStyle = Automatic;
+					};
+					FA710F373034380600812BFB = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					FA710F453034380800812BFB = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = FA710F373034380600812BFB;
+					};
+					FA710F4F3034380800812BFB = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = FA710F373034380600812BFB;
+					};
+				};
+			};
+			buildConfigurationList = 87140158DABAF33E2A4DBCAE /* Build configuration list for PBXProject "WhoopGolf" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 485A6F63FE235D5D3C69E22C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 90;
+			productRefGroup = 9E7A6ED79234E6197DDADBF8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				06AA7E66F53928AA9A7774FC /* WhoopGolf */,
+				0DD89A3CD484DE44901DD8E2 /* WhoopGolfWatch */,
+				A15391062D43064208260099 /* WhoopGolfTests */,
+				FA710F373034380600812BFB /* claude */,
+				FA710F453034380800812BFB /* claudeTests */,
+				FA710F4F3034380800812BFB /* claudeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F7F80FD690600BB084AF4902 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				36A6ED839D7A64580A015F2D /* Assets.xcassets in Resources */,
+				1C84C03F412F5AC64CECA47C /* PrivacyInfo.xcprivacy in Resources */,
+			);
+		};
+		FA710F363034380600812BFB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FA710F443034380800812BFB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FA710F4E3034380800812BFB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0A6E67CFDF57A45515D00771 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+						73EDFBB9A000D87CB5FE2B70 /* LocationManager.swift in Sources */,
+				39F56AA2F46DCB0A467515AC /* MotionManager.swift in Sources */,
+				A18B9FA58EB0D807B2291B3E /* SessionModel.swift in Sources */,
+				EF8B8083D682AD5A621ADCF6 /* SessionView.swift in Sources */,
+				F934AC9CF459562742E4E5C3 /* SwingDetector.swift in Sources */,
+				13B23E1AFBF49778FF8EEC6E /* WatchSessionTransfer.swift in Sources */,
+				D60F13E4D9ED55410FE56828 /* WorkoutManager.swift in Sources */,
+				C1A00221A000000000000001 /* WatchWristPreference.swift in Sources */,
+				C1A00222A000000000000002 /* SwingPathGuidance.swift in Sources */,
+				C1A00223A000000000000003 /* GolfImprover.swift in Sources */,
+				C1A00224A000000000000004 /* WatchLiveFace.swift in Sources */,
+				C1A0022AA000000000000010 /* WatchRoundContext.swift in Sources */,
+				C1A00225A000000000000005 /* GPSSourceCheck.swift in Sources */,
+				C1A00226A000000000000006 /* IngestSettings.swift in Sources */,
+				C1A00229A000000000000009 /* WatchRoundFaceView.swift in Sources */,
+				C1A0022CA000000000000012 /* WatchCoachingCue.swift in Sources */,
+				8BCE4763650C674191BF4711 /* SettingsView.swift in Sources */,
+				5BC2B9E2D1C4E5A79FFFBEB0 /* WhoopGolfApp.swift in Sources */,
+			);
+		};
+		75F26C092DDA423EC7D63D69 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+						7A0D3FE497951238D9691917 /* AppModel.swift in Sources */,
+				D760CB02C56C21EEFCDE3D09 /* AppShell.swift in Sources */,
+				40187DC906F2FC56FA31DE49 /* AutomaticHoleTransitionEngine.swift in Sources */,
+				E8E9C443A338CC13D66E61D3 /* BridgePairingClient.swift in Sources */,
+				621B741359BC72A621CA53F9 /* DemoFixtures.swift in Sources */,
+				A0E41D620F6CBD100E2238AC /* EighteenBirdiesCompanionCard.swift in Sources */,
+				51A4707E767DF100CF5E6356 /* EighteenBirdiesCompanionLink.swift in Sources */,
+				9733EDB93FEC895A736EDF47 /* GolfCourseLocator.swift in Sources */,
+				040958E958E945C1F84C0A23 /* GolfModels.swift in Sources */,
+				FFC82CD6EBF525FBAE159C59 /* GolfTheme.swift in Sources */,
+				06C981FED45E9BDA5BF8FD97 /* HealthAuthorizationService.swift in Sources */,
+				0F75FCDE19D4DD701B365D50 /* HeartRateMeasurementParser.swift in Sources */,
+				4818557B87543DC0B9F46473 /* KeychainStore.swift in Sources */,
+				5005A1A98526F57C23545607 /* LocationRoundService.swift in Sources */,
+				D8483C60064D526E5395FC17 /* ReadinessModels.swift in Sources */,
+				1FF321BDA1F3ED8D4ECD9630 /* RoundFileStore.swift in Sources */,
+				437E97C8488563950C466B82 /* RoundLocationJournal.swift in Sources */,
+				5048C528811685B25789BD38 /* RoundView.swift in Sources */,
+				03C2B9B0E964C4459A3AD4A9 /* SensorModeCoordinator.swift in Sources */,
+				C1A002F1A0000000000000F1 /* DualWearableFusion.swift in Sources */,
+				D19A001B0000000000000001 /* DualWearableRequirement.swift in Sources */,
+				D19A002B0000000000000002 /* ComprehensiveShotIntelligence.swift in Sources */,
+				D19A003B0000000000000003 /* OverviewView.swift in Sources */,
+				A1FBE3A3EA7E5791BD1018B5 /* SettingsView.swift in Sources */,
+				67C31F765A4925DF1B5D76FF /* ShotDistanceCalculator.swift in Sources */,
+				7CB5467993F53D5E4BECE45D /* SourceProvenance.swift in Sources */,
+				BC50C1D2F564812D78981FB4 /* SwingShotIntervalCalculator.swift in Sources */,
+				D1F74E2CE4FC73C073587254 /* TodayView.swift in Sources */,
+				A449D61CD2D1C7A2263DA9AE /* TrendsView.swift in Sources */,
+				C1A00313A000000000000003 /* WatchCompanionPanels.swift in Sources */,
+				C1A00312A000000000000002 /* GolfStrokeBoardView.swift in Sources */,
+				C1A00311A000000000000001 /* GolfStrokePresentation.swift in Sources */,
+				0DDAE85445C32E867FDBA6F5 /* WatchSessionImporter.swift in Sources */,
+				5C43AAEB667F84C34B9002DA /* WatchSessionReceiver.swift in Sources */,
+				2DF2D3F42316DD9119E13D7D /* Whoop5DiscoveryScanner.swift in Sources */,
+				82D97B557F0197DD063DB77C /* WhoopBridgeClient.swift in Sources */,
+				F32249BC6F8281141EDE73F1 /* WhoopGolfApp.swift in Sources */,
+				638C026C5AA9B9C9B35269B3 /* WhoopHeartRateProvider.swift in Sources */,
+				C1A001110000000000000001 /* IMUMotionManager.swift in Sources */,
+				C1A001130000000000000003 /* WhoopBLEManager.swift in Sources */,
+				C1A001140000000000000004 /* WhoopCommands.swift in Sources */,
+				C1A001150000000000000005 /* WhoopFraming.swift in Sources */,
+				C1A001160000000000000006 /* WhoopIMUDecoder.swift in Sources */,
+				C1A001170000000000000007 /* WhoopUUIDs.swift in Sources */,
+				9EAB0CB5A877FCE85942CF89 /* WhoopMotionImportService.swift in Sources */,
+				3023728D95507866C63B74BB /* WhoopMotionTransferModels.swift in Sources */,
+				C1A00211A000000000000001 /* WatchWristPreference.swift in Sources */,
+				C1A00212A000000000000002 /* SwingPathGuidance.swift in Sources */,
+				C1A00213A000000000000003 /* GolfImprover.swift in Sources */,
+				C1A00214A000000000000004 /* WatchLiveFace.swift in Sources */,
+				C1A0021BA000000000000011 /* PhoneYardageBridge.swift in Sources */,
+				C1A0021AA000000000000010 /* WatchRoundContext.swift in Sources */,
+				C1A0021CA000000000000012 /* WatchCoachingCue.swift in Sources */,
+				CCB79715E0A57ABA14CAB8AE /* StrokeScoreShotChain.swift in Sources */,
+				F8D8C20926F2201FCA3E8A69 /* SwingDetector.swift in Sources */,
+			);
+		};
+		E2FA1767FB64281596CE8833 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				8AD4DCAF7D8E570650E84AD1 /* AutomaticHoleTransitionEngineTests.swift in Sources */,
+				101A1FDE441C049ECC6D3A55 /* BridgeClientTests.swift in Sources */,
+				C9B5E22D90371BE0B07E9047 /* BridgePairingClientTests.swift in Sources */,
+				39A52AB511FA3A49BDEA2980 /* CoreModelTests.swift in Sources */,
+				DE78FA4CDA5F65BDB7739B9B /* EighteenBirdiesCompanionLinkTests.swift in Sources */,
+				729505191DCFA2B02D18AD77 /* GolfCourseLocatorTests.swift in Sources */,
+				2F104A3F384F381D19E008F6 /* RoundLocationJournalTests.swift in Sources */,
+				5726BF649B76890112820D17 /* SensorModeCoordinatorTests.swift in Sources */,
+				C1A002F2A0000000000000F2 /* DualWearableFusionTests.swift in Sources */,
+				D19A004B0000000000000004 /* DualWearableRequirementTests.swift in Sources */,
+				D19A006B0000000000000006 /* ComprehensiveShotIntelligenceTests.swift in Sources */,
+				D19A005B0000000000000005 /* StrokeScoreShotChainTests.swift in Sources */,
+				A9BC0929CFDF98D7B4524D6A /* WatchRoundContextTests.swift in Sources */,
+				C1A00228A000000000000008 /* SwingPathGuidanceTests.swift in Sources */,
+				C1A00228A000000000000009 /* WatchYardageBridgeTests.swift in Sources */,
+				C1A0022A00000000000000B0 /* PhoneYardageBridgeTests.swift in Sources */,
+				1E9D79D31078887A011B4EA7 /* WatchSessionImporterTests.swift in Sources */,
+				10F351D51FE4E3E5B4F6041B /* WhoopMotionImportServiceTests.swift in Sources */,
+			);
+		};
+		FA710F343034380600812BFB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		FA710F423034380800812BFB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		FA710F4C3034380800812BFB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8A241D318B324BE3D257FD7C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 06AA7E66F53928AA9A7774FC /* WhoopGolf */;
+			targetProxy = 0EBF655FF3FFCC665A2C8B2B /* PBXContainerItemProxy */;
+		};
+		FA710F483034380800812BFB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA710F373034380600812BFB /* claude */;
+			targetProxy = FA710F473034380800812BFB /* PBXContainerItemProxy */;
+		};
+		FA710F523034380800812BFB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA710F373034380600812BFB /* claude */;
+			targetProxy = FA710F513034380800812BFB /* PBXContainerItemProxy */;
+		};
+		C1A003020000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0DD89A3CD484DE44901DD8E2 /* WhoopGolfWatch */;
+			targetProxy = C1A003010000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0A34D342C673128736631340 /* Release configuration for PBXNativeTarget "WhoopGolf" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WhoopGolf/WhoopGolf.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				INFOPLIST_FILE = WhoopGolf/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.whoopgolf;
+				PRODUCT_MODULE_NAME = WhoopGolf;
+				PRODUCT_NAME = WhoopGolf;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		429039A7A639E4D27DACDE4D /* Debug configuration for PBXNativeTarget "WhoopGolf" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WhoopGolf/WhoopGolf.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				INFOPLIST_FILE = WhoopGolf/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.whoopgolf;
+				PRODUCT_MODULE_NAME = WhoopGolf;
+				PRODUCT_NAME = WhoopGolf;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		6E46CA6847936B9342CE28E4 /* Release configuration for PBXNativeTarget "WhoopGolfTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.whoopgolf.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhoopGolf.app/WhoopGolf";
+			};
+			name = Release;
+		};
+		806ED57F47F0538F65E5EDAD /* Release configuration for PBXNativeTarget "WhoopGolfWatch" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WatchSupport/WhoopGolfWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = WatchSupport/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.whoopgolf.watchkitapp;
+				PRODUCT_MODULE_NAME = WhoopGolfWatch;
+				PRODUCT_NAME = WhoopGolfWatch;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		83E9A3E1CBC167872F976976 /* Release configuration for PBXProject "WhoopGolf" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		91D298991503AD8EABCB310A /* Debug configuration for PBXNativeTarget "WhoopGolfTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.whoopgolf.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WhoopGolf.app/WhoopGolf";
+			};
+			name = Debug;
+		};
+		AAFEF90C56847E0E404F1AB0 /* Debug configuration for PBXNativeTarget "WhoopGolfWatch" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WatchSupport/WhoopGolfWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = WatchSupport/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.whoopgolf.watchkitapp;
+				PRODUCT_MODULE_NAME = WhoopGolfWatch;
+				PRODUCT_NAME = WhoopGolfWatch;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		BB85F4184E263315CD381BD9 /* Debug configuration for PBXProject "WhoopGolf" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		FA710F583034380800812BFB /* Debug configuration for PBXNativeTarget "claude" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = YES;
+				ENABLE_RESOURCE_ACCESS_USB = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = GolfTracking.claude;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = YES;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		FA710F593034380800812BFB /* Release configuration for PBXNativeTarget "claude" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AUTOMATION_APPLE_EVENTS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = YES;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = YES;
+				ENABLE_RESOURCE_ACCESS_USB = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = GolfTracking.claude;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = YES;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		FA710F5A3034380800812BFB /* Debug configuration for PBXNativeTarget "claudeTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = GolfTracking.claudeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/claude.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/claude";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		FA710F5B3034380800812BFB /* Release configuration for PBXNativeTarget "claudeTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = GolfTracking.claudeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/claude.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/claude";
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		FA710F5C3034380800812BFB /* Debug configuration for PBXNativeTarget "claudeUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = GolfTracking.claudeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = claude;
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		FA710F5D3034380800812BFB /* Release configuration for PBXNativeTarget "claudeUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = GolfTracking.claudeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = claude;
+				XROS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0083EDFC1802AC0E5FAABC66 /* Build configuration list for PBXNativeTarget "WhoopGolf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				429039A7A639E4D27DACDE4D /* Debug configuration for PBXNativeTarget "WhoopGolf" */,
+				0A34D342C673128736631340 /* Release configuration for PBXNativeTarget "WhoopGolf" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		0A12E5AE2189FEBC0F0D51DE /* Build configuration list for PBXNativeTarget "WhoopGolfTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				91D298991503AD8EABCB310A /* Debug configuration for PBXNativeTarget "WhoopGolfTests" */,
+				6E46CA6847936B9342CE28E4 /* Release configuration for PBXNativeTarget "WhoopGolfTests" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		3EFD66ECB540D088C874CCBF /* Build configuration list for PBXNativeTarget "WhoopGolfWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAFEF90C56847E0E404F1AB0 /* Debug configuration for PBXNativeTarget "WhoopGolfWatch" */,
+				806ED57F47F0538F65E5EDAD /* Release configuration for PBXNativeTarget "WhoopGolfWatch" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		87140158DABAF33E2A4DBCAE /* Build configuration list for PBXProject "WhoopGolf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB85F4184E263315CD381BD9 /* Debug configuration for PBXProject "WhoopGolf" */,
+				83E9A3E1CBC167872F976976 /* Release configuration for PBXProject "WhoopGolf" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		FA710F5E3034380800812BFB /* Build configuration list for PBXNativeTarget "claude" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA710F583034380800812BFB /* Debug configuration for PBXNativeTarget "claude" */,
+				FA710F593034380800812BFB /* Release configuration for PBXNativeTarget "claude" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		FA710F5F3034380800812BFB /* Build configuration list for PBXNativeTarget "claudeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA710F5A3034380800812BFB /* Debug configuration for PBXNativeTarget "claudeTests" */,
+				FA710F5B3034380800812BFB /* Release configuration for PBXNativeTarget "claudeTests" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		FA710F603034380800812BFB /* Build configuration list for PBXNativeTarget "claudeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA710F5C3034380800812BFB /* Debug configuration for PBXNativeTarget "claudeUITests" */,
+				FA710F5D3034380800812BFB /* Release configuration for PBXNativeTarget "claudeUITests" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EA6FA0836F7BFDF76496D937 /* Project object */;
+}

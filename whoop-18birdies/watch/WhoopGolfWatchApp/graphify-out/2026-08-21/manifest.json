@@ -1,0 +1,62 @@
+{
+  "GPSSourceCheck.swift": {
+    "mtime": 1787036977.554505,
+    "ast_hash": "cf68a655112f341fcd8792c4249081ab",
+    "semantic_hash": ""
+  },
+  "IngestSettings.swift": {
+    "mtime": 1787193782.2428284,
+    "ast_hash": "c520ae9a229b6d4e2d0bf565bbfe02aa",
+    "semantic_hash": ""
+  },
+  "LocationManager.swift": {
+    "mtime": 1787036977.5549185,
+    "ast_hash": "12b5015e34d0c86c0757b7af2a43e3a9",
+    "semantic_hash": ""
+  },
+  "MotionManager.swift": {
+    "mtime": 1787289449.8370492,
+    "ast_hash": "8279cd714ecf3dee43b2e8bb9a44c932",
+    "semantic_hash": ""
+  },
+  "SessionModel.swift": {
+    "mtime": 1787287796.4340184,
+    "ast_hash": "8c029f3d90a9d00c4dbef3c8e0472d9d",
+    "semantic_hash": ""
+  },
+  "SessionView.swift": {
+    "mtime": 1787289398.6986365,
+    "ast_hash": "ef0d5a81885a32f2ea8e1a5e6d7d86a2",
+    "semantic_hash": ""
+  },
+  "SettingsView.swift": {
+    "mtime": 1787287835.0728106,
+    "ast_hash": "c15083791f233712b5eb3e6e846c1b74",
+    "semantic_hash": ""
+  },
+  "SwingDetector.swift": {
+    "mtime": 1787287786.63285,
+    "ast_hash": "2e8c34473304b5e21591abb254c9b0b7",
+    "semantic_hash": ""
+  },
+  "WatchRoundFaceView.swift": {
+    "mtime": 1787289393.0509615,
+    "ast_hash": "3fd80306a503700b388590bc78809ff8",
+    "semantic_hash": ""
+  },
+  "WatchSessionTransfer.swift": {
+    "mtime": 1787287770.4198186,
+    "ast_hash": "8ad3d87e5615ed464bd317e7bafcbc27",
+    "semantic_hash": ""
+  },
+  "WhoopGolfApp.swift": {
+    "mtime": 1787287816.6390057,
+    "ast_hash": "8800fa989aeca93733e5a74a84f533d8",
+    "semantic_hash": ""
+  },
+  "WorkoutManager.swift": {
+    "mtime": 1787289526.1491983,
+    "ast_hash": "e7a046afe85c190c0e6c619e84e84cdf",
+    "semantic_hash": ""
+  }
+}

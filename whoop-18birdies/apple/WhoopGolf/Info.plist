@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>WHOOP Golf</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>WHOOP Golf connects to a WHOOP strap for heart-rate broadcast and optional live wrist motion. The official WHOOP app should be closed before a live IMU connection.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>WHOOP Golf reads authorized workouts and heart-rate data to explain golf performance.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>WHOOP Golf can optionally export a finished golf workout after its protected local round is saved.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>WHOOP Golf continues the timestamped GPS trail only while your saved round is active, including when the screen is locked or the app is in the background, so delayed WHOOP swing observations can be matched to approximate shot positions.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>WHOOP Golf records a timestamped GPS trail during an active round so later WHOOP swing events can be matched to approximate shot positions and displacement.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>bluetooth-central</string>
+		<string>bluetooth-peripheral</string>
+		<string>audio</string>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>external-accessory</string>
+		<string>remote-notification</string>
+		<string>push-to-talk</string>
+		<string>nearby-interaction</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+</dict>
+</plist>

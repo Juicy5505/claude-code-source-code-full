@@ -1,0 +1,7 @@
+[mcp_servers.claude-code-explorer]
+command = "node"
+args = ["mcp-server/dist/index.js"]
+
+[mcp_servers.claude-code-explorer.env]
+CLAUDE_CODE_SRC_ROOT = "./src"
+
