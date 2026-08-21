@@ -240,3 +240,26 @@ Keep `NO_XCODE` until Mac paste results land. Ship a one-paste script
 (Watch OS gate CLEARED 2026-08-21; see `docs/MAC-WATCH-INSTALL.md`).
 
 **Rule of thumb:** only clear NO_XCODE from a real Mac `xcodebuild` log.
+
+---
+
+## L10 — Watch companion “can’t install” from bad Watch Info.plist / baked team ID
+
+**Symptom**
+Xcode builds but device install of WhoopGolf / embedded WhoopGolfWatch fails
+(“Unable to install”, Watch greyed out, signing errors).
+
+**Root cause**
+1. Watch `Info.plist` carried iOS-only `UIBackgroundModes` (audio / location /
+   remote-notification) alongside `WKBackgroundModes` — invalid for the
+   companion embed path.
+2. `DEVELOPMENT_TEAM` committed in `project.pbxproj` can disagree with the
+   Personal Team currently signed into Xcode.
+
+**Fix**
+Watch plist: keep `WKBackgroundModes = workout-processing` + HealthKit
+entitlement only; strip iOS `UIBackgroundModes`. Do not commit team IDs —
+Alex selects Personal Team on **both** WhoopGolf and WhoopGolfWatch. See
+`docs/MAC-WATCH-INSTALL.md` §3b.
+
+**Rule of thumb:** Watch Info gets WK* keys; team IDs stay local to Xcode.

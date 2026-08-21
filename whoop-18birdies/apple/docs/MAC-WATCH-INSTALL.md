@@ -51,6 +51,19 @@ Do **not** use `-derivedDataPath` under iCloud `~/Documents` (LESSONS L3).
 
 ---
 
+## 3b. If Xcode says it can’t install (troubleshoot in order)
+
+1. **Copy the exact error** from the Xcode Report navigator (red install failure) and paste it back — wording matters.
+2. **Signing (most common):** WhoopGolf **and** WhoopGolfWatch → Signing & Capabilities → Team = **your Personal Team**, Automatically manage signing **On**. Bundle IDs stay `com.alex.whoopgolf` / `com.alex.whoopgolf.watchkitapp`. (Repo no longer ships a hardcoded team ID.)
+3. **Developer Mode / Trust:** iPhone → Settings → Privacy & Security → Developer Mode **On**; Settings → General → VPN & Device Management → Trust your developer cert. Unlock the **Watch** during install.
+4. **Delete old copies:** Delete WHOOP Golf / Whoop Swing / any Kit A Watch app from phone **and** Watch, then Run again.
+5. **Clean:** Xcode → Product → Clean Build Folder; Derived Data must **not** live under iCloud `~/Documents` (LESSONS L3).
+6. **Free Personal Team limits:** Free accounts cap ~3 apps / 7-day profiles. Delete unused personal-team apps, then retry.
+7. **Watch pairing:** Watch app on iPhone shows Watch connected; Xcode Devices lists Watch under the iPhone. Re-pair if the Watch is greyed out.
+8. Pull latest branch (Watch Info.plist no longer carries invalid iOS `UIBackgroundModes` that can break companion install), then Run **WhoopGolf** → iPhone again.
+
+---
+
 ## 4. After phone reboot (Personal Team)
 
 If the app shows as **unavailable** after a reboot:
