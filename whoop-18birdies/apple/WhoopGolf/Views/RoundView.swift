@@ -112,7 +112,7 @@ struct RoundView: View {
                         Text(DualWearableRequirement.detail(for: model.dualWearableAdmission))
                             .font(.caption)
                             .foregroundStyle(Color.golfMist)
-                        Text("Both Apple Watch (live path/HR/face) and WHOOP 5 (delayed enrich + readiness) are required. Manual / single-wearable starts are disabled.")
+                        Text("Both required to start: Apple Watch live capture (path/HR/face) and WHOOP 5 delayed enrich + readiness. Watch-only, WHOOP-only, and manual starts are disabled.")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.55))
                     }
@@ -159,8 +159,8 @@ struct RoundView: View {
                         PreflightRow(
                             title: "Apple Watch capture",
                             detail: model.sensorCapabilities.appleWatch.canCaptureLive
-                                ? "Required · live wrist path, tempo, HR, haptic, durable transfer"
-                                : "Required · pair and install WhoopGolfWatch (trail-right)",
+                                ? "Required for every round · live wrist path, tempo, HR, haptic, durable transfer"
+                                : "Required for every round · pair and install WhoopGolfWatch (trail-right) — cannot start Watch-only",
                             symbol: "applewatch",
                             state: model.sensorCapabilities.appleWatch.canCaptureLive ? .ready : .blocked
                         )
@@ -168,8 +168,8 @@ struct RoundView: View {
                         PreflightRow(
                             title: "WHOOP 5 motion + physio",
                             detail: model.sensorCapabilities.whoop.hasSwingSource
-                                ? "Required · delayed enrich, readiness/recovery/strain · no live Arming"
-                                : "Required · configure private bridge / Check for WHOOP swings",
+                                ? "Required for every round · delayed enrich, readiness/recovery/strain · no live Arming"
+                                : "Required for every round · configure private bridge / Check for WHOOP swings — cannot start WHOOP-only",
                             symbol: "gyroscope",
                             state: model.sensorCapabilities.whoop.hasSwingSource ? .ready : .blocked
                         )
@@ -216,6 +216,11 @@ struct RoundView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .disabled(!model.canStartDualWearableRound)
                 .opacity(model.canStartDualWearableRound ? 1 : 0.45)
+                .accessibilityHint(
+                    model.canStartDualWearableRound
+                        ? "Starts a hybrid round with Apple Watch and WHOOP"
+                        : DualWearableRequirement.detail(for: model.dualWearableAdmission)
+                )
             }
             .padding(18)
             .padding(.bottom, 24)
@@ -329,9 +334,7 @@ struct RoundView: View {
     }
 
     private var startButtonTitle: String {
-        model.canStartDualWearableRound
-            ? "Start dual Watch + WHOOP round"
-            : "Wearables required to start"
+        DualWearableRequirement.startButtonTitle(for: model.dualWearableAdmission)
     }
 }
 

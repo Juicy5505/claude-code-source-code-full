@@ -1,45 +1,50 @@
-# App Overview — WHOOP Golf (D19)
+# App Overview — WHOOP Golf (D19 both-required)
 
 Sanitized continuous overview for Obsidian / graphify. **No** tokens, UDIDs, Tailscale IPs, team IDs, or raw HR streams.
 
-Updated: 2026-08-21
+Updated: 2026-08-21 (agent civilization close)
 
 ## Product posture
 
 | Device | Role |
 |---|---|
-| Apple Watch Series 5 (trail **right**) | Live path score + explanation, tempo/improver, HR workout, on-wrist yards |
-| WHOOP 5.0 | Delayed swing import, readiness / recovery / day strain; never live `TOGGLE_IMU` Arming |
-| iPhone | GPS swing-to-swing shot yards, stroke journal, Overview fusion glass |
+| Apple Watch Series 5 (trail **right**) | Live path score + explanation, tempo/improver, HR workout, on-wrist yards/club/ball-start |
+| WHOOP 5.0 | Delayed swing enrich, readiness / recovery / day strain; never live `TOGGLE_IMU` Arming |
+| iPhone | GPS swing-to-swing shot yards, stroke journal, dual-gate Overview |
 
-One icon: **WHOOP Golf** · `com.alex.whoopgolf` · `whoop-18birdies/apple/WhoopGolf.xcodeproj`
+**Admission:** new rounds require **both** Watch live-capture and WHOOP swing source (`DualWearableRequirement`). Single-wearable starts are blocked.
 
-## In-app Overview tab
+One icon: **WHOOP Golf** · `com.alex.whoopgolf`
 
-Surfaces readiness hero, last-round stroke count / avg path score / swing-to-swing yards, Watch+WHOOP contribution pills, consistency streak, and a copyable path to this note.
+## Tracking glass (per verified stroke)
+
+- Club (golfer-selected)
+- Body-relative path score + explanation
+- Derived ball-start tendency (not launch monitor)
+- Attack/delivery feel (coaching)
+- Swing-to-swing GPS yards
+- Hybrid provenance (Watch identity + WHOOP enrich, no double-count)
 
 ## Round health buckets (fill after real rounds)
 
 | Bucket | Latest | Notes |
 |---|---|---|
-| Readiness score | — | From cached WHOOP cloud via private bridge |
+| Readiness score | — | Cached WHOOP cloud via private bridge |
 | Recovery % | — | Day physiology |
 | Day strain | — | Not live IMU |
-| Last round strokes | — | Verified journal rows |
-| Avg path score | — | Body-relative 0…100 |
-| Measured shot yards (sum) | — | Phone GPS between verified swings |
-| Miss pattern | — | Dominant path class share |
-| Tempo consistency | — | CV / sparkline on Trends |
+| Last round strokes | — | Verified journal |
+| Avg path score | — | 0…100 body-relative |
+| Measured shot yards | — | Phone GPS between swings |
+| Miss pattern | — | Dominant path class |
+| Tempo consistency | — | Trends sparkline |
 
 ## Graphify checkpoints
 
-After each feature slice:
-
-1. `graphify update .` in `whoop-18birdies/apple` (and watch app if touched)
-2. `graphify update` on the Obsidian vault when mounted
-3. Append session why-note; do not rewrite D15 / D18 history — keep **D19** as the hybrid maximize-both decision
+1. After each feature slice: `graphify update .` in `whoop-18birdies/apple` when installed
+2. Vault: `graphify update` when Obsidian vault mounted
+3. Append session why-note; keep **D19** (do not rewrite D15/D18)
 
 ## Install gate
 
 - Phone: Personal Team signed reinstall as needed
-- Physical Watch install: **only after OS update is confirmed done**
+- Physical Watch install: **only after OS update confirmed**

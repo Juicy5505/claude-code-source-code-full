@@ -29,6 +29,17 @@ struct SettingsView: View {
                                 Text(model.adaptiveSensorPlan.fusedStatusDetail)
                                     .font(.caption)
                                     .foregroundStyle(Color.golfMist)
+                                Text(DualWearableRequirement.title(for: model.dualWearableAdmission))
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(
+                                        model.canStartDualWearableRound ? Color.golfLime : Color.golfSand
+                                    )
+                                Text(DualWearableRequirement.detail(for: model.dualWearableAdmission))
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.golfMist)
+                                Text("New rounds require both wearables. Diagnostic modes below are not startable alone.")
+                                    .font(.caption2)
+                                    .foregroundStyle(.white.opacity(0.55))
                                 CapabilityRow(
                                     title: "Apple Watch",
                                     status: model.adaptiveSensorPlan.mode == .hybrid
