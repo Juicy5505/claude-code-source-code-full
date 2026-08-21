@@ -1,12 +1,12 @@
 # watch-round-face
 
 **Role:** Full golf UI maximizing Watch S5 + WHOOP 5 + phone (`com.alex.whoopgolf`).  
-**Owns:** Watch face (`WatchRoundFaceView` / SessionView composition) and phone UI surfaces for strokes, companion status, session summary, pattern trends.  
+**Owns:** Watch face (`WatchRoundFaceView` / SessionView composition).  
 **Does not own:** Path/tempo math, fusion reconciliation, WCSession receiver, ingest tokens.
 
 ## Status
 
-- **building** — phone stroke board + Watch HR/next-tip face; compiling WhoopGolf + WhoopGolfWatch.
+- **DONE** (D19) — on-wrist face wired to WatchLiveFace v3 + coaching cue overlays.
 
 ## Consumes
 
@@ -14,21 +14,30 @@
 |---|---|
 | `SwingPathStrokeScore` / `SwingPathGuidance.scoreStroke` | `Shared/SwingPathGuidance.swift` |
 | `SwingStrokeScore` / `GolfImprover.strokeScore` / tips | `Shared/GolfImprover.swift` |
-| `WatchLiveFace` | `Shared/WatchLiveFace.swift` |
+| `WatchLiveFace` v3 | `Shared/WatchLiveFace.swift` |
+| `WatchCoachingCue` | `Shared/WatchCoachingCue.swift` |
 | `WatchWristMount` (trail-right default) | `Shared/WatchWristPreference.swift` |
-| `GolfSwingMetrics` / shot intervals | `Shared/GolfModels.swift` |
-| Watch reachability / pending import | `WatchSupport` + `AppModel` |
 
 ## Publishes (UI)
 
-**Watch:** path score + explanation, improver cue/drill/miss, yardage F/M/B when mapped, HR, next-tip (`postSwing`).  
-**Phone:** stroke list + map, WHOOP readiness (Today), delayed import + Watch status card, live session summary, Trends miss/tempo/consistency.
+**Watch:** path score + explanation, improver cue/drill/miss, yardage F/M/B when mapped, last shot yards, hole/course/stroke count, club + ball-start, HR + avg HR, next-tip, trail-right wrist feel.
 
-## Constraints
+## Done
 
-- Trail-right default (D18). No physical Watch install. No secrets in notes.
-- F/M/B stay empty without hole geometry. Yards labeled GPS displacement.
+- Path / Improve / Yardage / HR pages show all required live-face fields.
+- `SessionView` passes `liveFace`, cue tip/drill, `averageHeartRate`, and `liveFace.wristMount`.
 
-## Done when
+## Gaps
 
-WhoopGolf + WhoopGolfWatch compile with the three stroke capabilities on-wrist and the phone board/status/trends wired.
+- Physical Watch install still gated.
+- Foreign WhoopGolfWatch compile blockers owned by watch-connectivity / error-fixer.
+
+## Files
+
+- `whoop-18birdies/watch/WhoopGolfWatchApp/WatchRoundFaceView.swift`
+- `whoop-18birdies/watch/WhoopGolfWatchApp/SessionView.swift`
+
+## Evidence
+
+- v3 keys: path score/label, club, ball-start, hole F/M/B, lastShotYards, strokeCount, courseName, wristMount.
+- Wrist feel: `Feel · trail-right wrist`.

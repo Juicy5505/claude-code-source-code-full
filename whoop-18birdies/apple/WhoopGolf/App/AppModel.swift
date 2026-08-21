@@ -400,6 +400,7 @@ final class AppModel: ObservableObject {
 
         let admission = dualWearableAdmission
         guard admission.allowsStart else {
+            // Hard dual gate: Watch-only / WHOOP-only / incomplete hybrid never start.
             notice = DualWearableRequirement.startBlockedNotice(for: admission)
             return
         }

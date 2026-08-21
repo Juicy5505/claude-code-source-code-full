@@ -146,6 +146,9 @@ final class StrokeScoreShotChainTests: XCTestCase {
             capturedAt: t0,
             peakG: 4.0,
             pathYawDegrees: -10,
+            pathClass: SwingPathClass.outToIn.rawValue,
+            pathScore: 71,
+            club: GolfClubKind.driver.rawValue,
             provenance: DataProvenance(
                 source: .appleWatch,
                 observedAt: t0,
@@ -167,7 +170,47 @@ final class StrokeScoreShotChainTests: XCTestCase {
         let result = HybridSwingReconciler.reconcile([watch, whoop])
         XCTAssertEqual(result.canonicalSwings.count, 1)
         XCTAssertEqual(result.canonicalSwings.first?.id, watchID)
+        XCTAssertEqual(result.canonicalSwings.first?.pathScore, 71)
+        XCTAssertEqual(result.canonicalSwings.first?.club, GolfClubKind.driver.rawValue)
         XCTAssertTrue(result.review.isEmpty)
+    }
+
+    func testEnrichSwingMetricsPreservesYardsAndAddsBallStart() {
+        let t0 = Date(timeIntervalSince1970: 1_700_100_400)
+        let nextID = UUID(uuidString: "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")!
+        let interval = SwingShotInterval(
+            finalizedBySwingID: nextID,
+            finalizedAt: t0.addingTimeInterval(28),
+            elapsedSeconds: 28,
+            straightLineDisplacementYards: 142,
+            distanceUncertaintyYards: 3,
+            distanceStatus: .measured,
+            provenance: DataProvenance(
+                source: .iphoneGPS,
+                observedAt: t0.addingTimeInterval(28),
+                quality: .measured
+            )
+        )
+        let swing = GolfSwingMetrics(
+            capturedAt: t0,
+            peakG: 3.3,
+            pathYawDegrees: -19,
+            pathClass: SwingPathClass.outToIn.rawValue,
+            club: GolfClubKind.nineIron.rawValue,
+            provenance: DataProvenance(
+                source: .appleWatch,
+                observedAt: t0,
+                quality: .measured
+            ),
+            location: location(at: t0, lat: 40.0, lon: -75.0),
+            shotInterval: interval
+        )
+        let enriched = StrokeScoreShotChain.enrichSwingMetrics([swing], wrist: .trailRight)
+        XCTAssertEqual(enriched[0].shotYards ?? -1, 142, accuracy: 0.01)
+        XCTAssertEqual(enriched[0].club, GolfClubKind.nineIron.rawValue)
+        XCTAssertEqual(enriched[0].resolvedPathClass, .outToIn)
+        XCTAssertEqual(enriched[0].resolvedBallStartBias, .pullFade)
+        XCTAssertNotNil(enriched[0].pathScore)
     }
 
     private func location(at date: Date, lat: Double, lon: Double) -> SwingLocationObservation {

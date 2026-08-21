@@ -94,16 +94,19 @@ struct OverviewView: View {
                         MetricTile(
                             label: "Recovery",
                             value: snapshot.recoveryPercent.map { "\(Int($0.rounded()))%" } ?? "—",
-                            detail: "Cached WHOOP",
+                            detail: "WHOOP cloud · cached",
                             symbol: "heart.fill"
                         )
                         MetricTile(
                             label: "Day strain",
                             value: snapshot.dayStrain.map { String(format: "%.1f", $0) } ?? "—",
-                            detail: "Not live IMU",
+                            detail: "Cloud · not live Arming",
                             symbol: "bolt.fill"
                         )
                     }
+                    Text("Physiology is day-level cloud cache. Swing enrichment arrives later via Check for WHOOP swings — never a live IMU hang.")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.52))
                 }
             }
         } else {
@@ -184,6 +187,11 @@ struct OverviewView: View {
                 Text(board.roundFusion.delayedMergeCaption)
                     .font(.caption)
                     .foregroundStyle(Color.golfMist)
+                if board.roundFusion.avoidsWhoop5LiveArming {
+                    Text("WHOOP 5 refuses live TOGGLE_IMU / Arming as the golf path — dual maximize uses delayed merge + Watch live.")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.52))
+                }
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {

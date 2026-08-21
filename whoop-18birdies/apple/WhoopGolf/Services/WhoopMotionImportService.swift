@@ -471,6 +471,7 @@ actor WhoopMotionImportService {
             }
             round.finalizeWHOOPTriggeredShotIntervals()
             // Persist path score / explanation after swing-to-swing yards land.
+            // Delayed historical import only — never live TOGGLE_IMU / Arming.
             round.swings = StrokeScoreShotChain.enrichSwingMetrics(
                 round.swings,
                 wrist: .golferDefault
@@ -712,6 +713,8 @@ actor WhoopMotionImportService {
                 round.swings.append(contentsOf: importedSwings)
             }
             round.finalizeWHOOPTriggeredShotIntervals()
+            // Persist path score / explanation after swing-to-swing yards land.
+            // Delayed historical import only — never live TOGGLE_IMU / Arming.
             round.swings = StrokeScoreShotChain.enrichSwingMetrics(
                 round.swings,
                 wrist: .golferDefault

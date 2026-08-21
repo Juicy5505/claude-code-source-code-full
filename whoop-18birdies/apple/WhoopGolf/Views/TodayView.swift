@@ -247,6 +247,12 @@ struct TodayView: View {
                 Text(model.adaptiveSensorPlan.fusedStatusDetail)
                     .font(.caption)
                     .foregroundStyle(Color.golfMist)
+                Text(model.wearableContributionBoard.roundFusion.delayedMergeCaption)
+                    .font(.caption)
+                    .foregroundStyle(Color.golfMist)
+                Text("Recovery · sleep · strain stay cloud-cached. Check for WHOOP swings merges delayed wrist motion — not live Arming.")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.52))
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
                         ConnectionPill(

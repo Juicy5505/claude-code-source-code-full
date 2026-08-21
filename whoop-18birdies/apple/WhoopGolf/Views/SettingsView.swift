@@ -190,6 +190,12 @@ struct SettingsView: View {
                                     : "\(model.pendingWhoopMotionBatches.count) protected batch(es) are staged for review or source reconciliation.")
                                     .font(.caption)
                                     .foregroundStyle(Color.golfMist)
+                                Text(model.wearableContributionBoard.roundFusion.delayedMergeCaption)
+                                    .font(.caption)
+                                    .foregroundStyle(Color.golfMist)
+                                Text("After import, Golf finalizes swing-to-swing intervals then persists path score — delayed historical offload only, never live TOGGLE_IMU / Arming.")
+                                    .font(.caption2)
+                                    .foregroundStyle(.white.opacity(0.52))
                                 if !model.pendingWhoopMotionReviewBatches.isEmpty {
                                     NavigationLink {
                                         WhoopMotionReviewView()
@@ -435,7 +441,7 @@ struct SettingsView: View {
                                     .foregroundStyle(Color.golfLime)
                                 PromiseRow(text: "Recovery, sleep and strain: cached WHOOP cloud data")
                                 PromiseRow(text: "Live heart rate: direct WHOOP HR Broadcast; the advertised device name is not treated as cryptographic verification")
-                                PromiseRow(text: "WHOOP swing motion: live wrist IMU when the strap is connected here, otherwise delayed reviewed historical import; GPS tracking alone is never presented as WHOOP motion")
+                                PromiseRow(text: "WHOOP swing motion: delayed reviewed historical import (Check for WHOOP swings) is the WHOOP 5 golf path; live strap IMU / Arming is experimental and never required; GPS alone is never labeled WHOOP motion")
                                 PromiseRow(text: "Shot distance: WHOOP-triggered A→B anchors + explicitly attributed iPhone GPS displacement with uncertainty, not WHOOP GPS or claimed carry")
                                 PromiseRow(text: "WHOOP 5 has no built-in GPS; distance is unavailable when the phone coordinate timeline is off")
                                 PromiseRow(text: "Apple Watch: first-class live swing/GPS/haptic source; WHOOP-only and Hybrid remain separate persisted modes")

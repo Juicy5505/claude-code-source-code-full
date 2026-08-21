@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D19A001B0000000000000001 /* DualWearableRequirement.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A001A0000000000000001 /* DualWearableRequirement.swift */; };
+		D19A002B0000000000000002 /* ComprehensiveShotIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A002A0000000000000002 /* ComprehensiveShotIntelligence.swift */; };
+		D19A003B0000000000000003 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A003A0000000000000003 /* OverviewView.swift */; };
+		D19A004B0000000000000004 /* DualWearableRequirementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A004A0000000000000004 /* DualWearableRequirementTests.swift */; };
+		D19A005B0000000000000005 /* StrokeScoreShotChainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19A005A0000000000000005 /* StrokeScoreShotChainTests.swift */; };
 		03C2B9B0E964C4459A3AD4A9 /* SensorModeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77725EF054594E5232341A11 /* SensorModeCoordinator.swift */; };
 		C1A002F1A0000000000000F1 /* DualWearableFusion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E1A0000000000000E1 /* DualWearableFusion.swift */; };
 		C1A002F2A0000000000000F2 /* DualWearableFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E2A0000000000000E2 /* DualWearableFusionTests.swift */; };
@@ -154,6 +159,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D19A001A0000000000000001 /* DualWearableRequirement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualWearableRequirement.swift; sourceTree = "<group>"; };
+		D19A002A0000000000000002 /* ComprehensiveShotIntelligence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComprehensiveShotIntelligence.swift; sourceTree = "<group>"; };
+		D19A003A0000000000000003 /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
+		D19A004A0000000000000004 /* DualWearableRequirementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualWearableRequirementTests.swift; sourceTree = "<group>"; };
+		D19A005A0000000000000005 /* StrokeScoreShotChainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeScoreShotChainTests.swift; sourceTree = "<group>"; };
 		02CC1B4B0EBFEF276FB70CEF /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		06A77756A0FF58FD8EC61A45 /* HeartRateMeasurementParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateMeasurementParser.swift; sourceTree = "<group>"; };
 		072AF175DC9A8671E62ABDD4 /* SwingShotIntervalCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwingShotIntervalCalculator.swift; sourceTree = "<group>"; };
@@ -436,6 +446,8 @@
 				CB628FFE65AF1235DD1409D0 /* RoundLocationJournalTests.swift */,
 				14464B21D0B64C39695A9FF4 /* SensorModeCoordinatorTests.swift */,
 				C1A002E2A0000000000000E2 /* DualWearableFusionTests.swift */,
+				D19A005A0000000000000005 /* StrokeScoreShotChainTests.swift */,
+				D19A004A0000000000000004 /* DualWearableRequirementTests.swift */,
 				8DD8FC17B0D03DBC15A0C18E /* WatchRoundContextTests.swift */,
 				C1A00208A000000000000008 /* SwingPathGuidanceTests.swift */,
 				C1A00208A000000000000009 /* WatchYardageBridgeTests.swift */,
@@ -474,6 +486,8 @@
 				9CA636E088DC39901A548458 /* ReadinessModels.swift */,
 				77725EF054594E5232341A11 /* SensorModeCoordinator.swift */,
 				C1A002E1A0000000000000E1 /* DualWearableFusion.swift */,
+				D19A002A0000000000000002 /* ComprehensiveShotIntelligence.swift */,
+				D19A001A0000000000000001 /* DualWearableRequirement.swift */,
 				C172D74F2289A78BE93C99FD /* ShotDistanceCalculator.swift */,
 				F0B20D479547B15E25C953FB /* SourceProvenance.swift */,
 				072AF175DC9A8671E62ABDD4 /* SwingShotIntervalCalculator.swift */,
@@ -494,6 +508,7 @@
 			isa = PBXGroup;
 			children = (
 				DC274747F6BA034B39F67353 /* AppShell.swift */,
+				D19A003A0000000000000003 /* OverviewView.swift */,
 				37A81CA8864F5831F14BBEDB /* RoundView.swift */,
 				C5698CD41AEC31BE52963E5C /* SettingsView.swift */,
 				E6823C81F08C219BE689D062 /* TodayView.swift */,
@@ -773,6 +788,9 @@
 				5048C528811685B25789BD38 /* RoundView.swift in Sources */,
 				03C2B9B0E964C4459A3AD4A9 /* SensorModeCoordinator.swift in Sources */,
 				C1A002F1A0000000000000F1 /* DualWearableFusion.swift in Sources */,
+				D19A001B0000000000000001 /* DualWearableRequirement.swift in Sources */,
+				D19A002B0000000000000002 /* ComprehensiveShotIntelligence.swift in Sources */,
+				D19A003B0000000000000003 /* OverviewView.swift in Sources */,
 				A1FBE3A3EA7E5791BD1018B5 /* SettingsView.swift in Sources */,
 				67C31F765A4925DF1B5D76FF /* ShotDistanceCalculator.swift in Sources */,
 				7CB5467993F53D5E4BECE45D /* SourceProvenance.swift in Sources */,
@@ -819,6 +837,8 @@
 				2F104A3F384F381D19E008F6 /* RoundLocationJournalTests.swift in Sources */,
 				5726BF649B76890112820D17 /* SensorModeCoordinatorTests.swift in Sources */,
 				C1A002F2A0000000000000F2 /* DualWearableFusionTests.swift in Sources */,
+				D19A004B0000000000000004 /* DualWearableRequirementTests.swift in Sources */,
+				D19A005B0000000000000005 /* StrokeScoreShotChainTests.swift in Sources */,
 				A9BC0929CFDF98D7B4524D6A /* WatchRoundContextTests.swift in Sources */,
 				C1A00228A000000000000008 /* SwingPathGuidanceTests.swift in Sources */,
 				C1A00228A000000000000009 /* WatchYardageBridgeTests.swift in Sources */,

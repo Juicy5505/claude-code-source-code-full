@@ -60,7 +60,7 @@ struct SessionView: View {
                     .font(.system(size: 40, weight: .heavy, design: .rounded))
                     .foregroundStyle(.primary)
 
-                // Path · Improve · Yardage · HR/next tip — Shared stroke models.
+                // Path · Improve · Yardage · HR/next tip — WatchLiveFace v3 + local stroke.
                 WatchRoundFaceView(
                     path: session.lastPath,
                     pathYawDegrees: session.lastPathYaw,
@@ -68,14 +68,17 @@ struct SessionView: View {
                     tempoFrames: session.lastFrames,
                     liveFace: phoneLink.liveFace,
                     lastWatchYards: session.swings.compactMap(\.distance_yd).last,
-                    swingCount: session.swings.count,
+                    swingCount: phoneLink.liveFace.strokeCount ?? session.swings.count,
                     heartRateBPM: session.currentHR,
+                    averageHeartRateBPM: workout.averageHeartRate,
                     tempoCV: session.tempoCV,
-                    wrist: wrist
+                    wrist: phoneLink.liveFace.wristMount,
+                    phoneImproverTip: phoneLink.coachingCue.improverTip,
+                    phoneImproverDrill: phoneLink.coachingCue.improverDrill
                 )
 
                 HStack(spacing: 12) {
-                    tile("SWINGS", "\(session.swings.count)")
+                    tile("SWINGS", "\(phoneLink.liveFace.strokeCount ?? session.swings.count)")
                     tile("TIP", tipChip)
                 }
 
@@ -134,7 +137,8 @@ struct SessionView: View {
         }
     }
 
-    private var wrist: WatchWristMount { WatchWristMount.load() }
+    /// Phone-published mount wins (WatchLiveFace v3); Settings load is the seed.
+    private var wrist: WatchWristMount { phoneLink.liveFace.wristMount }
 
     private var tipChip: String {
         let tip = GolfImprover.tip(
