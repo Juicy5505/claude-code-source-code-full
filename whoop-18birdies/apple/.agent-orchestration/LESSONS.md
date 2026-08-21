@@ -143,3 +143,39 @@ The sibling call to `cue(...)` *did* pass `wrist:` — the mismatch was invisibl
 Pass `wrist: wrist` explicitly at the call site. When adding a defaulted
 parameter for a user preference, grep every call site rather than relying on the
 compiler — a default argument is exactly the change the compiler cannot flag.
+
+## L6 — Dual admission is a separate pure gate, not SensorModeCoordinator
+
+**Symptom**
+Hybrid plan exists when both sensors are present, but the Round Start button
+still allows Watch-only / WHOOP-only / manual rounds.
+
+**Root cause**
+`SensorModeCoordinator.plan` selects the best available mode (including
+single-source). Using it alone as UX admission conflates diagnostics with
+product start policy.
+
+**Fix**
+Keep mode selection in `SensorModeCoordinator`. Put product admission in
+`DualWearableRequirement.evaluate` and gate `AppModel.startRound` + the Start
+button on `.satisfied` only. Single-source modes remain for Settings diagnostics.
+
+**Rule of thumb:** capability → plan math ≠ product admission.
+
+## L7 — iPhone-only Shared types must not be listed on WhoopGolfWatch
+
+**Symptom**
+Watch target fails if it pulls `GolfModels` / `ComprehensiveShotIntelligence`
+(or any CoreLocation-heavy Shared file) through a blanket Shared membership.
+
+**Root cause**
+WhoopGolfWatch `project.yml` intentionally lists only Watch-safe Shared files
+(`WatchLiveFace`, `SwingPathGuidance`, `GolfImprover`, wrist prefs, WC contracts).
+
+**Fix**
+Keep `DualWearableRequirement` / `ComprehensiveShotIntelligence` on the iPhone
+`Shared/` folder membership only. Watch consumes Codable face fields (strings),
+not the iPhone dossier types.
+
+**Rule of thumb:** if a Shared type imports phone-only frameworks or models,
+never add it to WhoopGolfWatch sources.

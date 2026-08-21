@@ -82,13 +82,29 @@ enum DualWearableRequirement {
         case .satisfied(let plan):
             return plan.fusedStatusDetail
         case .missingWatch:
-            return "Pair and install WhoopGolfWatch on your Series Watch (trail-right). Live path, tempo, HR, and on-wrist cues require the Watch companion."
+            return "Pair and install WhoopGolfWatch on your Series Watch (trail-right). Live path, tempo, HR, and on-wrist cues require the Watch companion — Watch-only rounds are not allowed."
         case .missingWhoop:
-            return "Configure the private WHOOP bridge / delayed motion path. Readiness, recovery, strain, and Check for WHOOP swings require WHOOP 5 — live IMU Arming is not used."
+            return "Configure the private WHOOP bridge / delayed motion path. Readiness, recovery, strain, and Check for WHOOP swings require WHOOP 5 — WHOOP-only rounds are not allowed; live IMU Arming is not used."
         case .missingBoth:
-            return "WHOOP Golf is a dual-wearable product. Bring both Apple Watch (live) and WHOOP 5 (delayed + physiology) before starting a round."
+            return "WHOOP Golf is a dual-wearable product. New rounds require both Apple Watch (live capture) and WHOOP 5 (delayed enrich + physiology). Watch-only and WHOOP-only starts are disabled."
         case .hybridDegraded(let plan):
-            return "Both devices look present, but the adaptive plan is \(plan.mode.rawValue) instead of hybrid. Re-check Watch pairing and WHOOP delayed-import setup."
+            return "Both devices look present, but the adaptive plan is \(plan.mode.rawValue) instead of hybrid. Re-check Watch live pairing and WHOOP delayed-import — start stays blocked until both admit hybrid."
+        }
+    }
+
+    /// Primary Round CTA label. Blocked states always name what is still required.
+    static func startButtonTitle(for outcome: Outcome) -> String {
+        switch outcome {
+        case .satisfied:
+            return "Start dual Watch + WHOOP round"
+        case .missingWatch:
+            return "Apple Watch still required"
+        case .missingWhoop:
+            return "WHOOP 5 still required"
+        case .missingBoth:
+            return "Both Watch + WHOOP required"
+        case .hybridDegraded:
+            return "Fix dual Watch + WHOOP setup"
         }
     }
 
