@@ -28,6 +28,19 @@
 	<string>WHOOP Golf uses GPS during a round to measure shot-to-shot distance and save the route.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>WHOOP Golf uses wrist motion to detect golf swings and tempo.</string>
+	<!-- location, and ONLY location. The audio/remote-notification entries that
+	     used to sit here were plausibly what blocked the companion install, and
+	     they stay gone. But location is required on watchOS: Core Location's
+	     backgroundable check reads UIBackgroundModes even on the watch (Apple's
+	     watchOS 4 release notes, 29483437), and LocationManager.swift sets
+	     allowsBackgroundLocationUpdates = true — without this key that line
+	     throws NSInternalInconsistencyException and kills the app the moment a
+	     round starts. Verified against a built bundle by watch/build.sh on the
+	     Kit A project, which carries the same pair of keys. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKBackgroundModes</key>

@@ -55,12 +55,17 @@ Do **not** use `-derivedDataPath` under iCloud `~/Documents` (LESSONS L3).
 
 1. **Copy the exact error** from the Xcode Report navigator (red install failure) and paste it back — wording matters.
 2. **Signing (most common):** WhoopGolf **and** WhoopGolfWatch → Signing & Capabilities → Team = **your Personal Team**, Automatically manage signing **On**. Bundle IDs stay `com.alex.whoopgolf` / `com.alex.whoopgolf.watchkitapp`. (Repo no longer ships a hardcoded team ID.)
-3. **Developer Mode / Trust:** iPhone → Settings → Privacy & Security → Developer Mode **On**; Settings → General → VPN & Device Management → Trust your developer cert. Unlock the **Watch** during install.
+3. **Developer Mode / Trust — on BOTH devices.** The Watch has its own switch, and without it the Watch refuses developer apps with a generic "couldn't install/download":
+   - iPhone → Settings → Privacy & Security → **Developer Mode** → On (reboots the phone).
+   - **Watch** → Settings → Privacy & Security → **Developer Mode** → On (reboots the Watch). If the switch is missing, run once to the iPhone from Xcode first — it appears after the Watch has seen a development install attempt.
+   - iPhone → Settings → General → VPN & Device Management → **Trust** your developer cert. Companion transfers fail quietly until this is done.
+   - Unlock the **Watch** (on wrist or on charger) during install.
+3a. **"The Watch couldn't download the app" specifically:** stop using the phone→Watch transfer — it is the least reliable path with a free Personal Team. Install DIRECTLY instead: in Xcode pick scheme **WhoopGolfWatch**, destination **your Apple Watch (via your iPhone)**, and Run. That pushes the watch app with its provisioning profile in one step, and its failure messages are specific where the transfer's are generic. Run the **WhoopGolf** scheme to the iPhone separately; the pairing between the two apps comes from the bundle ids, not from installing together.
 4. **Delete old copies:** Delete WHOOP Golf / Whoop Swing / any Kit A Watch app from phone **and** Watch, then Run again.
 5. **Clean:** Xcode → Product → Clean Build Folder; Derived Data must **not** live under iCloud `~/Documents` (LESSONS L3).
 6. **Free Personal Team limits:** Free accounts cap ~3 apps / 7-day profiles. Delete unused personal-team apps, then retry.
 7. **Watch pairing:** Watch app on iPhone shows Watch connected; Xcode Devices lists Watch under the iPhone. Re-pair if the Watch is greyed out.
-8. Pull latest branch (Watch Info.plist no longer carries invalid iOS `UIBackgroundModes` that can break companion install), then Run **WhoopGolf** → iPhone again.
+8. Pull latest branch. The Watch Info.plist carries `UIBackgroundModes = [location]` and nothing else in that key: `audio`/`remote-notification` are gone (plausible install blockers), but `location` is REQUIRED — `allowsBackgroundLocationUpdates = true` throws and kills the app at round start without it. Do not "fix" an install failure by deleting that key again.
 
 ---
 
