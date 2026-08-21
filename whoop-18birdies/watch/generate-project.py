@@ -84,7 +84,13 @@ SHARED_SOURCES = [
 # and the haversine port. Nothing else — keeping the test target's source list
 # minimal is what lets the tests run without a @testable import, and therefore
 # without depending on how Xcode names the app module.
-TEST_SOURCES = ["SwingDetector.swift", "SessionModel.swift", "IngestSettings.swift"]
+# WatchSessionTransfer is here because SessionModel references it; the shared
+# files are here because SessionModel and SwingDetector use SwingPathClass and
+# WatchWristMount. The compile check passes without any of this — it builds
+# only the app — and `--test` then fails, because the TEST target recompiles
+# these sources in its own little world. Same closure, both targets.
+TEST_SOURCES = ["SwingDetector.swift", "SessionModel.swift",
+                "IngestSettings.swift", "WatchSessionTransfer.swift"]
 TEST_FILE = "SwingDetectorTests.swift"
 TEST_RESOURCE = "swing_vectors.json"
 
@@ -381,6 +387,10 @@ def build(pbx: Pbx) -> str:
     test_build = [
         pbx.add(uid("build", "test", n), "PBXBuildFile", {"fileRef": file_refs[n]})
         for n in TEST_SOURCES + [TEST_FILE]
+    ] + [
+        pbx.add(uid("build", "test", "shared:" + n), "PBXBuildFile",
+                {"fileRef": file_refs["shared:" + n]})
+        for n in SHARED_SOURCES
     ]
     test_resource_build = pbx.add(
         uid("build", "res", TEST_RESOURCE), "PBXBuildFile",
