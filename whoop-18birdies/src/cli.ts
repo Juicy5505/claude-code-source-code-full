@@ -49,7 +49,9 @@ const USAGE = `wb — link WHOOP physiology to 18Birdies golf rounds
   wb readiness [YYYY-MM-DD]      Golf readiness for a date (default: today)
   wb golf [YYYY-MM-DD|--list]    The round as WHOOP alone recorded it
   wb coach [name|--list] [--json]  Read a watch round: swing, body, one thing to fix
-  wb serve [--port N]            Ingest server for the iPhone Shortcut
+  wb serve [--port N]            Ingest server for the iPhone / Tailscale
+           [--hostname HOST]     Bind address (default 127.0.0.1)
+           [--allow-insecure-lan]  Required for non-loopback plain-HTTP bind
 
 Setup: create an app at developer.whoop.com, then export
   WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET
@@ -248,12 +250,23 @@ async function cmdReadiness(date: string | undefined): Promise<void> {
   for (const line of readiness.advice) console.log(`  • ${line}`);
 }
 
-/** LAN addresses the iPhone can actually reach — loopback is useless to it. */
+/** True for bind targets that never leave this machine. */
+function isLoopbackHostname(hostname: string): boolean {
+  return (
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    hostname === "localhost"
+  );
+}
+
+/** LAN / Tailscale addresses the phone can reach — loopback is useless to it. */
 function lanAddresses(): string[] {
   const out: string[] = [];
   for (const entries of Object.values(networkInterfaces())) {
     for (const entry of entries ?? []) {
-      if (entry.family === "IPv4" && !entry.internal) out.push(entry.address);
+      const family = String(entry.family);
+      const v4 = family === "IPv4" || family === "4";
+      if (v4 && !entry.internal) out.push(entry.address);
     }
   }
   return out;
@@ -265,11 +278,20 @@ async function cmdServe(args: string[]): Promise<void> {
     throw new Error("--port must be a valid port number");
   }
 
+  const hostname = flagValue(args, "--hostname") ?? "127.0.0.1";
+  const loopback = isLoopbackHostname(hostname);
+  if (!loopback && !args.includes("--allow-insecure-lan")) {
+    throw new Error(
+      "Refusing a non-loopback plain-HTTP bind. Use a private HTTPS proxy (recommended), " +
+        "or pass --allow-insecure-lan to acknowledge the risk.",
+    );
+  }
+
   let token = process.env.WB_INGEST_TOKEN;
   const generated = !token;
   if (!token) token = randomBytes(24).toString("base64url");
 
-  const { port: bound } = startServer({ token, port, hostname: "0.0.0.0" });
+  const { port: bound } = startServer({ token, port, hostname });
 
   console.log(`Ingest server listening on port ${bound}.\n`);
   if (generated) {
@@ -277,19 +299,24 @@ async function cmdServe(args: string[]): Promise<void> {
     console.log(`  export WB_INGEST_TOKEN=${token}\n`);
   }
 
-  const hosts = lanAddresses();
-  if (hosts.length === 0) {
-    console.log("No LAN address found — the phone will need a tunnel to reach this machine.");
+  if (loopback) {
+    console.log("Bound to loopback only. Put a private HTTPS proxy in front of this port,");
+    console.log("or re-run with --hostname 0.0.0.0 --allow-insecure-lan for LAN/Tailscale.");
   } else {
-    console.log("Point the iPhone Shortcut at one of these (same Wi-Fi):");
-    for (const host of hosts) console.log(`  http://${host}:${bound}/rounds`);
+    const hosts = lanAddresses();
+    if (hosts.length === 0) {
+      console.log("No non-loopback IPv4 address found — check Wi-Fi / Tailscale.");
+    } else {
+      console.log("Point the phone at one of these (LAN or Tailscale):");
+      for (const host of hosts) console.log(`  http://${host}:${bound}/rounds`);
+    }
+    console.log("Plain HTTP on your own network — do not expose this port to the internet.");
   }
 
   console.log(`\n  POST /rounds              round JSON from the Shortcut`);
   console.log(`  GET  /readiness?date=…    today's readiness, preformatted for a notification`);
   console.log(`  GET  /health              reachability check (no auth)`);
   console.log(`\nAuthorize with 'Authorization: Bearer <token>' or '?token=<token>'.`);
-  console.log("Plain HTTP over your own LAN — do not expose this port to the internet.");
   console.log("\nCtrl-C to stop.");
 
   // Bun keeps the process alive while the server is bound.

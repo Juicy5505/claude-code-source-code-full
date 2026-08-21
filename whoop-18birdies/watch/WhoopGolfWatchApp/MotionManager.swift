@@ -8,6 +8,13 @@ import CoreMotion
 /// expects — and attitude is available for the rotation sweep. Series 5 tops out
 /// around 100 Hz for device motion, which is exactly the reference rate.
 ///
+/// Attitude is stored **raw** (roll/pitch/yaw radians). Trail-right vs lead-left
+/// polarity is not flipped here: `SwingAnalysis.analyse` → `SwingPathGuidance`
+/// applies `WatchWristMount.pathSign` (−1 for trail-right). Per-stroke body-
+/// relative **score + explanation** come from `SwingPathGuidance.scoreStroke`
+/// (Watch = live scorer; WHOOP delayed yaw may `refineWithWhoop`). Tempo uses
+/// backswing/downswing times only (no wrist sign). Accel magnitude is scalar.
+///
 /// The detector's trip/post-peak/refractory state machine mirrors
 /// swing_logger.run_session: the threshold trips on the rising edge, then a
 /// short post-peak window is captured before the true impact peak is located at

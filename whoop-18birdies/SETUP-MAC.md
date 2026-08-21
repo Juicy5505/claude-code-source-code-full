@@ -54,10 +54,11 @@ RUN_TESTS=1 ./setup-mac-xcode.sh
 ```bash
 cd whoop-18birdies
 export WB_INGEST_TOKEN=$(cat ~/.whoop-18birdies/ingest-token.txt)
-bun src/cli.ts serve
+# Loopback default. For phone over LAN/Tailscale:
+bun src/cli.ts serve --hostname 0.0.0.0 --allow-insecure-lan
 ```
 
-Uploads land in `~/.whoop-18birdies/watch-sessions/`.
+LaunchAgent `com.alex.whoop-golf-bridge` uses the same LAN bind when you need the phone to reach the Mac. Uploads land in `~/.whoop-18birdies/watch-sessions/`.
 
 ---
 

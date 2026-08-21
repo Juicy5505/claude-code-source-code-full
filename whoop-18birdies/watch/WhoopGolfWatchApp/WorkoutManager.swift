@@ -20,15 +20,28 @@ import HealthKit
 ///
 /// Requires the HealthKit capability and, in Info.plist, the workout-processing
 /// background mode plus the health usage-description keys (see WATCH.md).
+/// Entitlements already present: `com.apple.developer.healthkit` on
+/// `WatchSupport/WhoopGolfWatch.entitlements` (do not invent extra HealthKit
+/// access flags for Personal Team signing).
 @MainActor
 final class WorkoutManager: NSObject, ObservableObject {
     private let healthStore = HKHealthStore()
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
     private var routeBuilder: HKWorkoutRouteBuilder?
+    private var heartRateSamples: [Int] = []
 
     /// Latest heart rate in bpm, or nil until the first sample arrives.
-    @Published var heartRate: Int?
+    @Published private(set) var heartRate: Int?
+
+    /// Mean of samples collected during this workout, for end-of-round summary.
+    @Published private(set) var averageHeartRate: Int?
+
+    /// True while an HKWorkoutSession is running (including after start returns).
+    @Published private(set) var isSessionRunning = false
+
+    /// Last HealthKit failure string, if the session dies after a successful start.
+    @Published private(set) var lastFailure: String?
 
     func requestAuthorization() async -> Bool {
         guard HKHealthStore.isHealthDataAvailable() else { return false }
@@ -71,14 +84,39 @@ final class WorkoutManager: NSObject, ObservableObject {
     /// until the log came back with three swings in it.
     @discardableResult
     func start(trackRoute: Bool) -> Bool {
+        // Idempotent restart: never leave a prior session half-alive.
+        if session != nil || builder != nil {
+            session?.end()
+            session = nil
+            builder = nil
+            routeBuilder = nil
+        }
+        heartRate = nil
+        averageHeartRate = nil
+        heartRateSamples = []
+        lastFailure = nil
+        isSessionRunning = false
+
         let config = HKWorkoutConfiguration()
         config.activityType = .golf
         config.locationType = .outdoor
         do {
             let session = try HKWorkoutSession(healthStore: healthStore, configuration: config)
             let builder = session.associatedWorkoutBuilder()
-            builder.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore,
-                                                         workoutConfiguration: config)
+            let dataSource = HKLiveWorkoutDataSource(
+                healthStore: healthStore,
+                workoutConfiguration: config
+            )
+            // Golf's default collected types are not guaranteed to include HR on
+            // every watchOS build. Explicit enable keeps live bpm flowing for
+            // SessionView + per-swing `hr_bpm` tags that sync to the phone.
+            if let hrType = HKQuantityType.quantityType(forIdentifier: .heartRate) {
+                dataSource.enableCollection(for: hrType, predicate: nil)
+            }
+            if let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
+                dataSource.enableCollection(for: energyType, predicate: nil)
+            }
+            builder.dataSource = dataSource
             session.delegate = self
             builder.delegate = self
             self.session = session
@@ -90,12 +128,28 @@ final class WorkoutManager: NSObject, ObservableObject {
 
             let start = Date()
             session.startActivity(with: start)
-            builder.beginCollection(withStart: start) { _, _ in }
+            builder.beginCollection(withStart: start) { [weak self] success, error in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if let error {
+                        self.lastFailure = error.localizedDescription
+                        self.isSessionRunning = false
+                        return
+                    }
+                    self.isSessionRunning = success
+                    if !success {
+                        self.lastFailure = "workout collection did not begin"
+                    }
+                }
+            }
+            isSessionRunning = true
             return true
         } catch {
             // Without a session the motion loop still runs while the app is in
             // the FOREGROUND; it loses background execution entirely, which on
             // a watch means it stops when your wrist drops.
+            lastFailure = error.localizedDescription
+            isSessionRunning = false
             return false
         }
     }
@@ -115,12 +169,17 @@ final class WorkoutManager: NSObject, ObservableObject {
     func stop() async {
         // Idempotent: clear the handles first so a second call returns at once
         // rather than finishing an already-finished builder.
-        guard let builder = self.builder else { return }
+        guard let builder = self.builder else {
+            isSessionRunning = false
+            return
+        }
         let route = routeBuilder
         self.builder = nil
         self.routeBuilder = nil
         session?.end()
         self.session = nil
+        isSessionRunning = false
+        publishAverageHeartRate()
 
         let workout: HKWorkout? = await withCheckedContinuation { continuation in
             builder.endCollection(withEnd: Date()) { _, _ in
@@ -137,16 +196,50 @@ final class WorkoutManager: NSObject, ObservableObject {
             }
         }
     }
+
+    private func ingestHeartRate(_ bpm: Int) {
+        guard (1...300).contains(bpm) else { return }
+        heartRate = bpm
+        heartRateSamples.append(bpm)
+        publishAverageHeartRate()
+    }
+
+    private func publishAverageHeartRate() {
+        guard !heartRateSamples.isEmpty else {
+            averageHeartRate = nil
+            return
+        }
+        let sum = heartRateSamples.reduce(0, +)
+        averageHeartRate = Int((Double(sum) / Double(heartRateSamples.count)).rounded())
+    }
 }
 
 extension WorkoutManager: HKWorkoutSessionDelegate {
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession,
                                     didChangeTo toState: HKWorkoutSessionState,
                                     from fromState: HKWorkoutSessionState,
-                                    date: Date) {}
+                                    date: Date) {
+        Task { @MainActor in
+            switch toState {
+            case .running:
+                self.isSessionRunning = true
+            case .ended, .stopped:
+                self.isSessionRunning = false
+            case .notStarted, .prepared, .paused:
+                break
+            @unknown default:
+                break
+            }
+        }
+    }
 
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession,
-                                    didFailWithError error: Error) {}
+                                    didFailWithError error: Error) {
+        Task { @MainActor in
+            self.lastFailure = error.localizedDescription
+            self.isSessionRunning = false
+        }
+    }
 }
 
 extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
@@ -159,6 +252,6 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
               let stats = workoutBuilder.statistics(for: hrType),
               let quantity = stats.mostRecentQuantity() else { return }
         let bpm = Int(quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())).rounded())
-        Task { @MainActor in self.heartRate = bpm }
+        Task { @MainActor in self.ingestHeartRate(bpm) }
     }
 }

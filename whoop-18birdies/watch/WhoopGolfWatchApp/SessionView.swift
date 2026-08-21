@@ -23,6 +23,7 @@ struct SessionView: View {
     @StateObject private var workout = WorkoutManager()
     @StateObject private var motion = MotionManager()
     @StateObject private var location = LocationManager()
+    @ObservedObject private var phoneLink = WatchSessionTransfer.shared
 
     /// Guards "Stop & Save" against a second tap.
     ///
@@ -59,14 +60,23 @@ struct SessionView: View {
                     .font(.system(size: 40, weight: .heavy, design: .rounded))
                     .foregroundStyle(.primary)
 
-                Text(tempoLine)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(session.lastTempo != nil ? Color.green : Color.secondary)
-                    .multilineTextAlignment(.center)
+                // Path · Improve · Yardage · HR/next tip — Shared stroke models.
+                WatchRoundFaceView(
+                    path: session.lastPath,
+                    pathYawDegrees: session.lastPathYaw,
+                    tempoRatio: session.lastTempo,
+                    tempoFrames: session.lastFrames,
+                    liveFace: phoneLink.liveFace,
+                    lastWatchYards: session.swings.compactMap(\.distance_yd).last,
+                    swingCount: session.swings.count,
+                    heartRateBPM: session.currentHR,
+                    tempoCV: session.tempoCV,
+                    wrist: wrist
+                )
 
                 HStack(spacing: 12) {
                     tile("SWINGS", "\(session.swings.count)")
-                    tile("HR", session.currentHR.map { "\($0)" } ?? "—")
+                    tile("TIP", tipChip)
                 }
 
                 if let mean = session.tempoMean {
@@ -100,7 +110,10 @@ struct SessionView: View {
             }
             .padding(.horizontal, 6)
         }
-        .task { await begin() }
+        .task {
+            WatchSessionTransfer.shared.activate()
+            await begin()
+        }
         .onReceive(workout.$heartRate) { hr in session.currentHR = hr }
         // Forward the WHOLE batch. Core Location coalesces queued fixes into
         // one callback whenever delivery was deferred — which is what happens
@@ -121,12 +134,24 @@ struct SessionView: View {
         }
     }
 
-    private var tempoLine: String {
-        if let t = session.lastTempo {
-            let frames = session.lastFrames.map { " · \($0)" } ?? ""
-            return String(format: "%.1f:1%@", t, frames)
+    private var wrist: WatchWristMount { WatchWristMount.load() }
+
+    private var tipChip: String {
+        let tip = GolfImprover.tip(
+            path: session.lastPath,
+            tempoRatio: session.lastTempo,
+            wrist: wrist,
+            tempoCV: session.tempoCV,
+            correctedYawDegrees: session.lastPathYaw
+        )
+        switch tip.focus {
+        case .tempoRush: return "PAUSE"
+        case .tempoSlow: return "GO"
+        case .pathOutToIn: return "IN"
+        case .pathInToOut: return "QUIET"
+        case .pathOnPlane: return "HOLD"
+        case .unknown: return "SET"
         }
-        return session.swings.isEmpty ? "waiting for a swing" : "no tempo (pause at address)"
     }
 
     private func sessionLine(_ mean: Double) -> String {

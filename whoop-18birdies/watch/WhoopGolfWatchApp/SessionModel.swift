@@ -18,6 +18,8 @@ struct Swing: Codable, Identifiable {
     /// until then, and on the final swing, which has no successor.
     var distance_m: Double?
     var distance_yd: Double?
+    var path_class: String?
+    var path_yaw_deg: Double?
 }
 
 struct GeoPoint: Codable {
@@ -30,7 +32,12 @@ struct GeoPoint: Codable {
 /// The whole session, matching the logger's file wrapper so it round-trips
 /// through the same analysis pipeline.
 struct SessionLog: Codable {
+    let schema_version: Int
+    let session_id: String
     let mode: String
+    let round_id: String?
+    let started_at: String
+    let completed_at: String?
     let auto_threshold: Bool
     let sample_rate_hz: Int
     var swings: [Swing]
@@ -47,11 +54,15 @@ final class SessionModel: ObservableObject {
     @Published var lastPeakG: Double?
     @Published var lastTempo: Double?
     @Published var lastFrames: String?
+    @Published var lastPath: SwingPathClass = .unknown
+    @Published var lastPathYaw: Double?
     @Published var currentHR: Int?
     @Published var status: String = "starting…"
     @Published var running = false
 
     let mode: String                 // "range" or "round"
+    let sessionID: String
+    let startedAt: Date
     private let iso = ISO8601DateFormatter()
 
     /// Point this at your `wb serve` instance (the same host the iPhone Shortcut
@@ -62,13 +73,15 @@ final class SessionModel: ObservableObject {
 
     init(mode: String) {
         self.mode = mode
+        self.sessionID = "\(mode)-\(UUID().uuidString.prefix(8))"
+        self.startedAt = Date()
         // LOCAL time, deliberately. ISO8601DateFormatter defaults to UTC, and
         // the ingest server files a session under the first swing's calendar
         // date — so an evening round in the US would be stored under tomorrow
         // and silently fall out of the WHOOP join, which matches physiology on
         // the local date. Same bug class as the tee-time fix in rounds/ingest.
         iso.timeZone = TimeZone.current
-        iso.formatOptions = [.withInternetDateTime]
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     }
 
     func record(_ metrics: SwingMetrics, hr: Int?, location: GeoPoint?) {
@@ -81,13 +94,23 @@ final class SessionModel: ObservableObject {
             tempo_ratio: metrics.tempoRatio,
             tempo_frames: metrics.tempoFrames,
             hr_bpm: hr,
-            location: location
+            location: location,
+            path_class: metrics.pathClass.rawValue,
+            path_yaw_deg: metrics.pathYawDeg
         )
         swings.append(swing)
         lastPeakG = metrics.peakG
         lastTempo = metrics.tempoRatio
         lastFrames = metrics.tempoFrames
+        lastPath = metrics.pathClass
+        lastPathYaw = metrics.pathYawDeg
+        if mode == "round" { computeShotDistances() }
         autosave()
+        WatchSessionTransfer.shared.sendLiveSwing(
+            path: SwingPathGuidance.coachingLabel(metrics.pathClass),
+            peakG: metrics.peakG,
+            heartRate: hr
+        )
     }
 
     /// Great-circle distance in metres. A faithful port of `haversine_m` in
@@ -157,12 +180,22 @@ final class SessionModel: ObservableObject {
         return dir.appendingPathComponent(mode == "round" ? "swings.json" : "range_session.json")
     }
 
-    private func encoded(rateHz: Int) -> Data? {
-        let log = SessionLog(mode: mode, auto_threshold: true,
-                             sample_rate_hz: rateHz, swings: swings,
-                             gps_warning: gpsWarning)
+    private func encoded(rateHz: Int, completed: Bool = false) -> Data? {
+        let roundID = WatchSessionTransfer.shared.roundContext?.roundID.uuidString
+        let log = SessionLog(
+            schema_version: 1,
+            session_id: sessionID,
+            mode: mode,
+            round_id: mode == "round" ? roundID : nil,
+            started_at: iso.string(from: startedAt),
+            completed_at: completed ? iso.string(from: Date()) : nil,
+            auto_threshold: true,
+            sample_rate_hz: rateHz,
+            swings: swings,
+            gps_warning: gpsWarning
+        )
         let enc = JSONEncoder()
-        enc.outputFormatting = [.prettyPrinted]
+        enc.outputFormatting = [.prettyPrinted, .sortedKeys]
         return try? enc.encode(log)
     }
 
@@ -213,9 +246,15 @@ final class SessionModel: ObservableObject {
     /// upload at the time and succeed later, and without a queue that meant
     /// every round was lost.
     func upload(rateHz: Int) async {
-        guard let body = encoded(rateHz: rateHz) else { return }
+        guard let body = encoded(rateHz: rateHz, completed: true) else { return }
+        WatchSessionTransfer.shared.transferSession(
+            data: body,
+            sessionID: sessionID,
+            mode: mode,
+            roundID: WatchSessionTransfer.shared.roundContext?.roundID
+        )
         if ingestURL.isEmpty {
-            status = "saved on watch (no ingest URL set)"
+            status = "saved · sent to WHOOP Golf on iPhone"
             return
         }
         if await deliver(body) {

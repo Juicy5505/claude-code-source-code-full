@@ -10,10 +10,25 @@ struct SettingsView: View {
 
     @AppStorage(IngestSettings.urlKey) private var ingestURL = ""
     @AppStorage(IngestSettings.tokenKey) private var ingestToken = ""
+    @AppStorage(WatchWristMount.storageKey) private var wristRaw = WatchWristMount.golferDefault.rawValue
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
+                Text("Wrist")
+                    .font(.headline)
+                Text("Alex's golf default is the right trail wrist. Path and improver follow this mount.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Picker("Watch wrist", selection: $wristRaw) {
+                    Text("Right trail").tag(WatchWristMount.trailRight.rawValue)
+                    Text("Left lead").tag(WatchWristMount.leadLeft.rawValue)
+                }
+                .onChange(of: wristRaw) { newValue in
+                    let mount = WatchWristMount(rawValue: newValue) ?? .golferDefault
+                    WatchSessionTransfer.shared.setWrist(mount)
+                }
+
                 Text("Upload")
                     .font(.headline)
 

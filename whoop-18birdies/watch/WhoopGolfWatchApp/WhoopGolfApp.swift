@@ -14,6 +14,7 @@ struct WhoopGolfApp: App {
     var body: some Scene {
         WindowGroup {
             ModePicker()
+                .task { WatchSessionTransfer.shared.activate() }
         }
     }
 }
@@ -34,9 +35,9 @@ struct ModePicker: View {
             SettingsView { showSettings = false }
         } else {
             VStack(spacing: 10) {
-                Text("Swing Logger")
+                Text("WHOOP Golf")
                     .font(.headline)
-                Text("Detection self-calibrates from your motion.")
+                Text("Path, tempo, and yardage on the \(WatchWristMount.load().coachingName).")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -51,7 +52,7 @@ struct ModePicker: View {
                         .foregroundStyle(.orange)
                         .multilineTextAlignment(.center)
                 }
-                Button("Range (no GPS)") { mode = "range" }
+                Button("Practice / Improve") { mode = "range" }
                     // `.bordered` (watchOS 8.0), not `.borderedProminent`.
                     // Both clear the project's 9.0 floor; bordered is the
                     // one that stays legible in direct sun, which is where

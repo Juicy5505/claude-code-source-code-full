@@ -1,0 +1,887 @@
+{
+  "apple/Shared/AutomaticHoleTransitionEngine.swift": {
+    "mtime": 1786592477.0,
+    "ast_hash": "e9f8f4a9a2c0dc35e3cf5220b459c54a",
+    "semantic_hash": ""
+  },
+  "apple/Shared/GolfImprover.swift": {
+    "mtime": 1787289585.882572,
+    "ast_hash": "0696105634708cb5d5e826b33e6234fc",
+    "semantic_hash": ""
+  },
+  "apple/Shared/GolfModels.swift": {
+    "mtime": 1786593899.0,
+    "ast_hash": "17438f027c12a37df964f492eec3e83e",
+    "semantic_hash": ""
+  },
+  "apple/Shared/HeartRateMeasurementParser.swift": {
+    "mtime": 1786565892.0,
+    "ast_hash": "b84f7584703d04ace65dd96cdf36c62d",
+    "semantic_hash": ""
+  },
+  "apple/Shared/PhoneYardageBridge.swift": {
+    "mtime": 1787289591.117625,
+    "ast_hash": "30e78f3498672f596c73aea237b90d00",
+    "semantic_hash": ""
+  },
+  "apple/Shared/ReadinessModels.swift": {
+    "mtime": 1786576773.0,
+    "ast_hash": "32fbce090edff26f85e5a06a7b5cd920",
+    "semantic_hash": ""
+  },
+  "apple/Shared/SensorModeCoordinator.swift": {
+    "mtime": 1787289496.9055293,
+    "ast_hash": "93b236c9b853f80b9e60586b83c40e85",
+    "semantic_hash": ""
+  },
+  "apple/Shared/ShotDistanceCalculator.swift": {
+    "mtime": 1787289591.447841,
+    "ast_hash": "5594d54f3b8642b70cd7180a949e10e5",
+    "semantic_hash": ""
+  },
+  "apple/Shared/SourceProvenance.swift": {
+    "mtime": 1786574656.0,
+    "ast_hash": "c270df2f708bdded2e91f2dbe208ffac",
+    "semantic_hash": ""
+  },
+  "apple/Shared/SwingPathGuidance.swift": {
+    "mtime": 1787289444.0106091,
+    "ast_hash": "48a0e0fb48c40c9b2ec47837731bf560",
+    "semantic_hash": ""
+  },
+  "apple/Shared/SwingShotIntervalCalculator.swift": {
+    "mtime": 1786592477.0,
+    "ast_hash": "0c632a3cd2b5ed2a7e1650f7dbecbc69",
+    "semantic_hash": ""
+  },
+  "apple/Shared/WatchLiveFace.swift": {
+    "mtime": 1787289585.888925,
+    "ast_hash": "05e7c4e100bab03a68fcc05de19c90a6",
+    "semantic_hash": ""
+  },
+  "apple/Shared/WatchWristPreference.swift": {
+    "mtime": 1787289441.0660627,
+    "ast_hash": "dbe6d905da950d91ba224cf7e8f6a1bd",
+    "semantic_hash": ""
+  },
+  "apple/Shared/WhoopMotionTransferModels.swift": {
+    "mtime": 1786585179.0,
+    "ast_hash": "ad3fcce639304e3f85ebb222042dfea5",
+    "semantic_hash": ""
+  },
+  "apple/WatchSupport/WatchSessionReceiver.swift": {
+    "mtime": 1787289716.4794474,
+    "ast_hash": "1ebba73ca58d3b955f0157d02c0c50cc",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/App/AppModel.swift": {
+    "mtime": 1787288443.9728107,
+    "ast_hash": "fd156637baf9d131fa2e85cdffaaea9f",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/App/DemoFixtures.swift": {
+    "mtime": 1786566117.0,
+    "ast_hash": "2da814363d7be38e49f0f675f00becc5",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/App/WhoopGolfApp.swift": {
+    "mtime": 1786577344.0,
+    "ast_hash": "960e4b9a679a586416a376a3a9cec480",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Components/EighteenBirdiesCompanionCard.swift": {
+    "mtime": 1786592176.0,
+    "ast_hash": "b6f9a3dbcbd5786bf9a18760843a7c5d",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Components/GolfTheme.swift": {
+    "mtime": 1786566117.0,
+    "ast_hash": "5cd1c86d73a487ead48fc0274739d3ff",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/BridgePairingClient.swift": {
+    "mtime": 1786591353.0,
+    "ast_hash": "1a53727cafa62ecaac1a45b91e0cfa54",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/EighteenBirdiesCompanionLink.swift": {
+    "mtime": 1786592104.0,
+    "ast_hash": "47ef95519a7db6bb58cf38a3d2bb5878",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/GolfCourseLocator.swift": {
+    "mtime": 1786574845.0,
+    "ast_hash": "d8696eced5c09b56976ad3722c71e33b",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/HealthAuthorizationService.swift": {
+    "mtime": 1786572328.0,
+    "ast_hash": "5d25b33ebe0191e05cfe0759f248cae1",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/KeychainStore.swift": {
+    "mtime": 1786590432.0,
+    "ast_hash": "2108b030133dd6a4beae4c891a88d9cc",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/LocationRoundService.swift": {
+    "mtime": 1786587877.0,
+    "ast_hash": "c673890ad67c7bc25b3e8bab096491c0",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/RoundFileStore.swift": {
+    "mtime": 1786570521.0,
+    "ast_hash": "ebf7c13ce6e4bfffef1cd19a1767d79f",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/RoundLocationJournal.swift": {
+    "mtime": 1786577428.0,
+    "ast_hash": "40945dbd72a68a358ff58c942c5d2ff4",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WatchSessionImporter.swift": {
+    "mtime": 1786573650.0,
+    "ast_hash": "c917a42b81227ce380515a6c67a1808e",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/Whoop5DiscoveryScanner.swift": {
+    "mtime": 1786575180.0,
+    "ast_hash": "d73486e71aefdf91f51b7702bbb011b0",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopBridgeClient.swift": {
+    "mtime": 1786579424.0,
+    "ast_hash": "ae4bd35d1addf810bea073e05b1bb4fb",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopHeartRateProvider.swift": {
+    "mtime": 1786573065.0,
+    "ast_hash": "3606aa7b93813427b13b0cffeb4ec398",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/IMUMotionManager.swift": {
+    "mtime": 1787196381.8436618,
+    "ast_hash": "8e418adb24c5e21fa9659eeb54a010fc",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/SwingDetector.swift": {
+    "mtime": 1787196381.8432386,
+    "ast_hash": "a17c8131de238e8d34f643b8405fa777",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/WhoopBLEManager.swift": {
+    "mtime": 1787287076.1963346,
+    "ast_hash": "73f50bf9e499d1dd2fc5912fa4772c30",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/WhoopCommands.swift": {
+    "mtime": 1787287076.1992276,
+    "ast_hash": "ecd0d13fa93e6daeacff7f2896bf875c",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/WhoopFraming.swift": {
+    "mtime": 1787287076.1992645,
+    "ast_hash": "84cffee8fe9ad79ab9ec9c6d46e5b154",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/WhoopIMUDecoder.swift": {
+    "mtime": 1787287076.1992276,
+    "ast_hash": "a0e14852888e25f541137f646f42ce05",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopLiveIMU/WhoopUUIDs.swift": {
+    "mtime": 1787196381.8340476,
+    "ast_hash": "f1cd423daa73f2893a48f583fde9dd55",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Services/WhoopMotionImportService.swift": {
+    "mtime": 1786594017.0,
+    "ast_hash": "a2a67ce613bb33d45a7d8696e073699d",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Views/AppShell.swift": {
+    "mtime": 1786566184.0,
+    "ast_hash": "1f425f598ead7991c3c08ddb091c31d0",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Views/RoundView.swift": {
+    "mtime": 1786594287.0,
+    "ast_hash": "8f98b46fbc0ce24c655d9222dc96a088",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Views/SettingsView.swift": {
+    "mtime": 1787287983.1106963,
+    "ast_hash": "4b6a657d0d0a9ce38272b5af2c172b1d",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Views/TodayView.swift": {
+    "mtime": 1787287984.1657495,
+    "ast_hash": "3445ec5f38463bf8e870af96b5ff6a17",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolf/Views/TrendsView.swift": {
+    "mtime": 1786585192.0,
+    "ast_hash": "7a627a99f931614e2551d38881af72ca",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/AutomaticHoleTransitionEngineTests.swift": {
+    "mtime": 1786592279.0,
+    "ast_hash": "9a5b06159f24379f732739d5129f644b",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/BridgeClientTests.swift": {
+    "mtime": 1786572795.0,
+    "ast_hash": "fa705553a996101d8ea0e602cbfe0d86",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/BridgePairingClientTests.swift": {
+    "mtime": 1786591180.0,
+    "ast_hash": "89206328fe704476c366dea9afee86a3",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/CoreModelTests.swift": {
+    "mtime": 1787287076.1789742,
+    "ast_hash": "30b2c85c38038a8e49e8220f4e57d11c",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/EighteenBirdiesCompanionLinkTests.swift": {
+    "mtime": 1786592104.0,
+    "ast_hash": "f44556f6a82e779e1d1eb8684c943115",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/GolfCourseLocatorTests.swift": {
+    "mtime": 1786574960.0,
+    "ast_hash": "56029d5cef27f8003b5e0d79fd0aac25",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/RoundLocationJournalTests.swift": {
+    "mtime": 1786576704.0,
+    "ast_hash": "6907f315fa21329f7128fd99de3d9b0a",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/SensorModeCoordinatorTests.swift": {
+    "mtime": 1786594116.0,
+    "ast_hash": "f573a5a0601da4b373b2cb2697d719f8",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/SwingPathGuidanceTests.swift": {
+    "mtime": 1787289659.3491638,
+    "ast_hash": "c5553e2282136e2611c5716c70aa60cc",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/WatchRoundContextTests.swift": {
+    "mtime": 1786573579.0,
+    "ast_hash": "159c124eb77bc7d51f3cc3bd6203b35d",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/WatchSessionImporterTests.swift": {
+    "mtime": 1786573650.0,
+    "ast_hash": "8c2ace60a598901d8121156125601f1f",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/WatchYardageBridgeTests.swift": {
+    "mtime": 1787289666.233908,
+    "ast_hash": "bddfa1b43f2713b26e2a9093711f6ea3",
+    "semantic_hash": ""
+  },
+  "apple/WhoopGolfTests/WhoopMotionImportServiceTests.swift": {
+    "mtime": 1786594451.0,
+    "ast_hash": "0088ba5489d6182e2c7e74abf6f26825",
+    "semantic_hash": ""
+  },
+  "apple/claude/ContentView.swift": {
+    "mtime": 1787035782.0,
+    "ast_hash": "f65047dff0e9eddbbd499476522d2925",
+    "semantic_hash": ""
+  },
+  "apple/claude/Item.swift": {
+    "mtime": 1787035782.0,
+    "ast_hash": "980c30615d7aeb1ba4a8dc9cfa29663f",
+    "semantic_hash": ""
+  },
+  "apple/claude/claudeApp.swift": {
+    "mtime": 1787035782.0,
+    "ast_hash": "c6f81b28b1c30931716f49047e163614",
+    "semantic_hash": ""
+  },
+  "apple/claudeTests/claudeTests.swift": {
+    "mtime": 1787035784.0,
+    "ast_hash": "73e7b6de01b8cc3210d6471b662bfef7",
+    "semantic_hash": ""
+  },
+  "apple/claudeUITests/claudeUITests.swift": {
+    "mtime": 1787035784.0,
+    "ast_hash": "8480ce42565780639ff50115c7512b6e",
+    "semantic_hash": ""
+  },
+  "apple/claudeUITests/claudeUITestsLaunchTests.swift": {
+    "mtime": 1787035784.0,
+    "ast_hash": "77589a3939397ea45e69bba21523e69a",
+    "semantic_hash": ""
+  },
+  "iphone/analyze.py": {
+    "mtime": 1787193782.2215827,
+    "ast_hash": "5d126d872cb3213215f93c874cf68b82",
+    "semantic_hash": ""
+  },
+  "iphone/ball_flight.py": {
+    "mtime": 1786552176.3347018,
+    "ast_hash": "23a80b144597504ccbc4891e8f696522",
+    "semantic_hash": ""
+  },
+  "iphone/club_model.py": {
+    "mtime": 1786552176.334885,
+    "ast_hash": "e5f0a1445914247794db7ef2b125617e",
+    "semantic_hash": ""
+  },
+  "iphone/gen_swing_vectors.py": {
+    "mtime": 1787036977.5431516,
+    "ast_hash": "284ce70f8d856f45cee6a16263c0f7c8",
+    "semantic_hash": ""
+  },
+  "iphone/hr_monitor.py": {
+    "mtime": 1787193782.2226908,
+    "ast_hash": "0d6d5a0bc61eb0bbea7820f89b21a572",
+    "semantic_hash": ""
+  },
+  "iphone/round_report.py": {
+    "mtime": 1787193782.2232943,
+    "ast_hash": "db1a532a21508c36a2d6758a9656ea84",
+    "semantic_hash": ""
+  },
+  "iphone/selftest.py": {
+    "mtime": 1787193782.2240608,
+    "ast_hash": "d88dbbd13c9e62bb2a1973decd3406aa",
+    "semantic_hash": ""
+  },
+  "iphone/shot_detect.py": {
+    "mtime": 1787193782.2247393,
+    "ast_hash": "790bbca6e4c9ac4e020fcc3094c2a801",
+    "semantic_hash": ""
+  },
+  "iphone/shot_model.py": {
+    "mtime": 1786552176.335752,
+    "ast_hash": "06472ba296b2b4fd4ca87bf23906f735",
+    "semantic_hash": ""
+  },
+  "iphone/swing_logger.py": {
+    "mtime": 1787193782.2253928,
+    "ast_hash": "9300575c8dc90c304f25aec889837b3f",
+    "semantic_hash": ""
+  },
+  "iphone/swing_metrics.py": {
+    "mtime": 1787193782.2260673,
+    "ast_hash": "ef5034e6b3a5c2e5713c35bbf59d3469",
+    "semantic_hash": ""
+  },
+  "iphone/swing_ui.py": {
+    "mtime": 1787036977.5454643,
+    "ast_hash": "38c84255623eb1d2ec189cb8838a85e6",
+    "semantic_hash": ""
+  },
+  "iphone/test_club_model.py": {
+    "mtime": 1786552176.336896,
+    "ast_hash": "3ad67d75202e1599503430140989bfab",
+    "semantic_hash": ""
+  },
+  "iphone/test_hr_monitor.py": {
+    "mtime": 1787193782.2263305,
+    "ast_hash": "9c5466406c56f75970e284b8b984dd88",
+    "semantic_hash": ""
+  },
+  "iphone/test_round_report.py": {
+    "mtime": 1787193782.2269833,
+    "ast_hash": "ec608adc50bdcf61307bd3b67c250a95",
+    "semantic_hash": ""
+  },
+  "iphone/test_selftest.py": {
+    "mtime": 1787193782.2274177,
+    "ast_hash": "6d1feb5414487807c5216efc5236cb2d",
+    "semantic_hash": ""
+  },
+  "iphone/test_shot_detect.py": {
+    "mtime": 1787193782.2280364,
+    "ast_hash": "3c2d7e4ffaf368f66c4f4e3b6c001cc7",
+    "semantic_hash": ""
+  },
+  "iphone/test_shot_model.py": {
+    "mtime": 1786552176.3373852,
+    "ast_hash": "d668434829cdc582c8bc2acb8dff90a2",
+    "semantic_hash": ""
+  },
+  "iphone/test_swing_metrics.py": {
+    "mtime": 1787193782.2286575,
+    "ast_hash": "3c79e6230e39d0b55b04f8169c75a05c",
+    "semantic_hash": ""
+  },
+  "iphone/test_swing_ui.py": {
+    "mtime": 1787036977.5471687,
+    "ast_hash": "9117d87d3af64d1af80291d79c370d50",
+    "semantic_hash": ""
+  },
+  "iphone/test_trends.py": {
+    "mtime": 1787193782.2293515,
+    "ast_hash": "5593fd97e34b8a7af84589a5257d01e5",
+    "semantic_hash": ""
+  },
+  "iphone/trends.py": {
+    "mtime": 1787193782.2297657,
+    "ast_hash": "23b99fd979a4e516f75c8ed2ae2399f6",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1787193782.230259,
+    "ast_hash": "a4e22b4a4723999103b3feeb0cffc579",
+    "semantic_hash": ""
+  },
+  "run-tests.sh": {
+    "mtime": 1787193782.2307072,
+    "ast_hash": "d7c4ed8acd0666a52247b726c770ab64",
+    "semantic_hash": ""
+  },
+  "setup-mac-xcode.sh": {
+    "mtime": 1787193782.230911,
+    "ast_hash": "2f7026859d5eab88aca8f29b60210bfd",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/BLE/WhoopBLEManager.swift": {
+    "mtime": 1787193782.2325988,
+    "ast_hash": "bfb97232c0032d767d813602dc631c68",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/BLE/WhoopCommands.swift": {
+    "mtime": 1787193782.2328148,
+    "ast_hash": "8f100fecc98824cf9626a466cbffe24a",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/BLE/WhoopFraming.swift": {
+    "mtime": 1787193782.2330189,
+    "ast_hash": "1bada5613867fad0c8f2b9c93bd693cd",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/BLE/WhoopIMUDecoder.swift": {
+    "mtime": 1787193782.233213,
+    "ast_hash": "b93cd5361ed1ace8fb4567d82d1aefbf",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/BLE/WhoopUUIDs.swift": {
+    "mtime": 1787193782.2334049,
+    "ast_hash": "f1cd423daa73f2893a48f583fde9dd55",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/ContentView.swift": {
+    "mtime": 1787193782.2335763,
+    "ast_hash": "d0652d201ce7f262fb2e68bf3635bbf7",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/IMUMotionManager.swift": {
+    "mtime": 1787193782.2337673,
+    "ast_hash": "8e418adb24c5e21fa9659eeb54a010fc",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/IngestSettings.swift": {
+    "mtime": 1787193782.2341588,
+    "ast_hash": "c520ae9a229b6d4e2d0bf565bbfe02aa",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/PhoneMotionManager.swift": {
+    "mtime": 1787193782.234365,
+    "ast_hash": "318181f067eff87a29879a145d1307b5",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/SessionModel.swift": {
+    "mtime": 1787193782.2346382,
+    "ast_hash": "45801fced0292b994791807de352a0a0",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/SettingsView.swift": {
+    "mtime": 1787193782.2348235,
+    "ast_hash": "dfbc30fc1f8171330bb1d3b37f914c0e",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/SidecarSessionView.swift": {
+    "mtime": 1787193782.2350204,
+    "ast_hash": "265e21e45059c281f95c095023a6c84c",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/SwingDetector.swift": {
+    "mtime": 1787193782.2355316,
+    "ast_hash": "a17c8131de238e8d34f643b8405fa777",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecar/WhoopSwingSidecarApp.swift": {
+    "mtime": 1787193782.2359045,
+    "ast_hash": "60cb6afa614322c1e911ea396bc445c4",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecarTests/SwingDetectorTests.swift": {
+    "mtime": 1787193782.2364323,
+    "ast_hash": "b9c42fd60e0de9ab6467ad2b292617b3",
+    "semantic_hash": ""
+  },
+  "sidecar/WhoopSwingSidecarTests/WhoopFramingTests.swift": {
+    "mtime": 1787193782.2366621,
+    "ast_hash": "037fdcb10d8803c5f36da442a268e6df",
+    "semantic_hash": ""
+  },
+  "sidecar/build.sh": {
+    "mtime": 1787193782.2374098,
+    "ast_hash": "5a8871c0af6b2fbd15281f982a470752",
+    "semantic_hash": ""
+  },
+  "sidecar/generate-project.py": {
+    "mtime": 1787193782.2376072,
+    "ast_hash": "7f942038049f16331d7a4e5132af6e7b",
+    "semantic_hash": ""
+  },
+  "sidecar/test_generate_project.py": {
+    "mtime": 1787193782.2377696,
+    "ast_hash": "610e6650779aaf6d61adfd869ab29dd8",
+    "semantic_hash": ""
+  },
+  "src/cli.ts": {
+    "mtime": 1787289689.920169,
+    "ast_hash": "2167159c7e690ce57f126cc41eea5645",
+    "semantic_hash": ""
+  },
+  "src/coach/coach.ts": {
+    "mtime": 1787193782.2395,
+    "ast_hash": "9986382005cfa045fa43e569b9a6a5e5",
+    "semantic_hash": ""
+  },
+  "src/coach/facts.ts": {
+    "mtime": 1787193782.239841,
+    "ast_hash": "c3403e3b3d390300a7a94b1d28413403",
+    "semantic_hash": ""
+  },
+  "src/config.ts": {
+    "mtime": 1786552176.3395374,
+    "ast_hash": "b019796186ea7921bdfb8a0105205741",
+    "semantic_hash": ""
+  },
+  "src/link/correlate.ts": {
+    "mtime": 1787036977.5494199,
+    "ast_hash": "cf8d6fc6825623b0fa97469871822340",
+    "semantic_hash": ""
+  },
+  "src/link/golfRound.ts": {
+    "mtime": 1787036977.5497844,
+    "ast_hash": "50f4b47420ea938553d31a945be32d67",
+    "semantic_hash": ""
+  },
+  "src/link/readiness.ts": {
+    "mtime": 1786552176.3401144,
+    "ast_hash": "d382173963ab8d559bd554c4866e0798",
+    "semantic_hash": ""
+  },
+  "src/link/stats.ts": {
+    "mtime": 1786552176.3403091,
+    "ast_hash": "4d3a6ef8e63ff0c302df52316c044e91",
+    "semantic_hash": ""
+  },
+  "src/rounds/appleHealth.ts": {
+    "mtime": 1786552176.3405492,
+    "ast_hash": "efe87b61c83bd5642cf9fb4f5d6fd3c6",
+    "semantic_hash": ""
+  },
+  "src/rounds/csv.ts": {
+    "mtime": 1786552176.3407059,
+    "ast_hash": "54d22c391ffd9329dcc8808cced9a8f6",
+    "semantic_hash": ""
+  },
+  "src/rounds/ingest.ts": {
+    "mtime": 1786552176.3408737,
+    "ast_hash": "0bb68b50eb988ac756bc9b12175885da",
+    "semantic_hash": ""
+  },
+  "src/rounds/types.ts": {
+    "mtime": 1786552176.3410044,
+    "ast_hash": "cf0703a53ce7c74fbd13af0feeb62419",
+    "semantic_hash": ""
+  },
+  "src/server.ts": {
+    "mtime": 1787036977.5503244,
+    "ast_hash": "aee0441219858bc44724976b6b7be6b7",
+    "semantic_hash": ""
+  },
+  "src/store.ts": {
+    "mtime": 1787193782.2404172,
+    "ast_hash": "6316f291fea50365bac3cd78882e6728",
+    "semantic_hash": ""
+  },
+  "src/whoop/client.ts": {
+    "mtime": 1787036977.5514257,
+    "ast_hash": "56e7632c8262a9bc2af44f4fb1b5e763",
+    "semantic_hash": ""
+  },
+  "src/whoop/oauth.ts": {
+    "mtime": 1787036977.5519233,
+    "ast_hash": "c709948558d1293e45b332258d7487b2",
+    "semantic_hash": ""
+  },
+  "src/whoop/types.ts": {
+    "mtime": 1786552176.3417063,
+    "ast_hash": "7cf6907fb5380708db2fb0e50cd237fb",
+    "semantic_hash": ""
+  },
+  "test/client.test.ts": {
+    "mtime": 1787036977.552278,
+    "ast_hash": "8af19e7ad8d4946338da6b736cd62874",
+    "semantic_hash": ""
+  },
+  "test/coach.test.ts": {
+    "mtime": 1787193782.240773,
+    "ast_hash": "6aa1d81135ded5c0343aaa9599f56a4c",
+    "semantic_hash": ""
+  },
+  "test/link.test.ts": {
+    "mtime": 1787036977.5525305,
+    "ast_hash": "ec3ec46708c030962273cc014bc31e3d",
+    "semantic_hash": ""
+  },
+  "test/rounds.test.ts": {
+    "mtime": 1786552176.3421392,
+    "ast_hash": "2358b5d9ed50dae31a421770289cd5b7",
+    "semantic_hash": ""
+  },
+  "test/server.test.ts": {
+    "mtime": 1787036977.5528882,
+    "ast_hash": "7cc3fc2025cfa10d7a11e49e2af45b2e",
+    "semantic_hash": ""
+  },
+  "test/stats.test.ts": {
+    "mtime": 1786552176.342397,
+    "ast_hash": "6f02fe0e7856b75aa4078ba6607b12c8",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1786552176.3425007,
+    "ast_hash": "7ba0ce3cd82751fdd288260f900c0e15",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/GPSSourceCheck.swift": {
+    "mtime": 1787036977.554505,
+    "ast_hash": "cf68a655112f341fcd8792c4249081ab",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/IngestSettings.swift": {
+    "mtime": 1787193782.2428284,
+    "ast_hash": "c520ae9a229b6d4e2d0bf565bbfe02aa",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/LocationManager.swift": {
+    "mtime": 1787036977.5549185,
+    "ast_hash": "12b5015e34d0c86c0757b7af2a43e3a9",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/MotionManager.swift": {
+    "mtime": 1787289449.8370492,
+    "ast_hash": "8279cd714ecf3dee43b2e8bb9a44c932",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/SessionModel.swift": {
+    "mtime": 1787287796.4340184,
+    "ast_hash": "8c029f3d90a9d00c4dbef3c8e0472d9d",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/SessionView.swift": {
+    "mtime": 1787289398.6986365,
+    "ast_hash": "ef0d5a81885a32f2ea8e1a5e6d7d86a2",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/SettingsView.swift": {
+    "mtime": 1787287835.0728106,
+    "ast_hash": "c15083791f233712b5eb3e6e846c1b74",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/SwingDetector.swift": {
+    "mtime": 1787287786.63285,
+    "ast_hash": "2e8c34473304b5e21591abb254c9b0b7",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/WatchRoundFaceView.swift": {
+    "mtime": 1787289752.9725072,
+    "ast_hash": "184b80dd10f891e3dcf3053277d2b168",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/WatchSessionTransfer.swift": {
+    "mtime": 1787287770.4198186,
+    "ast_hash": "8ad3d87e5615ed464bd317e7bafcbc27",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/WhoopGolfApp.swift": {
+    "mtime": 1787287816.6390057,
+    "ast_hash": "8800fa989aeca93733e5a74a84f533d8",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchApp/WorkoutManager.swift": {
+    "mtime": 1787289526.1491983,
+    "ast_hash": "e7a046afe85c190c0e6c619e84e84cdf",
+    "semantic_hash": ""
+  },
+  "watch/WhoopGolfWatchAppTests/SwingDetectorTests.swift": {
+    "mtime": 1787193782.245644,
+    "ast_hash": "b9c42fd60e0de9ab6467ad2b292617b3",
+    "semantic_hash": ""
+  },
+  "watch/build.sh": {
+    "mtime": 1787193782.2465706,
+    "ast_hash": "b9f15583d252c08471dab76c9a67ccf4",
+    "semantic_hash": ""
+  },
+  "watch/generate-project.py": {
+    "mtime": 1787193782.2469492,
+    "ast_hash": "101498e8c8725a983e9c604584f0a8f4",
+    "semantic_hash": ""
+  },
+  "watch/test_generate_project.py": {
+    "mtime": 1787193782.2474396,
+    "ast_hash": "2a156020086d54e1153f11535b6f3d95",
+    "semantic_hash": ""
+  },
+  "IPHONE.md": {
+    "mtime": 1787036977.5418496,
+    "ast_hash": "3e98ff0a793d742800847654315f2505",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1787193782.2184944,
+    "ast_hash": "8ad4ad4400a72f0692494e6f51463729",
+    "semantic_hash": ""
+  },
+  "SETUP-MAC.md": {
+    "mtime": 1787289770.1007483,
+    "ast_hash": "2d9e46d5454f26e558ccf61cdc41f5d5",
+    "semantic_hash": ""
+  },
+  "START-HERE.md": {
+    "mtime": 1787193782.2191067,
+    "ast_hash": "e5095acb42d8f29971a758ca2477192d",
+    "semantic_hash": ""
+  },
+  "SUBSTITUTES.md": {
+    "mtime": 1787193782.2192733,
+    "ast_hash": "48e2e0327d2d4e79fde897518067db9b",
+    "semantic_hash": ""
+  },
+  "WHOOP_REPOS.md": {
+    "mtime": 1787193782.2194169,
+    "ast_hash": "4a000116e387816a2b46c5c45734a40e",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/HANDOFFS.md": {
+    "mtime": 1787289525.60248,
+    "ast_hash": "3bd968aa724d4145f1337e735b732637",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/LESSONS.md": {
+    "mtime": 1787289189.8035445,
+    "ast_hash": "f13a47dc749e6fb32c86a238cbb96e89",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/STATUS.md": {
+    "mtime": 1787289287.3297358,
+    "ast_hash": "65a18cfd0bc1e96ed1fd0838bac01e4b",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/TASKS.md": {
+    "mtime": 1787289162.212298,
+    "ast_hash": "b16756351d3160c0f91f4294d48bd3bf",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/agents/golf-improver-engine.md": {
+    "mtime": 1787289616.4440193,
+    "ast_hash": "f5b858ead4baf225e85cf297f34aa588",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/agents/tailscale-ingest.md": {
+    "mtime": 1787289355.183486,
+    "ast_hash": "ce8587b022138eac73b0cadf9a2bf46d",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/agents/trail-right-motion.md": {
+    "mtime": 1787289485.5131943,
+    "ast_hash": "eff748181e7988c38c18fdc1363d73b0",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/agents/watch-round-face.md": {
+    "mtime": 1787289459.0505745,
+    "ast_hash": "caa0f9038dda9639c180d00f2add7f15",
+    "semantic_hash": ""
+  },
+  "apple/.agent-orchestration/agents/wearable-architecture.md": {
+    "mtime": 1787289585.665982,
+    "ast_hash": "835665fdb2c3ade8a2bc4d22d84b5e4e",
+    "semantic_hash": ""
+  },
+  "apple/project.yml": {
+    "mtime": 1787289487.267858,
+    "ast_hash": "4c37fc8c5f0759a454fffc3d4ea2bec6",
+    "semantic_hash": ""
+  },
+  "iphone/WHOOP_BLE_NOTES.md": {
+    "mtime": 1787193782.2208261,
+    "ast_hash": "02dc6d1ce9181ae6f233118016023a46",
+    "semantic_hash": ""
+  },
+  "sidecar/SIDECAR.md": {
+    "mtime": 1787193782.2311602,
+    "ast_hash": "0529804ee4725fc01e0e7f569a8618e6",
+    "semantic_hash": ""
+  },
+  "skills/whoop-18birdies/SKILL.md": {
+    "mtime": 1787193782.2385178,
+    "ast_hash": "9427acb0b9a91b81eb998839341cd705",
+    "semantic_hash": ""
+  },
+  "watch/WATCH.md": {
+    "mtime": 1787193782.2412999,
+    "ast_hash": "a6934095df9624421239d12afdd3fde9",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png": {
+    "mtime": 1786566390.0,
+    "ast_hash": "3ac79e4a0fbe07906ece80f37851d857",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-20@2x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "0fdb0b157640f3a5a199c980397f4e1d",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-20@3x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "3e24d3e165159dcfe7275663351f5b06",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-29@2x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "ef1a57c849d06ebda62845c2ed59e12b",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-29@3x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "e158b4183bc47c692b644c01fc427c1c",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-40@2x.png": {
+    "mtime": 1786566380.0,
+    "ast_hash": "0d7d9a0259202cf209c009a4fb4f14c8",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-40@3x.png": {
+    "mtime": 1786566381.0,
+    "ast_hash": "14ad61b69f425183a4a9a9a7de0cf65b",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-60@2x.png": {
+    "mtime": 1786566381.0,
+    "ast_hash": "14ad61b69f425183a4a9a9a7de0cf65b",
+    "semantic_hash": ""
+  },
+  "apple/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-60@3x.png": {
+    "mtime": 1786566381.0,
+    "ast_hash": "c35a083777e513284ba9b9e3477ef00c",
+    "semantic_hash": ""
+  }
+}

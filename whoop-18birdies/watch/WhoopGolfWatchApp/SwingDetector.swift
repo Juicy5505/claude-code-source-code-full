@@ -22,6 +22,9 @@ struct SwingMetrics {
     var tempoRatio: Double?
     var tempoFrames: String?
     var yawSweepDeg: Double?
+    /// Mount-corrected downswing yaw in degrees. Positive is in-to-out.
+    var pathYawDeg: Double?
+    var pathClass: SwingPathClass
 }
 
 enum TempoBench {
@@ -217,7 +220,8 @@ enum SwingAnalysis {
         )
         var m = SwingMetrics(peakG: round(samples[peakIndex].mag, 2),
                              backswingS: nil, downswingS: nil,
-                             tempoRatio: nil, tempoFrames: nil, yawSweepDeg: nil)
+                             tempoRatio: nil, tempoFrames: nil, yawSweepDeg: nil,
+                             pathYawDeg: nil, pathClass: .unknown)
 
         guard let start = findMotionStart(samples, peak: peakIndex),
               let transition = findTransition(samples, peak: peakIndex, start: start)
@@ -232,6 +236,26 @@ enum SwingAnalysis {
         }
         m.tempoFrames = TempoBench.frames(m.backswingS, m.downswingS)
         m.yawSweepDeg = yawSweep(samples, start, peakIndex)
+        let rawPathYaw = signedYawDelta(samples, from: transition, to: peakIndex)
+        let classified = SwingPathGuidance.classify(
+            downswingYawDegrees: rawPathYaw,
+            wrist: WatchWristMount.load()
+        )
+        m.pathClass = classified.path
+        m.pathYawDeg = classified.correctedYawDegrees
         return m
+    }
+
+    /// Signed yaw change from the top of the backswing to impact, unwrapped.
+    /// Wrist mount polarity is applied later by `SwingPathGuidance`.
+    static func signedYawDelta(_ s: [MotionSample], from: Int, to: Int) -> Double? {
+        guard from <= to, to < s.count else { return nil }
+        var yaws: [Double] = []
+        for i in from...to {
+            if let a = s[i].attitude { yaws.append(a.yaw) }
+        }
+        let unwrapped = unwrap(yaws)
+        guard let first = unwrapped.first, let last = unwrapped.last else { return nil }
+        return round((last - first) * 180 / .pi, 1)
     }
 }
