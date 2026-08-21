@@ -63,14 +63,22 @@ APP_SOURCES = [
     "WatchSessionTransfer.swift",
 ]
 
-# The apple companion project shares this directory, and its work made the
-# watch sources depend on model types that live in apple/Shared. Globbed, not
-# listed, so a new Shared file cannot silently be left out of this target the
-# way WatchRoundFaceView and WatchSessionTransfer were left out of APP_SOURCES.
-# Sorted for deterministic output. Every file there is Foundation/CryptoKit
-# only, so all of it compiles for watchOS.
+# The apple companion project made the watch sources depend on model types in
+# apple/Shared. NOT globbed: Shared is a mixed bag — most of it is phone-side
+# (PhoneYardageBridge references GolfCourseCandidate, an iOS-only type, and the
+# first CI compile of a glob-everything list failed on exactly that). The list
+# below mirrors the apple project's OWN watch target, which is the ground truth
+# for what compiles on the watch; test_generate_project cross-checks the two
+# and fails with a named file the moment they drift.
 SHARED_DIR = HERE.parent / "apple" / "Shared"
-SHARED_SOURCES = sorted(f.name for f in SHARED_DIR.glob("*.swift"))
+SHARED_SOURCES = [
+    "GolfImprover.swift",
+    "SwingPathGuidance.swift",
+    "WatchCoachingCue.swift",
+    "WatchLiveFace.swift",
+    "WatchRoundContext.swift",
+    "WatchWristPreference.swift",
+]
 
 # The detector and the model, because the tests exercise both the swing maths
 # and the haversine port. Nothing else — keeping the test target's source list
@@ -611,11 +619,8 @@ def main() -> int:
     missing = [n for n in APP_SOURCES + [TEST_FILE]
                if not (HERE / "WhoopGolfWatchApp" / n).exists()
                and not (HERE / "WhoopGolfWatchAppTests" / n).exists()]
-    # The glob cannot name a missing file, but an EMPTY glob means the apple
-    # checkout is absent or moved — and generating a project whose sources
-    # reference types that will never compile is exactly what this abort is for.
-    if not SHARED_SOURCES:
-        missing.append("apple/Shared/*.swift (directory empty or missing)")
+    missing += [f"../apple/Shared/{n}" for n in SHARED_SOURCES
+                if not (SHARED_DIR / n).exists()]
     if missing:
         print("Missing source files, refusing to generate a broken project:",
               file=sys.stderr)

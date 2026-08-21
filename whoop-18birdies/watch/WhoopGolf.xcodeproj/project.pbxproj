@@ -11,10 +11,6 @@
 			isa = PBXBuildFile;
 			fileRef = 6890E6A4CBEE691619A21337;
 		};
-		0E098284DA7ADF126143B03D = {
-			isa = PBXBuildFile;
-			fileRef = 8F3D30092A4464BDCA696F40;
-		};
 		10A377FC6A540D3C6F6230EC = {
 			isa = PBXBuildFile;
 			fileRef = 46C411A64E46B2DF7CBD6F43;
@@ -31,10 +27,6 @@
 			isa = PBXBuildFile;
 			fileRef = FCB1EB3D1773C0956685EB37;
 		};
-		414E177222EC5917D33057F5 = {
-			isa = PBXBuildFile;
-			fileRef = 5CF8F5C11F96A1F9B632A760;
-		};
 		42DABD637D7CA698868AB280 = {
 			isa = PBXBuildFile;
 			fileRef = 4E01CB3CBC47644B8DA8F29E;
@@ -42,18 +34,6 @@
 		48D7FADBF28E3E39B532458F = {
 			isa = PBXBuildFile;
 			fileRef = 15C601D6227C21AA01872696;
-		};
-		5312BDE7288B4C1B74BED36E = {
-			isa = PBXBuildFile;
-			fileRef = 0360499E2831B98BE52ABFE8;
-		};
-		531D7D3FE4CA5007B1B2D332 = {
-			isa = PBXBuildFile;
-			fileRef = 4050F8A46ADB09FBEDAFB54D;
-		};
-		54F600011BE48DBF6195B299 = {
-			isa = PBXBuildFile;
-			fileRef = DEC54E76A850AFE5C43C57A6;
 		};
 		65F60E10E2F4B909FFF21D8C = {
 			isa = PBXBuildFile;
@@ -67,25 +47,13 @@
 			isa = PBXBuildFile;
 			fileRef = 1FEBCC5383A17BC2E18387E5;
 		};
-		6D3065F300B6B49781E09E31 = {
-			isa = PBXBuildFile;
-			fileRef = B0F0C2C0CEF21CD9AA16EC48;
-		};
 		7830A5E72955368A450F50DF = {
 			isa = PBXBuildFile;
 			fileRef = 32162ADB778303E5DADD330D;
 		};
-		79956E57782A65A2D6007225 = {
-			isa = PBXBuildFile;
-			fileRef = D85EE1CFCFE9E1F3015BBE7F;
-		};
 		7AA314C46316C2ED79AF5E07 = {
 			isa = PBXBuildFile;
 			fileRef = 5B32BA676DD9C4FB3D517183;
-		};
-		7B5A9D6910D4E6B99D14CDC6 = {
-			isa = PBXBuildFile;
-			fileRef = 73FAD1B8164FE98A6AE90411;
 		};
 		8197F9D9B21E1CA428AC2FE6 = {
 			isa = PBXBuildFile;
@@ -94,22 +62,6 @@
 		84558937F25A0A942FBE20F4 = {
 			isa = PBXBuildFile;
 			fileRef = 6890E6A4CBEE691619A21337;
-		};
-		989E60CC1E1C21664B79F063 = {
-			isa = PBXBuildFile;
-			fileRef = F21FCA3393CE0711F95C6F5B;
-		};
-		9A8047D2DCFD2E77DE893059 = {
-			isa = PBXBuildFile;
-			fileRef = B8D7B506D7E3C14391C720A4;
-		};
-		9EBDA82447FAC915674D07A5 = {
-			isa = PBXBuildFile;
-			fileRef = 3F0D8BE83457A1C5256703BB;
-		};
-		A616237706756C5C65DD1EA3 = {
-			isa = PBXBuildFile;
-			fileRef = 78EB2049480165B5EFAECB89;
 		};
 		AC61FCE40DD776D30F4C3BD7 = {
 			isa = PBXBuildFile;
@@ -123,10 +75,6 @@
 			isa = PBXBuildFile;
 			fileRef = 485ED6A72C4F8F9FF1A1F923;
 		};
-		BFE88AF9712AF15FDFAFB5E3 = {
-			isa = PBXBuildFile;
-			fileRef = 1DD4F77B9D78928EFAE5D702;
-		};
 		C72EA7ED0420A278E8C81887 = {
 			isa = PBXBuildFile;
 			fileRef = 761B1151B226D58D3BC1EA38;
@@ -134,10 +82,6 @@
 		D5C267539EE3EE46DE1D3B77 = {
 			isa = PBXBuildFile;
 			fileRef = 2FF630B690EEE31C5C7882CC;
-		};
-		E27485E287E94B08876FF0DA = {
-			isa = PBXBuildFile;
-			fileRef = 80D60FB433D8930CFC95F484;
 		};
 		EF707FC10300853CA2CCEF3A = {
 			isa = PBXBuildFile;
@@ -168,13 +112,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0360499E2831B98BE52ABFE8 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = DualWearableFusion.swift;
-			path = ../apple/Shared/DualWearableFusion.swift;
-			sourceTree = SOURCE_ROOT;
-		};
 		13B9A600BCF8CFC1D38A6503 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -193,13 +130,6 @@
 			lastKnownFileType = sourcecode.swift;
 			path = MotionManager.swift;
 			sourceTree = "<group>";
-		};
-		1DD4F77B9D78928EFAE5D702 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = DualWearableRequirement.swift;
-			path = ../apple/Shared/DualWearableRequirement.swift;
-			sourceTree = SOURCE_ROOT;
 		};
 		1FEBCC5383A17BC2E18387E5 = {
 			isa = PBXFileReference;
@@ -220,20 +150,6 @@
 			lastKnownFileType = sourcecode.swift;
 			path = LocationManager.swift;
 			sourceTree = "<group>";
-		};
-		3F0D8BE83457A1C5256703BB = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = AutomaticHoleTransitionEngine.swift;
-			path = ../apple/Shared/AutomaticHoleTransitionEngine.swift;
-			sourceTree = SOURCE_ROOT;
-		};
-		4050F8A46ADB09FBEDAFB54D = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = WhoopMotionTransferModels.swift;
-			path = ../apple/Shared/WhoopMotionTransferModels.swift;
-			sourceTree = SOURCE_ROOT;
 		};
 		46C411A64E46B2DF7CBD6F43 = {
 			isa = PBXFileReference;
@@ -274,13 +190,6 @@
 			path = ../apple/Shared/GolfImprover.swift;
 			sourceTree = SOURCE_ROOT;
 		};
-		5CF8F5C11F96A1F9B632A760 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = SourceProvenance.swift;
-			path = ../apple/Shared/SourceProvenance.swift;
-			sourceTree = SOURCE_ROOT;
-		};
 		67A84F899CC57144C8188E9F = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -300,32 +209,11 @@
 			path = ../apple/Shared/WatchRoundContext.swift;
 			sourceTree = SOURCE_ROOT;
 		};
-		73FAD1B8164FE98A6AE90411 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = SwingShotIntervalCalculator.swift;
-			path = ../apple/Shared/SwingShotIntervalCalculator.swift;
-			sourceTree = SOURCE_ROOT;
-		};
 		761B1151B226D58D3BC1EA38 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = GPSSourceCheck.swift;
 			sourceTree = "<group>";
-		};
-		78EB2049480165B5EFAECB89 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = ReadinessModels.swift;
-			path = ../apple/Shared/ReadinessModels.swift;
-			sourceTree = SOURCE_ROOT;
-		};
-		80D60FB433D8930CFC95F484 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = ComprehensiveShotIntelligence.swift;
-			path = ../apple/Shared/ComprehensiveShotIntelligence.swift;
-			sourceTree = SOURCE_ROOT;
 		};
 		82932C7EB9085B313681BDD1 = {
 			isa = PBXFileReference;
@@ -333,13 +221,6 @@
 			includeInIndex = 0;
 			path = WhoopGolfTests.xctest;
 			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		8F3D30092A4464BDCA696F40 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = HeartRateMeasurementParser.swift;
-			path = ../apple/Shared/HeartRateMeasurementParser.swift;
-			sourceTree = SOURCE_ROOT;
 		};
 		A13703790BBFC1AE38F0A98E = {
 			isa = PBXFileReference;
@@ -353,52 +234,17 @@
 			path = swing_vectors.json;
 			sourceTree = "<group>";
 		};
-		B0F0C2C0CEF21CD9AA16EC48 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = SensorModeCoordinator.swift;
-			path = ../apple/Shared/SensorModeCoordinator.swift;
-			sourceTree = SOURCE_ROOT;
-		};
-		B8D7B506D7E3C14391C720A4 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = GolfModels.swift;
-			path = ../apple/Shared/GolfModels.swift;
-			sourceTree = SOURCE_ROOT;
-		};
 		C90E18D7DD9B8E0980770A90 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = SessionView.swift;
 			sourceTree = "<group>";
 		};
-		D85EE1CFCFE9E1F3015BBE7F = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = StrokeScoreShotChain.swift;
-			path = ../apple/Shared/StrokeScoreShotChain.swift;
-			sourceTree = SOURCE_ROOT;
-		};
-		DEC54E76A850AFE5C43C57A6 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = PhoneYardageBridge.swift;
-			path = ../apple/Shared/PhoneYardageBridge.swift;
-			sourceTree = SOURCE_ROOT;
-		};
 		E4041EB2B5012A4CCC74714B = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = SwingDetectorTests.swift;
 			sourceTree = "<group>";
-		};
-		F21FCA3393CE0711F95C6F5B = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			name = ShotDistanceCalculator.swift;
-			path = ../apple/Shared/ShotDistanceCalculator.swift;
-			sourceTree = SOURCE_ROOT;
 		};
 		F3C24CC1ADB8EA057937CE74 = {
 			isa = PBXFileReference;
@@ -474,26 +320,12 @@
 		728CC7CD1C949D49D31782EE = {
 			isa = PBXGroup;
 			children = (
-				3F0D8BE83457A1C5256703BB,
-				80D60FB433D8930CFC95F484,
-				0360499E2831B98BE52ABFE8,
-				1DD4F77B9D78928EFAE5D702,
 				5B32BA676DD9C4FB3D517183,
-				B8D7B506D7E3C14391C720A4,
-				8F3D30092A4464BDCA696F40,
-				DEC54E76A850AFE5C43C57A6,
-				78EB2049480165B5EFAECB89,
-				B0F0C2C0CEF21CD9AA16EC48,
-				F21FCA3393CE0711F95C6F5B,
-				5CF8F5C11F96A1F9B632A760,
-				D85EE1CFCFE9E1F3015BBE7F,
 				2FF630B690EEE31C5C7882CC,
-				73FAD1B8164FE98A6AE90411,
 				15C601D6227C21AA01872696,
 				1FEBCC5383A17BC2E18387E5,
 				6AC2EA397D05DE2BBB08407D,
 				46C411A64E46B2DF7CBD6F43,
-				4050F8A46ADB09FBEDAFB54D,
 			);
 			name = Shared;
 			sourceTree = "<group>";
@@ -620,26 +452,12 @@
 				C72EA7ED0420A278E8C81887,
 				FEF4321EF47AB36DD154C3BF,
 				AE6941B84848C3716F5457BE,
-				9EBDA82447FAC915674D07A5,
-				E27485E287E94B08876FF0DA,
-				5312BDE7288B4C1B74BED36E,
-				BFE88AF9712AF15FDFAFB5E3,
 				7AA314C46316C2ED79AF5E07,
-				9A8047D2DCFD2E77DE893059,
-				0E098284DA7ADF126143B03D,
-				54F600011BE48DBF6195B299,
-				A616237706756C5C65DD1EA3,
-				6D3065F300B6B49781E09E31,
-				989E60CC1E1C21664B79F063,
-				414E177222EC5917D33057F5,
-				79956E57782A65A2D6007225,
 				D5C267539EE3EE46DE1D3B77,
-				7B5A9D6910D4E6B99D14CDC6,
 				48D7FADBF28E3E39B532458F,
 				6948FACEB10F46886AD985D6,
 				8197F9D9B21E1CA428AC2FE6,
 				10A377FC6A540D3C6F6230EC,
-				531D7D3FE4CA5007B1B2D332,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -269,14 +269,35 @@ class TestTargets(ProjectCase):
         }
         self.assertEqual(compiled, expected)
 
-    def test_shared_sources_are_globbed_not_listed(self):
-        # WatchRoundFaceView/WatchSessionTransfer got left out of APP_SOURCES by
-        # hand; the Shared list must not be able to fail the same way. It comes
-        # from the directory itself, so a new Shared file is picked up on the
-        # next generate — and there must be a meaningful number of them.
-        on_disk = {f.name for f in (HERE.parent / "apple" / "Shared").glob("*.swift")}
-        self.assertEqual(set(gen.SHARED_SOURCES), on_disk)
-        self.assertGreater(len(gen.SHARED_SOURCES), 10)
+    def test_shared_list_matches_the_apple_watch_target(self):
+        # Shared/ mixes phone-side and watch-side code, so a glob is wrong in
+        # one direction (the first CI compile failed on PhoneYardageBridge
+        # reaching for an iOS-only type) and a hand list is wrong in the other
+        # (that is how WatchRoundFaceView got left out). The apple project's own
+        # watch target is the ground truth: whatever Shared files IT compiles,
+        # this target compiles, and drift fails here with the file named.
+        pbxproj = HERE.parent / "apple" / "WhoopGolf.xcodeproj" / "project.pbxproj"
+        text = pbxproj.read_text(encoding="utf-8")
+        m = re.search(
+            r"/\* WhoopGolfWatch \*/ = \{\s*isa = PBXNativeTarget;.*?buildPhases = \((.*?)\);",
+            text, re.S)
+        self.assertIsNotNone(m, "apple pbxproj lost its WhoopGolfWatch target")
+        watch_sources = set()
+        for pid in re.findall(r"[0-9A-F]{24}", m.group(1)):
+            pm = re.search(
+                pid + r" /\* Sources \*/ = \{\s*isa = PBXSourcesBuildPhase;.*?files = \((.*?)\);",
+                text, re.S)
+            if pm:
+                watch_sources |= {
+                    name for _, name in
+                    re.findall(r"([0-9A-F]{24}) /\* (.*?) in Sources \*/", pm.group(1))
+                }
+        app_dir_files = {f.name for f in (HERE / "WhoopGolfWatchApp").glob("*.swift")}
+        expected_shared = watch_sources - app_dir_files
+        self.assertEqual(set(gen.SHARED_SOURCES), expected_shared)
+        # And every one of them must exist where the generator points.
+        for name in gen.SHARED_SOURCES:
+            self.assertTrue((HERE.parent / "apple" / "Shared" / name).is_file(), name)
 
     def test_the_fixture_is_bundled_with_the_tests(self):
         # Without this the tests fatalError on launch: the JSON is not present.
