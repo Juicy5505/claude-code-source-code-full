@@ -51,6 +51,14 @@ struct OverviewView: View {
             Text(board.modeTitle)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.golfMist)
+            Text(DualWearableRequirement.title(for: model.dualWearableAdmission))
+                .font(.caption.weight(.bold))
+                .foregroundStyle(
+                    model.canStartDualWearableRound ? Color.golfLime : Color.golfSand
+                )
+            Text(DualWearableRequirement.detail(for: model.dualWearableAdmission))
+                .font(.caption2)
+                .foregroundStyle(Color.golfMist)
         }
         .padding(.top, 4)
     }

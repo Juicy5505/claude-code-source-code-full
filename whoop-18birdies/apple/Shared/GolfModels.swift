@@ -128,6 +128,14 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
     let pathExplanation: String?
     /// Short improver tip / post-swing cue persisted with the stroke.
     let improverTip: String?
+    /// Golfer-selected club (`GolfClubKind.rawValue`). Sensors never invent this.
+    let club: String?
+    /// Derived ball-start tendency (`BallStartBias.rawValue`) — not launch monitor.
+    let ballStartBias: String?
+    /// Attack/delivery feel (`AttackFeel.rawValue`) — coaching only.
+    let attackFeel: String?
+    /// Plain-language ball-start detail for the stroke board.
+    let ballStartDetail: String?
     let provenance: DataProvenance
     let location: SwingLocationObservation?
     let locationCorrelationMethod: SwingLocationCorrelationMethod?
@@ -148,6 +156,10 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
         pathScore: Int? = nil,
         pathExplanation: String? = nil,
         improverTip: String? = nil,
+        club: String? = nil,
+        ballStartBias: String? = nil,
+        attackFeel: String? = nil,
+        ballStartDetail: String? = nil,
         provenance: DataProvenance,
         location: SwingLocationObservation? = nil,
         locationCorrelationMethod: SwingLocationCorrelationMethod? = nil,
@@ -167,6 +179,10 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
         self.pathScore = pathScore
         self.pathExplanation = pathExplanation
         self.improverTip = improverTip
+        self.club = club
+        self.ballStartBias = ballStartBias
+        self.attackFeel = attackFeel
+        self.ballStartDetail = ballStartDetail
         self.provenance = provenance
         self.location = location
         self.locationCorrelationMethod = locationCorrelationMethod
@@ -179,6 +195,24 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
             return .unknown
         }
         return resolved
+    }
+
+    var resolvedClubKind: GolfClubKind? {
+        GolfClubKind.normalize(club)
+    }
+
+    var resolvedBallStartBias: BallStartBias {
+        guard let ballStartBias, let bias = BallStartBias(rawValue: ballStartBias) else {
+            return .unknown
+        }
+        return bias
+    }
+
+    var resolvedAttackFeel: AttackFeel {
+        guard let attackFeel, let feel = AttackFeel(rawValue: attackFeel) else {
+            return .unknown
+        }
+        return feel
     }
 
     /// Swing-to-swing GPS yards when the following swing finalized this segment.
@@ -215,6 +249,43 @@ struct GolfSwingMetrics: Codable, Identifiable, Hashable, Sendable {
             pathScore: pathScore,
             pathExplanation: pathExplanation,
             improverTip: improverTip,
+            club: club,
+            ballStartBias: ballStartBias,
+            attackFeel: attackFeel,
+            ballStartDetail: ballStartDetail,
+            provenance: provenance,
+            location: location,
+            locationCorrelationMethod: locationCorrelationMethod,
+            shotInterval: shotInterval
+        )
+    }
+
+    /// Copy with club + derived ball-start / attack tracking fields.
+    func withComprehensiveTracking(
+        club: String?,
+        ballStartBias: String?,
+        attackFeel: String?,
+        ballStartDetail: String?
+    ) -> GolfSwingMetrics {
+        GolfSwingMetrics(
+            id: id,
+            capturedAt: capturedAt,
+            peakG: peakG,
+            backswingSeconds: backswingSeconds,
+            downswingSeconds: downswingSeconds,
+            tempoRatio: tempoRatio,
+            heartRateBPM: heartRateBPM,
+            detectionConfidence: detectionConfidence,
+            wristAnalysis: wristAnalysis,
+            pathYawDegrees: pathYawDegrees,
+            pathClass: pathClass,
+            pathScore: pathScore,
+            pathExplanation: pathExplanation,
+            improverTip: improverTip,
+            club: club,
+            ballStartBias: ballStartBias,
+            attackFeel: attackFeel,
+            ballStartDetail: ballStartDetail,
             provenance: provenance,
             location: location,
             locationCorrelationMethod: locationCorrelationMethod,

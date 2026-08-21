@@ -3,9 +3,9 @@
 - Cursor Mixpanel and ZoomInfo marketplace plugins auto-open Chrome OAuth; keep them disabled and do not re-enable auto-connect.
 - Treat Whoop Golf as the single golfer-facing iPhone app; fold Whoop Swing / WHOOP IMU into it instead of shipping a second competing golf icon.
 - Wearable priority is Apple Watch (pivoted 2026-08-21 from WHOOP live IMU): build the Watch companion into `whoop-18birdies/apple/WhoopGolf.xcodeproj`, not a second golf icon or Kit A install.
-- Use phone GPS for yardage/location; Apple Watch for heart rate, motion/swing, on-wrist path guidance, golf improver, and yardage display; WHOOP delayed-import remains optional.
+- Use phone GPS for yardage/location; Apple Watch for heart rate, motion/swing, on-wrist path guidance, golf improver, and yardage display; WHOOP delayed-import remains the motion path and is required with Watch for new rounds (D19 both-required admission).
 - Wear the Watch on the right (trail) hand when golfing, not the left/lead hand.
-- Dual maximize (D19): maximize Watch live scoring and WHOOP delayed motion + readiness in one Hybrid product — not Watch-only and not WHOOP-only.
+- Dual maximize (D19): maximize Watch live scoring and WHOOP delayed motion + readiness in one Hybrid product; new rounds require both wearables.
 - Do not install new MCP servers, and do not authenticate Mixpanel or ZoomInfo.
 - Do not commit Apple team IDs or WHOOP ingest tokens, and do not record those secrets in vault notes.
 
@@ -19,6 +19,7 @@
 - `whoop-18birdies/setup-mac-xcode.sh` may be missing; Kit A/C setup uses the watch/sidecar build scripts instead.
 - Project decisions live in the Obsidian vault under `10 Projects/Whoop Golf Companion/`; record the 2026-08-21 Apple Watch wearable pivot as a new dated decision rather than silently rewriting D15.
 - D19 Hybrid maximize-both is the active dual-wearable decision; vault mirrors also live under `whoop-18birdies/docs/vault/10 Projects/Whoop Golf Companion/` (App Overview + D19) when the Obsidian vault is not mounted.
+- New rounds are gated by `DualWearableRequirement` (Watch live + WHOOP swing source); Watch-only / WHOOP-only are diagnostic plan modes only.
 - iOS apps are Personal Team signed; after a phone reboot they can show as unavailable until Developer Mode / Trust is confirmed again.
 - WHOOP 5 firmware refuses live raw IMU (TOGGLE_IMU / Arming); the supported 5.0 motion path is delayed import / Check for WHOOP swings (historical offload), not a live stream.
 - Physical Apple Watch companion install is gated until the user confirms the Watch OS update is done.

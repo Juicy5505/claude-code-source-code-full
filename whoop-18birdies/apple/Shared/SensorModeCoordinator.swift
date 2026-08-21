@@ -570,10 +570,9 @@ struct ReconciledHybridSwing: Codable, Hashable, Sendable {
     }
 
     /// Materializes exactly one shot-timeline observation. Watch retains the
-    /// identity, live timestamp, and synchronized location. WHOOP supplies its
-    /// wrist analytics when paired. Any old interval is cleared so the caller
-    /// recomputes A→B only after reconciliation and cannot preserve a
-    /// cross-source subsecond segment.
+    /// identity, live timestamp, synchronized location, and path coaching.
+    /// WHOOP supplies wrist analytics / tempo when paired. Any old interval is
+    /// cleared so the caller recomputes A→B only after reconciliation.
     var materializedObservation: GolfSwingMetrics {
         guard let whoopEnrichment else {
             return GolfSwingMetrics(
@@ -586,6 +585,15 @@ struct ReconciledHybridSwing: Codable, Hashable, Sendable {
                 heartRateBPM: watchObservation.heartRateBPM,
                 detectionConfidence: watchObservation.detectionConfidence,
                 wristAnalysis: watchObservation.wristAnalysis,
+                pathYawDegrees: watchObservation.pathYawDegrees,
+                pathClass: watchObservation.pathClass,
+                pathScore: watchObservation.pathScore,
+                pathExplanation: watchObservation.pathExplanation,
+                improverTip: watchObservation.improverTip,
+                club: watchObservation.club,
+                ballStartBias: watchObservation.ballStartBias,
+                attackFeel: watchObservation.attackFeel,
+                ballStartDetail: watchObservation.ballStartDetail,
                 provenance: watchObservation.provenance,
                 location: watchObservation.location,
                 locationCorrelationMethod: watchObservation.locationCorrelationMethod,
@@ -619,6 +627,15 @@ struct ReconciledHybridSwing: Codable, Hashable, Sendable {
             detectionConfidence: whoopEnrichment.detectionConfidence ??
                 watchObservation.detectionConfidence,
             wristAnalysis: whoopEnrichment.wristAnalysis,
+            pathYawDegrees: watchObservation.pathYawDegrees ?? whoopEnrichment.pathYawDegrees,
+            pathClass: watchObservation.pathClass ?? whoopEnrichment.pathClass,
+            pathScore: watchObservation.pathScore ?? whoopEnrichment.pathScore,
+            pathExplanation: watchObservation.pathExplanation ?? whoopEnrichment.pathExplanation,
+            improverTip: watchObservation.improverTip ?? whoopEnrichment.improverTip,
+            club: watchObservation.club ?? whoopEnrichment.club,
+            ballStartBias: watchObservation.ballStartBias ?? whoopEnrichment.ballStartBias,
+            attackFeel: watchObservation.attackFeel ?? whoopEnrichment.attackFeel,
+            ballStartDetail: watchObservation.ballStartDetail ?? whoopEnrichment.ballStartDetail,
             provenance: DataProvenance(
                 source: .derived,
                 observedAt: watchObservation.capturedAt,

@@ -74,6 +74,36 @@ private struct StrokeBoardRowView: View {
                 .foregroundStyle(.white.opacity(0.88))
                 .fixedSize(horizontal: false, vertical: true)
 
+            HStack(spacing: 8) {
+                if let club = row.clubLabel {
+                    Text(club)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.golfLime.opacity(0.18), in: Capsule())
+                }
+                if let ball = row.ballStartLabel {
+                    Text(ball)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(.white.opacity(0.08), in: Capsule())
+                }
+                if let attack = row.attackFeelLabel {
+                    Text(attack)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(.white.opacity(0.08), in: Capsule())
+                }
+            }
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(Color.golfSand)
+
+            if let detail = row.ballStartDetail {
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundStyle(Color.golfMist)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             HStack(spacing: 10) {
                 Label(row.yardsLine, systemImage: "ruler")
                 if let hr = row.heartRateBPM {

@@ -54,6 +54,20 @@ struct WatchRoundFaceView: View {
                     .font(.system(size: 28, weight: .heavy, design: .rounded))
                     .foregroundStyle(.green)
             }
+            HStack(spacing: 6) {
+                if let club = liveFace.activeClubCode {
+                    Text(club)
+                        .font(.system(size: 11, weight: .bold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.gray.opacity(0.25), in: Capsule())
+                }
+                if let ball = liveFace.lastBallStartLabel {
+                    Text(ball)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.orange)
+                }
+            }
             Text(stroke.explanation)
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)

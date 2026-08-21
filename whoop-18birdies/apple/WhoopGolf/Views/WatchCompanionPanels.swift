@@ -297,6 +297,76 @@ struct TempoSparklineView: View {
     }
 }
 
+/// Live dual-wearable tracking board: club, path, ball-start, attack, fusion.
+struct ComprehensiveTrackingBoard: View {
+    let round: GolfRound
+    let wrist: WatchWristMount
+
+    var body: some View {
+        let dossiers = ComprehensiveShotIntelligence.dossiers(for: round, wrist: wrist)
+        GolfCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("COMPREHENSIVE TRACKING")
+                    .font(.caption.weight(.black))
+                    .tracking(1)
+                    .foregroundStyle(Color.golfMist)
+                Text("Watch path + WHOOP enrich + club + ball-start tendency + GPS yards")
+                    .font(.caption2)
+                    .foregroundStyle(Color.golfMist)
+
+                if dossiers.isEmpty {
+                    Text("Swing once with Watch live. WHOOP delayed enrich merges without double-counting. Tag club before each shot.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.golfMist)
+                } else {
+                    ForEach(dossiers.suffix(6).reversed()) { shot in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("#\(shot.sequence)")
+                                    .font(.caption.weight(.black))
+                                    .foregroundStyle(Color.golfLime)
+                                if let club = shot.club {
+                                    Text(club.shortCode)
+                                        .font(.caption2.weight(.bold))
+                                }
+                                Text(shot.pathClass == .unknown
+                                      ? "path —"
+                                      : SwingPathGuidance.coachingLabel(shot.pathClass))
+                                    .font(.caption.weight(.semibold))
+                                Spacer()
+                                Text(shot.ballStartBias.shortLabel)
+                                    .font(.caption2.weight(.black))
+                                    .foregroundStyle(Color.golfSand)
+                            }
+                            Text(shot.pathExplanation)
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.88))
+                            Text(shot.ballStartDetail)
+                                .font(.caption2)
+                                .foregroundStyle(Color.golfMist)
+                            HStack(spacing: 8) {
+                                Text(shot.attackFeel.title)
+                                if let yards = shot.shotYards {
+                                    Text(String(format: "%.0f yd", yards))
+                                }
+                                if let score = shot.pathScore {
+                                    Text("score \(score)")
+                                }
+                                Text(shot.watchLive && shot.whoopEnriched ? "Hybrid" : (shot.watchLive ? "Watch" : "WHOOP"))
+                            }
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(Color.golfLime.opacity(0.9))
+                        }
+                        if shot.id != dossiers.suffix(6).reversed().last?.id {
+                            Divider().overlay(.white.opacity(0.08))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// Post-round sheet: avg path score, longest swing-to-swing yards, source mix.
 struct PostRoundPathSummaryCard: View {
     let round: GolfRound

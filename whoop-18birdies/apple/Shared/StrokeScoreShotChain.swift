@@ -521,7 +521,7 @@ enum StrokeScoreShotChain {
         )
 
         let byID = Dictionary(uniqueKeysWithValues: journal.verifiedSwings.map { ($0.id, $0) })
-        return ordered.map { swing in
+        let coached = ordered.map { swing in
             guard let verified = byID[swing.id] else { return swing }
             return swing.withStrokeCoaching(
                 pathScore: verified.score,
@@ -531,6 +531,11 @@ enum StrokeScoreShotChain {
                 pathYawDegrees: verified.motion.correctedYawDegrees ?? swing.pathYawDegrees
             )
         }
+        return ComprehensiveShotIntelligence.enrichTrackingFields(
+            coached,
+            defaultClub: GolfClubKind.load(),
+            wrist: wrist
+        )
     }
 
     // MARK: - Verify one stroke

@@ -98,6 +98,26 @@ struct RoundView: View {
 
                 SensorModeSummaryCard(plan: model.adaptiveSensorPlan)
 
+                GolfCard {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("DUAL WEARABLE GATE")
+                            .font(.caption.weight(.bold))
+                            .tracking(1.1)
+                            .foregroundStyle(Color.golfMist)
+                        Text(DualWearableRequirement.title(for: model.dualWearableAdmission))
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(
+                                model.canStartDualWearableRound ? Color.golfLime : Color.golfSand
+                            )
+                        Text(DualWearableRequirement.detail(for: model.dualWearableAdmission))
+                            .font(.caption)
+                            .foregroundStyle(Color.golfMist)
+                        Text("Both Apple Watch (live path/HR/face) and WHOOP 5 (delayed enrich + readiness) are required. Manual / single-wearable starts are disabled.")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.55))
+                    }
+                }
+
                 if let snapshot = model.readiness {
                     GolfCard {
                         VStack(alignment: .leading, spacing: 10) {
@@ -139,17 +159,17 @@ struct RoundView: View {
                         PreflightRow(
                             title: "Apple Watch capture",
                             detail: model.sensorCapabilities.appleWatch.canCaptureLive
-                                ? "Paired app · live wrist motion, GPS, haptic, durable transfer"
-                                : "Pair and install WhoopGolfWatch for the live sensor path",
+                                ? "Required · live wrist path, tempo, HR, haptic, durable transfer"
+                                : "Required · pair and install WhoopGolfWatch (trail-right)",
                             symbol: "applewatch",
-                            state: model.sensorCapabilities.appleWatch.canCaptureLive ? .ready : .optional
+                            state: model.sensorCapabilities.appleWatch.canCaptureLive ? .ready : .blocked
                         )
                         Divider().overlay(.white.opacity(0.08))
                         PreflightRow(
-                            title: "WHOOP 5 motion",
+                            title: "WHOOP 5 motion + physio",
                             detail: model.sensorCapabilities.whoop.hasSwingSource
-                                ? "Post-round six-axis wrist analysis · no band GPS"
-                                : "Private bridge/offload setup is not yet proven",
+                                ? "Required · delayed enrich, readiness/recovery/strain · no live Arming"
+                                : "Required · configure private bridge / Check for WHOOP swings",
                             symbol: "gyroscope",
                             state: model.sensorCapabilities.whoop.hasSwingSource ? .ready : .blocked
                         )
@@ -164,15 +184,15 @@ struct RoundView: View {
                         )
                         Divider().overlay(.white.opacity(0.08))
                         PreflightRow(
-                            title: "Direct WHOOP HR",
-                            detail: "Standard HR Broadcast · optional physiology channel",
+                            title: "WHOOP HR Broadcast",
+                            detail: "Fallback only when Watch HR is unavailable · never fights Watch workout bond",
                             symbol: "wave.3.right",
                             state: whoopPreflightState
                         )
                     }
                 }
 
-                Text("Swing motion always comes from the selected wearable. GPS supplies only the A→B position estimate. The next accepted swing closes the previous shot; a hole boundary withholds the walk to the next tee. Distances are displacement estimates—not carry or ball telemetry.")
+                Text("Comprehensive tracking journals club, wrist path score, derived ball-start tendency, attack feel, tempo, peak g, HR, and swing-to-swing GPS yards. Ball-start is a path-derived tendency — not launch-monitor carry or spin.")
                     .font(.caption)
                     .foregroundStyle(Color.golfMist)
                     .padding(.horizontal, 3)
@@ -194,6 +214,8 @@ struct RoundView: View {
                 .tint(.golfLime)
                 .foregroundStyle(Color.golfInk)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .disabled(!model.canStartDualWearableRound)
+                .opacity(model.canStartDualWearableRound ? 1 : 0.45)
             }
             .padding(18)
             .padding(.bottom, 24)
@@ -284,33 +306,18 @@ struct RoundView: View {
     }
 
     private var sensorModeTitle: String {
-        switch model.adaptiveSensorPlan.mode {
-        case .whoopOnly: "WHOOP-only · delayed wrist reconstruction"
-        case .appleWatchOnly: "Apple Watch-only · live shot automation"
-        case .hybrid: "Hybrid · Watch live + WHOOP enrichment"
-        case .unavailable: "Wearable sensor not ready · manual fallback"
+        if model.canStartDualWearableRound {
+            return "Hybrid required · Watch live + WHOOP enrich"
         }
+        return DualWearableRequirement.title(for: model.dualWearableAdmission)
     }
 
     private var sensorModeSymbol: String {
-        switch model.adaptiveSensorPlan.mode {
-        case .appleWatchOnly, .hybrid: "applewatch"
-        case .whoopOnly: "gyroscope"
-        case .unavailable: "exclamationmark.triangle.fill"
-        }
+        model.canStartDualWearableRound ? "applewatch.radiowaves.left.and.right" : "exclamationmark.triangle.fill"
     }
 
     private var sensorModeDetail: String {
-        switch model.adaptiveSensorPlan.mode {
-        case .whoopOnly:
-            "WHOOP owns swing timing and wrist analytics. The iPhone contributes GPS only because WHOOP 5 has no GPS."
-        case .appleWatchOnly:
-            "The Watch owns live motion, synchronized GPS, shot haptic, and the durable session. Apple Health export is not required."
-        case .hybrid:
-            "Apple Watch owns each counted live shot; a unique delayed WHOOP match enriches that shot without double-counting."
-        case .unavailable:
-            "No wearable motion source is currently proven. You can still save the scorecard and GPS checkpoints without pretending they are automatic swings."
-        }
+        DualWearableRequirement.detail(for: model.dualWearableAdmission)
     }
 
     private var spatialPreflightDetail: String {
@@ -322,12 +329,9 @@ struct RoundView: View {
     }
 
     private var startButtonTitle: String {
-        switch model.adaptiveSensorPlan.mode {
-        case .whoopOnly: "Start WHOOP round"
-        case .appleWatchOnly: "Start linked Watch round"
-        case .hybrid: "Start hybrid round"
-        case .unavailable: "Start manual fallback"
-        }
+        model.canStartDualWearableRound
+            ? "Start dual Watch + WHOOP round"
+            : "Wearables required to start"
     }
 }
 
@@ -469,6 +473,7 @@ private struct CourseCandidateButton: View {
 }
 
 private struct LiveRoundView: View {
+    @EnvironmentObject private var model: AppModel
     let round: GolfRound
     @ObservedObject var location: LocationRoundService
     @ObservedObject var heartRate: WhoopHeartRateProvider
@@ -584,10 +589,53 @@ private struct LiveRoundView: View {
                 }
 
                 GolfCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("CLUB IN HAND")
+                            .font(.caption.weight(.bold))
+                            .tracking(1)
+                            .foregroundStyle(Color.golfMist)
+                        Text("Tagged on the next verified swing. Sensors never invent club.")
+                            .font(.caption2)
+                            .foregroundStyle(Color.golfMist)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(GolfClubKind.allCases, id: \.rawValue) { club in
+                                    Button {
+                                        model.setActiveClub(club)
+                                    } label: {
+                                        Text(club.shortCode)
+                                            .font(.caption.weight(.bold))
+                                            .foregroundStyle(
+                                                model.activeClub == club ? Color.golfInk : Color.golfLime
+                                            )
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                model.activeClub == club
+                                                    ? Color.golfLime
+                                                    : Color.white.opacity(0.08),
+                                                in: Capsule()
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                        Text(model.activeClub.displayName)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                }
+
+                ComprehensiveTrackingBoard(
+                    round: round,
+                    wrist: model.watchWristMount
+                )
+
+                GolfCard {
                     GolfStrokeBoardView(
-                        rows: GolfStrokePresentation.rows(for: round, wrist: WatchWristMount.load()),
+                        rows: GolfStrokePresentation.rows(for: round, wrist: model.watchWristMount),
                         title: "STROKE BOARD",
-                        emptyDetail: "Live Watch swings and fused WHOOP enrichments land here with path score, explanation, and swing-to-swing GPS yards."
+                        emptyDetail: "Live Watch swings and fused WHOOP enrichments land here with club, path, ball-start tendency, and swing-to-swing GPS yards."
                     )
                 }
 

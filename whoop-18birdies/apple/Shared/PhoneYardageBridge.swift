@@ -142,6 +142,7 @@ enum PhoneYardageBridge {
             middleYards: overlay.middleYards,
             backYards: overlay.backYards,
             lastShotYards: lastMeasuredShotYards(from: swings),
+            activeClubCode: GolfClubKind.load().shortCode,
             wristMount: wristMount,
             courseName: courseName
         )
@@ -155,7 +156,19 @@ enum PhoneYardageBridge {
             holeForSwing: { _ in holeNumber },
             wrist: wristMount
         )
-        return StrokeScoreShotChain.enrichLiveFace(base, journal: journal)
+        var enriched = StrokeScoreShotChain.enrichLiveFace(base, journal: journal)
+        if let last = swings.sorted(by: { $0.capturedAt < $1.capturedAt }).last {
+            let dossier = ComprehensiveShotIntelligence.dossier(
+                for: last,
+                sequence: swings.count,
+                wrist: wristMount
+            )
+            enriched.lastBallStartLabel = dossier.ballStartBias.shortLabel
+            if let club = dossier.club {
+                enriched.activeClubCode = club.shortCode
+            }
+        }
+        return enriched
     }
 
     /// Explicit fail-closed: MapKit / facility search never becomes a green map

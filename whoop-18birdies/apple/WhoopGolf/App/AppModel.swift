@@ -58,6 +58,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var pendingWhoopMotionReviewBatches: [PendingWhoopMotionReviewBatch] = []
     @Published private(set) var courseLookupState: CourseLookupState = .idle
     @Published var watchWristMount: WatchWristMount = WatchWristMount.load()
+    /// Active club for the next verified swing (golfer-selected).
+    @Published var activeClub: GolfClubKind = GolfClubKind.load()
     /// Authorized F/M/B green targets for the active hole. Facility search
     /// (`GolfCourseLocator`) never sets this — it identifies a course only.
     @Published private(set) var activeHoleGreenTargets: GolfHoleGreenTargets?
@@ -125,7 +127,25 @@ final class AppModel: ObservableObject {
         SensorModeCoordinator.plan(for: sensorCapabilities)
     }
 
+    /// Dual-wearable admission: both Apple Watch and WHOOP must be proven.
+    var dualWearableAdmission: DualWearableRequirement.Outcome {
+        DualWearableRequirement.evaluate(
+            capabilities: sensorCapabilities,
+            hasReadinessSnapshot: readiness != nil
+        )
+    }
+
+    var canStartDualWearableRound: Bool {
+        dualWearableAdmission.allowsStart
+    }
+
     var recommendedRoundRecorder: RoundRecorder {
+        // Product rule: new rounds are Hybrid only when both wearables admit.
+        if canStartDualWearableRound {
+            return .hybrid
+        }
+        // Diagnostics still expose the adaptive recommendation, but startRound
+        // refuses anything other than a satisfied dual gate.
         let watchReady = WatchSessionReceiver.shared.isPaired
             || WatchSessionReceiver.shared.isWatchAppInstalled
         if watchReady {
@@ -142,6 +162,12 @@ final class AppModel: ObservableObject {
     func setWatchWrist(_ mount: WatchWristMount) {
         WatchWristMount.save(mount)
         watchWristMount = mount
+        publishWatchLiveFace()
+    }
+
+    func setActiveClub(_ club: GolfClubKind) {
+        GolfClubKind.save(club)
+        activeClub = club
         publishWatchLiveFace()
     }
 
@@ -370,7 +396,17 @@ final class AppModel: ObservableObject {
         recordingDevice: RoundRecorder? = nil
     ) async {
         guard activeRound == nil else { return }
-        let selectedRecorder = recordingDevice ?? recommendedRoundRecorder
+
+        let admission = dualWearableAdmission
+        guard admission.allowsStart else {
+            notice = DualWearableRequirement.startBlockedNotice(for: admission)
+            return
+        }
+
+        // Dual maximize only — refuse Watch-only / WHOOP-only / manual starts.
+        let selectedRecorder: RoundRecorder = .hybrid
+        _ = recordingDevice // Callers may pass a preference; product gate overrides.
+
         let trimmed = courseName.trimmingCharacters(in: .whitespacesAndNewlines)
         let confirmedCourse: String?
         if case .confirmed(let candidate) = courseLookupState {
@@ -392,29 +428,14 @@ final class AppModel: ObservableObject {
             return
         }
 
-        if selectedRecorder == .appleWatch || selectedRecorder == .hybrid {
-            WatchSessionReceiver.shared.publishActiveRound(
-                roundID: round.id,
-                courseName: round.courseName,
-                startedAt: round.startedAt
-            )
-        } else {
-            WatchSessionReceiver.shared.clearActiveRound()
-        }
+        WatchSessionReceiver.shared.publishActiveRound(
+            roundID: round.id,
+            courseName: round.courseName,
+            startedAt: round.startedAt
+        )
         publishWatchLiveFace()
         await beginSensorTracking(roundID: round.id)
-        switch sensorPlan(for: selectedRecorder).mode {
-        case .hybrid:
-            notice = "Hybrid round saved. Apple Watch owns live swings and GPS; delayed WHOOP wrist analysis will be reconciled without adding shots."
-        case .appleWatchOnly:
-            notice = "Apple Watch round saved and linked by exact round ID. Start the linked round on the Watch; the iPhone GPS journal remains a protected fallback."
-        case .whoopOnly:
-            notice = sensorPlan(for: selectedRecorder).canCaptureSwingLive
-                ? "WHOOP round saved. Live wrist IMU owns swings; iPhone GPS supplies only the spatial A→B estimate."
-                : "WHOOP round saved. WHOOP owns swing motion; the protected iPhone GPS timeline supplies only the spatial A→B estimate."
-        case .unavailable:
-            notice = "Round saved in manual fallback because no wearable motion source is currently proven. GPS and scorecard remain available."
-        }
+        notice = "Hybrid round saved. Apple Watch owns live path, tempo, HR, and counted shots; WHOOP owns delayed wrist enrich + readiness/recovery/strain. Club and ball-start tendency are journaled per stroke."
     }
 
     /// Begins key-free nearby-course discovery. Permission is requested only by

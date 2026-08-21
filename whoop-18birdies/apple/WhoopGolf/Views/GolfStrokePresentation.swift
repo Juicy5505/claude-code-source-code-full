@@ -19,6 +19,10 @@ enum GolfStrokePresentation {
         let latitude: Double?
         let longitude: Double?
         let provenanceLabel: String
+        let clubLabel: String?
+        let ballStartLabel: String?
+        let ballStartDetail: String?
+        let attackFeelLabel: String?
 
         var coordinate: CLLocationCoordinate2D? {
             guard let latitude, let longitude,
@@ -112,6 +116,11 @@ enum GolfStrokePresentation {
         let interval = swing.shotInterval
         let latitude = swing.location?.hasValidCoordinate == true ? swing.location?.latitude : nil
         let longitude = swing.location?.hasValidCoordinate == true ? swing.location?.longitude : nil
+        let dossier = ComprehensiveShotIntelligence.dossier(
+            for: swing,
+            sequence: sequence,
+            wrist: wrist
+        )
         return Row(
             id: swing.id,
             sequence: sequence,
@@ -125,7 +134,11 @@ enum GolfStrokePresentation {
             heartRateBPM: swing.heartRateBPM,
             latitude: latitude,
             longitude: longitude,
-            provenanceLabel: swing.provenance.source.title
+            provenanceLabel: swing.provenance.source.title,
+            clubLabel: dossier.club?.displayName,
+            ballStartLabel: dossier.ballStartBias.shortLabel,
+            ballStartDetail: swing.ballStartDetail ?? dossier.ballStartDetail,
+            attackFeelLabel: dossier.attackFeel.title
         )
     }
 
