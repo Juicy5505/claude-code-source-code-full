@@ -43,5 +43,6 @@ Maximize **Apple Watch Series 5** (live, trail-right) **and** **WHOOP 5.0** (del
 
 ## Graphify checkpoints
 
-- After each wave: prefer `graphify update` under `whoop-18birdies/apple` when tool installed.
-- Vault: sanitized `docs/vault/10 Projects/Whoop Golf Companion/App Overview.md`.
+- Cadence owned in vault App Overview (prefer that note over expanding STATUS).
+- After each wave: `graphify update .` under `whoop-18birdies/apple` when tool installed; vault `graphify update` when mounted.
+- Vault: sanitized `docs/vault/10 Projects/Whoop Golf Companion/App Overview.md` · D19 both-required admission.
