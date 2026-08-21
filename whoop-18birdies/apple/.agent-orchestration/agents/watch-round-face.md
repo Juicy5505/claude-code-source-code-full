@@ -11,7 +11,7 @@
 - `SessionView` wires `phoneLink.liveFace`, `coachingCue`, `workout.averageHeartRate`, and `liveFace.wristMount` into the face.
 
 ## Gaps
-- Physical Watch install / on-device visual QA still gated (board rule).
+- On-device visual QA still Alex-only (Watch OS gate CLEARED — install unblocked per `docs/MAC-WATCH-INSTALL.md`).
 - WhoopGolfWatch build may still fail on foreign connectivity types (see watch-healthkit / watch-connectivity HANDOFFS) — not owned here.
 
 ## Files

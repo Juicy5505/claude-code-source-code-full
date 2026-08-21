@@ -13,7 +13,7 @@
 - Post-round sheet adds dominant ball-start tile.
 
 ## Gaps
-- Physical Watch install / Mac `xcodebuild` not run on this Linux cloud agent (`NO_XCODE`).
+- Mac `xcodebuild` not run on this Linux cloud agent (`NO_XCODE`). Watch OS gate CLEARED — install is Alex device step.
 - Attack detail not persisted on `GolfSwingMetrics` (by design — recompute via dossier; prefer not expand models).
 
 ## Files

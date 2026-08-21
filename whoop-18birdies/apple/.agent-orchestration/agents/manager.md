@@ -13,6 +13,7 @@
 
 ## Gaps
 - Live `xcodebuild` SUCCEEDED not available on Linux cloud.
+- Watch OS gate CLEARED (2026-08-21); physical install runbook at `docs/MAC-WATCH-INSTALL.md`.
 
 ## Evidence
 - Commits on cloud-agent branch; PR update follows.

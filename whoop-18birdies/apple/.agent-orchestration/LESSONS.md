@@ -236,6 +236,7 @@ Personal Mac Xcode readiness is independent of the Linux cloud image. Clearing
 Keep `NO_XCODE` until Mac paste results land. Ship a one-paste script
 (`apple/scripts/mac-d19-verify.sh`) with correct destinations
 (`generic/platform=watchOS`, not `platform/watchOS`) and the D19
-`-only-testing:` class list. Physical Watch install stays a separate OS gate.
+`-only-testing:` class list. Physical Watch install is a separate Alex device step
+(Watch OS gate CLEARED 2026-08-21; see `docs/MAC-WATCH-INSTALL.md`).
 
 **Rule of thumb:** only clear NO_XCODE from a real Mac `xcodebuild` log.

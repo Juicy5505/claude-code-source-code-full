@@ -7,7 +7,8 @@
 #
 # Notes:
 # - Do NOT pass -derivedDataPath under iCloud ~/Documents (LESSONS L3).
-# - Physical Watch install remains OS-gated; this script is build + unit tests only.
+# - Physical Watch install is UNBLOCKED (Watch OS CLEARED); this script is still build + unit tests only.
+# - Device install runbook: docs/MAC-WATCH-INSTALL.md
 # - Schemes: WhoopGolf, WhoopGolfWatch (shared under WhoopGolf.xcodeproj).
 
 set -euo pipefail
@@ -78,4 +79,5 @@ echo "Paste back: builds green + DualWearableRequirement / ComprehensiveShotInte
 echo "StrokeScoreShotChain / SwingPathGuidanceTests (trail-right) passed."
 echo "Logs: ${LOG_DIR}"
 echo
-echo "Still gated (not claimed by this script): physical Watch install / Watch OS update."
+echo "Next (Alex): install WhoopGolf + WhoopGolfWatch per docs/MAC-WATCH-INSTALL.md"
+echo "(Watch OS gate CLEARED — this script does not claim on-device install.)"

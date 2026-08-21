@@ -28,7 +28,7 @@ HR / `HKWorkoutSession` on Watch for golf rounds (`WorkoutManager.swift` only).
 
 - WhoopGolfWatch build currently fails: `WatchSessionTransfer` cannot find `WatchRoundContext` / `WatchRoundApplicationContextCodec` because `WatchSupport/WatchSessionReceiver.swift` is **not** in the Watch target Sources (iOS-only membership). See HANDOFFS → watch-connectivity / error-fixer.
 - No WorkoutManager.swift compile errors in the failed build log.
-- Physical Watch install still gated (per board).
+- On-device Watch soak still Alex-only (Watch OS gate CLEARED — install unblocked).
 
 ## Files touched
 

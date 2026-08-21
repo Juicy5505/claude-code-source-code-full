@@ -8,7 +8,6 @@ Manager clears conflicts. Agents append; do not steal files.
 |----|------|-------|---------|----------------|
 | XS-MAC | xcode-ship / cloud | Green WhoopGolf + WhoopGolfWatch + D19 tests | Linux cloud still **NO_XCODE**; Alex Mac Xcode is ready | Alex run `scripts/mac-d19-verify.sh` once; paste SUCCEEDED logs → clear NO_XCODE |
 | XS-2 | integrator | Single-writer `project.pbxproj` / `project.yml` | Concurrent membership thrash risk | All membership changes via HANDOFF only |
-| XS-WATCH-OS | vault / ship | Physical Watch companion install | Watch OS update confirmation from Alex | Do not claim Watch installed until confirmed |
 
 ## Ownership claims
 
@@ -44,6 +43,7 @@ Manager clears conflicts. Agents append; do not steal files.
 
 | ID | Note |
 |----|------|
+| XS-WATCH-OS | **CLEARED 2026-08-21** — Alex confirmed Watch OS updated and ready. Physical WhoopGolfWatch install from `apple/WhoopGolf.xcodeproj` is **unblocked**. Do **not** claim the Watch app is already on-device until Alex confirms install. Runbook: `docs/MAC-WATCH-INSTALL.md` |
 | XS-DUP-FUSION | Removed duplicate `DualWearableFusionTests.swift` PBXBuildFile from WhoopGolfTests Sources (kept `C1A002F2…`) |
 | XS-MEM-D19 | WhoopGolf (+tests) Sources now include DualWearableRequirement / ComprehensiveShotIntelligence / OverviewView; Watch still omit — static recheck OK |
 | D19-WIP | Dual gate + comprehensive tracking committed `bd81722` |

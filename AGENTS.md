@@ -22,4 +22,4 @@
 - New rounds are gated by `DualWearableRequirement` (Watch live + WHOOP swing source); Watch-only / WHOOP-only are diagnostic plan modes only.
 - iOS apps are Personal Team signed; after a phone reboot they can show as unavailable until Developer Mode / Trust is confirmed again.
 - WHOOP 5 firmware refuses live raw IMU (TOGGLE_IMU / Arming); the supported 5.0 motion path is delayed import / Check for WHOOP swings (historical offload), not a live stream.
-- Physical Apple Watch companion install is gated until the user confirms the Watch OS update is done.
+- Watch OS gate CLEARED (2026-08-21): physical WhoopGolfWatch install from `whoop-18birdies/apple/WhoopGolf.xcodeproj` is unblocked; see `whoop-18birdies/apple/docs/MAC-WATCH-INSTALL.md`. Do not claim the Watch app is already on-device from cloud.

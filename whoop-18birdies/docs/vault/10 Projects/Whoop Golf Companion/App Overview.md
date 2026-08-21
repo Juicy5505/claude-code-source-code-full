@@ -2,7 +2,7 @@
 
 Sanitized continuous overview for Obsidian / graphify. **No** tokens, UDIDs, Tailscale IPs, team IDs, or raw HR streams.
 
-Updated: 2026-08-21 (vault-obsidian-graphify — dual maximize + both-required + graphify cadence)
+Updated: 2026-08-21 (Watch OS gate CLEARED — companion install unblocked)
 
 ## Product posture (dual maximize)
 
@@ -67,7 +67,8 @@ Notes:
 - Skip expanding STATUS.md graphify chatter when this App Overview + D19 note already record the checkpoint.
 - Never paste secrets, device IDs, LAN IPs, or raw HR samples into graph nodes or vault notes.
 
-## Install gate
+## Install (Watch OS gate CLEARED)
 
 - Phone: Personal Team signed reinstall as needed
-- Physical Watch install: **only after OS update is confirmed done**
+- Physical Watch companion: **allowed now** (Alex confirmed Watch OS updated 2026-08-21). Install from `apple/WhoopGolf.xcodeproj` (WhoopGolfWatch) — see `whoop-18birdies/apple/docs/MAC-WATCH-INSTALL.md`. Do not claim already installed until device confirm.
+- Wear Watch on **right (trail)** hand; dual-gate Start Round needs Watch + WHOOP

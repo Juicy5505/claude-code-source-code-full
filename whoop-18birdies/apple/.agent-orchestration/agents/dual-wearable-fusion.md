@@ -24,7 +24,7 @@ Maximize Apple Watch Series 5 **and** WHOOP 5.0 together: SensorMode/provenance 
 
 ## Gaps
 
-- None blocking for owned fusion policy. Physical Watch install still ops-gated.
+- None blocking for owned fusion policy. Physical Watch install unblocked (Watch OS CLEARED); device soak remains Alex-only.
 - `SensorModeCoordinator` remains wearable-architecture owned; fusion consumes its plan helpers.
 
 ## Files touched

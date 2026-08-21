@@ -29,7 +29,7 @@
 
 ## Gaps
 
-- Physical Watch install still gated.
+- On-device visual QA still Alex-only (Watch OS gate CLEARED — install unblocked).
 - Foreign WhoopGolfWatch compile blockers owned by watch-connectivity / error-fixer.
 
 ## Files

@@ -16,6 +16,7 @@
 
 - Live round health buckets still empty until real rounds are played (fill-in only; no secrets).
 - `graphify update` itself runs on Mac / vault-mounted host — not on Linux cloud.
+- Watch OS gate CLEARED (2026-08-21); App Overview install section now unblocks companion install.
 
 ## Files
 

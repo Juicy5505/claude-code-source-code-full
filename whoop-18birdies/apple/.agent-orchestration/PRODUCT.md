@@ -63,7 +63,7 @@ D15’s three modes remain historical contract documentation. D19 execution is *
 3. Phone GPS = inter-swing distances + course context.
 4. Provenance honest; never label phone GPS as WHOOP hardware.
 5. One icon; companion lives in apple/ WhoopGolf (not Kit A install target).
-6. Physical Watch install waits until Alex confirms Watch OS update done.
+6. Physical Watch companion install is **allowed** (Watch OS gate CLEARED 2026-08-21). Follow `docs/MAC-WATCH-INSTALL.md`; do not claim on-device install from cloud.
 
 ---
 
@@ -81,7 +81,7 @@ D15’s three modes remain historical contract documentation. D19 execution is *
 | 8 | Hybrid reconcile; no live-IMU hang; no double-count |
 | 9 | Tests for gate / polarity / yards / hybrid preserve |
 | 10 | `LESSONS.md` ≥ 3 patterns |
-| 11 | Vault App Overview sanitized; STATUS Outcome complete; Watch install OS-gated |
+| 11 | Vault App Overview sanitized; STATUS Outcome complete; Watch OS gate CLEARED — install unblocked |
 
 ---
 

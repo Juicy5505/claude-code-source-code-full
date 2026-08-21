@@ -1,9 +1,10 @@
 # WHOOP Golf — Orchestration STATUS (D19 both-required civilization)
 
-Updated: 2026-08-21 (Mac-readiness after Alex: "xcode is good to go")  
+Updated: 2026-08-21 (Alex: **Watch OS updated and ready** — XS-WATCH-OS CLEARED)  
 Outcome: **SOFTWARE_COMPLETE** — Mac `xcodebuild` still required for green-build proof  
 Cloud recheck: `which xcodebuild` → **not found** (Linux) → **NO_XCODE** remains; do **not** clear until a real SUCCEEDED log lands  
-Product bible: `PRODUCT.md` · Vault: **D19 both-required**
+Product bible: `PRODUCT.md` · Vault: **D19 both-required**  
+Install runbook: `docs/MAC-WATCH-INSTALL.md`
 
 ## Mandate
 
@@ -13,7 +14,7 @@ Maximize **Apple Watch Series 5** (live, trail-right) **and** **WHOOP 5.0** (del
 
 | Role | Status | Notes |
 |------|--------|-------|
-| manager | DONE | Waves A–C closed; pbxproj membership applied |
+| manager | DONE | Waves A–C closed; pbxproj membership applied; Watch OS gate cleared |
 | error-fixer-learner | DONE | LESSONS L6–L8; NO_XCODE; Shared allowlist; pbxproj HANDOFF applied; duplicate FusionTests entry removed |
 | dual-gate-admission | DONE | DualWearableRequirement + startRound + Round CTA |
 | comprehensive-shot-intel | DONE | Club / ball-start / attack dossier + boards |
@@ -25,7 +26,7 @@ Maximize **Apple Watch Series 5** (live, trail-right) **and** **WHOOP 5.0** (del
 | whoop-physio-merge | DONE | Delayed enrich + Overview/Today/Settings copy |
 | automated-tests | DONE | Gate + chain + hybrid preserve tests (Mac run) |
 | vault-obsidian-graphify | DONE | App Overview + D19 both-required |
-| xcode-ship | WAITING_MAC | Alex Mac Xcode ready; cloud still NO_XCODE — run `scripts/mac-d19-verify.sh` |
+| xcode-ship | WAITING_MAC | Alex Mac Xcode ready; Watch OS CLEARED — run `scripts/mac-d19-verify.sh` then device install |
 
 ## Software-complete checklist
 
@@ -41,7 +42,17 @@ Maximize **Apple Watch Series 5** (live, trail-right) **and** **WHOOP 5.0** (del
 | 8 | Hybrid no double-count / no Arming | **MET** |
 | 9 | Tests | **MET** (sources + pbxproj; run on Mac via script below) |
 | 10 | LESSONS ≥3 | **MET** (L1–L8) |
-| 11 | Vault overview | **MET**; Watch install **OS-gated** (do not claim installed) |
+| 11 | Vault overview | **MET**; Watch OS gate **CLEARED** — physical companion install **unblocked** (do **not** claim already installed on device from cloud) |
+
+## Watch OS gate (CLEARED)
+
+Alex confirmed (2026-08-21): **Apple Watch is updated and ready to start using.**
+
+| Item | Status |
+|------|--------|
+| Watch OS update | **CLEARED** (Alex confirmed) |
+| Physical WhoopGolfWatch install | **UNBLOCKED** — follow `docs/MAC-WATCH-INSTALL.md` |
+| Claimed installed on device? | **No** (Linux cloud cannot verify) |
 
 ## Mac one-paste (Alex)
 
@@ -68,4 +79,4 @@ xcodebuild -scheme WhoopGolf \
 
 If `iPhone 16` is missing, use `iPhone 15` or any booted iOS Simulator destination from `xcodebuild -scheme WhoopGolf -showdestinations`.
 
-Physical Watch install only after Alex confirms Watch OS update done — **not** part of green-build proof.
+Then install phone + Watch companion per `docs/MAC-WATCH-INSTALL.md` (Personal Team; trail-right wear; dual-gate Start Round proof). Physical install is **not** part of green-build proof.

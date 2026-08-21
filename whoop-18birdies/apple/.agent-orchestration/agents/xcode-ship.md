@@ -1,9 +1,9 @@
 # xcode-ship
 
-**Status:** WAITING_MAC (Alex: "xcode is good to go"; cloud recheck still **NO_XCODE**)  
+**Status:** WAITING_MAC (Alex: "xcode is good to go"; Watch OS **CLEARED**; cloud recheck still **NO_XCODE**)  
 **Agent:** xcode-ship  
 **Checked:** 2026-08-21  
-**Scope:** build + report only on Mac; cloud prepares the one-paste recipe
+**Scope:** build + report only on Mac; cloud prepares the one-paste recipe + install runbook
 
 ## Cloud recheck (this agent)
 
@@ -51,4 +51,5 @@ Earlier WhoopGolfWatch failures (`cannot find type 'WatchRoundContext'`) are bel
 
 ## Handoff
 
-**XS-MAC** remains until Alex pastes SUCCEEDED output from `mac-d19-verify.sh`. Physical Watch install stays **XS-WATCH-OS**.
+**XS-MAC** remains until Alex pastes SUCCEEDED output from `mac-d19-verify.sh`.  
+**XS-WATCH-OS CLEARED** — physical companion install allowed; follow `docs/MAC-WATCH-INSTALL.md`. Do not claim Watch app already on-device from cloud.
