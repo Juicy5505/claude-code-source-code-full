@@ -52,4 +52,5 @@ Earlier WhoopGolfWatch failures (`cannot find type 'WatchRoundContext'`) are bel
 ## Handoff
 
 **XS-MAC** remains until Alex pastes SUCCEEDED output from `mac-d19-verify.sh`.  
-**XS-WATCH-OS CLEARED** — physical companion install allowed; follow `docs/MAC-WATCH-INSTALL.md`. Do not claim Watch app already on-device from cloud.
+**XS-WATCH-OS CLEARED** — physical companion install allowed; follow `docs/MAC-WATCH-INSTALL.md`.  
+**Ship-ready embed (2026-08-21):** WhoopGolfWatch Sources allowlist OK (18); orphaned duplicate WatchSessionReceiver PBXBuildFile removed. Download = Mac Run scheme **WhoopGolf** to iPhone. Do not claim Watch app already on-device from cloud.

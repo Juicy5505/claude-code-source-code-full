@@ -1,9 +1,11 @@
 # Mac / device install — WhoopGolf + WhoopGolfWatch (D19)
 
-**Status:** Watch OS gate **CLEARED** (Alex confirmed 2026-08-21). Physical companion install is **allowed now**.  
+**Status:** Watch OS gate **CLEARED** (Alex confirmed 2026-08-21; device **10.6.2** ≥ min **9.0**). Physical companion install is **allowed now**.  
 **Project:** `whoop-18birdies/apple/WhoopGolf.xcodeproj` (not Kit A at `whoop-18birdies/watch/`)  
-**Bundle:** `com.alex.whoopgolf` · home-screen name **WHOOP Golf**  
+**Bundle:** `com.alex.whoopgolf` · Watch `com.alex.whoopgolf.watchkitapp` · home-screen name **WHOOP Golf**  
 **Wear:** Apple Watch on the **right (trail)** hand when golfing.
+
+**Goal:** download the **finished** integrated companion onto the Watch in one step — scheme **WhoopGolf** → Run to the physical iPhone embeds **WhoopGolfWatch**.
 
 This runbook is for Alex on a Mac with Xcode. Linux cloud agents cannot perform these steps.
 
@@ -78,7 +80,20 @@ WHOOP pairing / delayed import is Alex-only on device; cloud cannot pair hardwar
 
 ---
 
-## 7. What this does *not* claim
+## 7. Finished payload on Watch (confirm after Run)
+
+“Downloaded everything finished” means all of the following:
+
+1. **Devices and Simulators** lists your iPhone and paired Watch (**10.6.2**).
+2. Watch home screen shows **WHOOP Golf** (companion from `apple/` embed — not Kit A).
+3. Opening the Watch app shows the round face surface (path / improver / yards / HR / hole / club code / ball-start when phone publishes `WatchLiveFace` v3).
+4. Club **picker** and dual-gate Start Round stay on the **iPhone**; Watch **displays** phone-published club / yards / path.
+
+Paste back to cloud: Run succeeded + WHOOP Golf visible on Watch → STATUS marks **on-device install confirmed**.
+
+---
+
+## 8. What this does *not* claim
 
 - Cloud agents do **not** claim WhoopGolfWatch is already installed on your Watch until you confirm.
 - `mac-d19-verify.sh` proves **compile + unit tests** only — not on-wrist install.

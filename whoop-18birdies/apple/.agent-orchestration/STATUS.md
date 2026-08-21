@@ -1,15 +1,26 @@
 # WHOOP Golf — Orchestration STATUS (D19 both-required civilization)
 
-Updated: 2026-08-21 (Alex: **Watch OS updated and ready** — XS-WATCH-OS CLEARED)  
+Updated: 2026-08-21 (Alex: **Watch OS 10.6.2** ready — XS-WATCH-OS CLEARED; device ≥ project min **9.0**; **ship-ready embed** awaiting Mac Run)  
 Outcome: **SOFTWARE_COMPLETE** — Mac `xcodebuild` still required for green-build proof  
 Cloud recheck: `which xcodebuild` → **not found** (Linux) → **NO_XCODE** remains; do **not** clear until a real SUCCEEDED log lands  
 Product bible: `PRODUCT.md` · Vault: **D19 both-required**  
-Install runbook: `docs/MAC-WATCH-INSTALL.md`
+Install runbook: `docs/MAC-WATCH-INSTALL.md` · Device OS: `WATCH_OS_DEVICE.md`
 
 ## Mandate
 
 Maximize **Apple Watch Series 5** (live, trail-right) **and** **WHOOP 5.0** (delayed + physiology) in one app. **New rounds require both.**
 
+## Download finished companion (Alex Mac — next action)
+
+Ship-ready audit (2026-08-21): WhoopGolfWatch Sources = allowlist only (18 files); phone-only Shared off Watch; WC live-face v3 wired.
+
+```bash
+git pull origin cursor/cloud-agent-1787290942317-17qh4
+# open whoop-18birdies/apple/WhoopGolf.xcodeproj
+# Personal Team → destination physical iPhone → scheme WhoopGolf → Run
+```
+
+That Run installs the phone app **and downloads finished WhoopGolfWatch** to the paired Watch. Confirm payload per `docs/MAC-WATCH-INSTALL.md` §7.
 ## Agent board
 
 | Role | Status | Notes |
@@ -51,8 +62,8 @@ Alex confirmed (2026-08-21): **Apple Watch is updated and ready to start using.*
 | Item | Status |
 |------|--------|
 | Watch OS update | **CLEARED** (Alex confirmed) |
-| Physical WhoopGolfWatch install | **UNBLOCKED** — follow `docs/MAC-WATCH-INSTALL.md` |
-| Claimed installed on device? | **No** (Linux cloud cannot verify) |
+| Physical WhoopGolfWatch install | **UNBLOCKED / SHIP-READY** — Mac Run WhoopGolf embeds finished companion (`docs/MAC-WATCH-INSTALL.md`) |
+| Claimed installed on device? | **No** (awaiting Alex Run confirmation) |
 
 ## Mac one-paste (Alex)
 

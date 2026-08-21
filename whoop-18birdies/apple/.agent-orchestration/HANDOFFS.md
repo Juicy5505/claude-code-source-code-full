@@ -43,7 +43,7 @@ Manager clears conflicts. Agents append; do not steal files.
 
 | ID | Note |
 |----|------|
-| XS-WATCH-OS | **CLEARED 2026-08-21** — Alex confirmed Watch OS updated and ready. Physical WhoopGolfWatch install from `apple/WhoopGolf.xcodeproj` is **unblocked**. Do **not** claim the Watch app is already on-device until Alex confirms install. Runbook: `docs/MAC-WATCH-INSTALL.md` |
+| XS-WATCH-OS | **CLEARED 2026-08-21** — Alex Watch **OS 10.6.2** (project min **9.0** — OK; see `WATCH_OS_DEVICE.md`). Physical WhoopGolfWatch install from `apple/WhoopGolf.xcodeproj` is **unblocked**. Do **not** claim the Watch app is already on-device until Alex confirms install. Runbook: `docs/MAC-WATCH-INSTALL.md` |
 | XS-DUP-FUSION | Removed duplicate `DualWearableFusionTests.swift` PBXBuildFile from WhoopGolfTests Sources (kept `C1A002F2…`) |
 | XS-MEM-D19 | WhoopGolf (+tests) Sources now include DualWearableRequirement / ComprehensiveShotIntelligence / OverviewView; Watch still omit — static recheck OK |
 | D19-WIP | Dual gate + comprehensive tracking committed `bd81722` |

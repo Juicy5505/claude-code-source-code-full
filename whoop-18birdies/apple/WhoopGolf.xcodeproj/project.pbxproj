@@ -68,7 +68,6 @@
 		A9BC0929CFDF98D7B4524D6A /* WatchRoundContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD8FC17B0D03DBC15A0C18E /* WatchRoundContextTests.swift */; };
 		BC50C1D2F564812D78981FB4 /* SwingShotIntervalCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072AF175DC9A8671E62ABDD4 /* SwingShotIntervalCalculator.swift */; };
 		C9B5E22D90371BE0B07E9047 /* BridgePairingClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56C3064BCE48B824EF323DD /* BridgePairingClientTests.swift */; };
-		D07F9C9A219FEF9230836DD5 /* WatchSessionReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E919BAE30512069AAD50678 /* WatchSessionReceiver.swift */; };
 		D1F74E2CE4FC73C073587254 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6823C81F08C219BE689D062 /* TodayView.swift */; };
 		D60F13E4D9ED55410FE56828 /* WorkoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC0DF6E36B91F2C06846057 /* WorkoutManager.swift */; };
 		D760CB02C56C21EEFCDE3D09 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC274747F6BA034B39F67353 /* AppShell.swift */; };
