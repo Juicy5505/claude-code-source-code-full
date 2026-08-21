@@ -91,7 +91,6 @@
 		C1A00213A000000000000003 /* GolfImprover.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A00203A000000000000003 /* GolfImprover.swift */; };
 		8E3B05B3BAE5BEEF24254B69 /* DualWearableFusion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E1A0000000000000E1 /* DualWearableFusion.swift */; };
 		CCB79715E0A57ABA14CAB8AE /* StrokeScoreShotChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7265F342C6D5C24B7BA7DCC /* StrokeScoreShotChain.swift */; };
-		906A3992A423423385DE66DA /* DualWearableFusionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A002E2A0000000000000E2 /* DualWearableFusionTests.swift */; };
 		8BCE4763650C674191BF4711 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718BCF1B1D7DC22FFFC680C2 /* SettingsView.swift */; };
 		5BC2B9E2D1C4E5A79FFFBEB0 /* WhoopGolfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB7A4E005840734AB1F439B /* WhoopGolfApp.swift */; };
 		F8D8C20926F2201FCA3E8A69 /* SwingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A398E85B279EE8D9B9124BE7 /* SwingDetector.swift */; };
@@ -849,7 +848,6 @@
 				C1A0022A00000000000000B0 /* PhoneYardageBridgeTests.swift in Sources */,
 				1E9D79D31078887A011B4EA7 /* WatchSessionImporterTests.swift in Sources */,
 				10F351D51FE4E3E5B4F6041B /* WhoopMotionImportServiceTests.swift in Sources */,
-				906A3992A423423385DE66DA /* DualWearableFusionTests.swift in Sources */,
 			);
 		};
 		FA710F343034380600812BFB /* Sources */ = {
