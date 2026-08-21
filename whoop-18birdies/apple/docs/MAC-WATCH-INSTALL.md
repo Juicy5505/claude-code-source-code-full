@@ -1,5 +1,22 @@
 # Mac / device install — WhoopGolf + WhoopGolfWatch (D19)
 
+## 0. The one-command path (start here)
+
+```bash
+git pull origin cursor/cloud-agent-1787290942317-17qh4
+cd whoop-18birdies/apple && ./ship-to-watch.sh
+```
+
+The script does every Mac-side step itself: finds your signing team, builds
+both apps, finds the plugged-in iPhone and the paired Watch, installs to both,
+and verifies the built Watch bundle carries the background modes a round needs.
+When it reaches a step Apple reserves for a human — Developer Mode, trusting
+your certificate — it STOPS and prints the exact tap, in words. Make the tap,
+run it again. Safe to re-run any number of times.
+
+Everything below is the manual path, kept for when the script's message says
+to come here.
+
 **Status:** Watch OS gate **CLEARED** (Alex confirmed 2026-08-21; device **10.6.2** ≥ min **9.0**). Physical companion install is **allowed now**.  
 **Project:** `whoop-18birdies/apple/WhoopGolf.xcodeproj` (not Kit A at `whoop-18birdies/watch/`)  
 **Bundle:** `com.alex.whoopgolf` · Watch `com.alex.whoopgolf.watchkitapp` · home-screen name **WHOOP Golf**  

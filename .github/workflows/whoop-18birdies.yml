@@ -142,3 +142,41 @@ jobs:
       - name: Unit tests (iOS simulator)
         working-directory: whoop-18birdies/sidecar
         run: ./build.sh --test
+
+  apple-build:
+    name: Apple companion (xcodebuild)
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The same two builds ship-to-watch.sh runs on the user's Mac, minus
+      # signing — so a compile break is caught here, on a real Mac, before it
+      # is caught standing in a parking lot with a cable.
+      - name: Build iPhone app (device SDK, signing off)
+        working-directory: whoop-18birdies/apple
+        run: |
+          xcodebuild -project WhoopGolf.xcodeproj -scheme WhoopGolf \
+            -configuration Debug -destination "generic/platform=iOS" \
+            -derivedDataPath dd CODE_SIGNING_ALLOWED=NO build | tail -5
+
+      - name: Build Watch app (device SDK, signing off)
+        working-directory: whoop-18birdies/apple
+        run: |
+          xcodebuild -project WhoopGolf.xcodeproj -scheme WhoopGolfWatch \
+            -configuration Debug -destination "generic/platform=watchOS" \
+            -derivedDataPath dd CODE_SIGNING_ALLOWED=NO build | tail -5
+
+      # The pair of keys that decide whether a round survives, read from the
+      # BUILT bundle. Source-file checks have been wrong here once already.
+      - name: Watch bundle carries both background modes
+        working-directory: whoop-18birdies/apple
+        run: |
+          P="dd/Build/Products/Debug-watchos/WhoopGolfWatch.app/Info.plist"
+          plutil -extract UIBackgroundModes json -o - "$P" | grep -q '"location"'
+          plutil -extract WKBackgroundModes json -o - "$P" | grep -q '"workout-processing"'
+          echo "both present"
+
+      - name: ship-to-watch.sh parses
+        run: bash -n whoop-18birdies/apple/ship-to-watch.sh
