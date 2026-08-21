@@ -1,4 +1,4 @@
-# phone-yardage-bridge — D19 both-required
+# manager — D19 both-required
 
 **Status:** ASSIGNED  
 **Wave:** per TASKS.md  

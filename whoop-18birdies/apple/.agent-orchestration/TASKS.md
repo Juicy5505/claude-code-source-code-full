@@ -1,126 +1,80 @@
-# TASKS — D19 dual-wearable (manager-owned)
+# TASKS — D19 both-required agent civilization (manager-owned)
 
-Workspace: `/Users/alex/Documents/claude-code-source-code-full`  
+Workspace: `/workspace`  
 Canonical: `whoop-18birdies/apple/WhoopGolf.xcodeproj` · `com.alex.whoopgolf`  
-Bible: `PRODUCT.md` · Decision: **D19**
+Bible: `PRODUCT.md` · Decision: **D19 both-required**
 
 **Rules**
-1. Graphify first before code exploration: `graphify query "<topic>"`.
+1. Graphify first before broad exploration when available.
 2. Write/update `.agent-orchestration/agents/<name>.md` (Status / Done / Gaps / Files / Evidence). Mark **D19** in the header.
 3. Exclusive ownership below. Foreign file → HANDOFFS.md.
 4. No secrets. No physical Watch install.
-5. Prefer gap-fill; invent high-value golf UX without asking (PRODUCT §3).
-6. **Not Watch-only. Not WHOOP-only.** Hybrid maximize-both.
+5. Prefer gap-fill; invent high-value golf UX without asking.
+6. **New rounds require Watch + WHOOP.** Not Watch-only starts. Not WHOOP-only starts.
 
 ---
 
-## 1. watch-round-face
-**Purpose:** Watch live face uses every on-wrist capability.  
-**Own:** `whoop-18birdies/watch/WhoopGolfWatchApp/SessionView.swift`, `SettingsView.swift`  
-**D19 Do:**
-- Keep path + improver + yards (already verified C0).
-- Confirm/show **HR** and **hole** on the live face (honest empty OK).
-- Re-file `agents/watch-round-face.md` with Status DONE under D19 or list Gaps.
-**Follow-up resume if agent idle:** reopen with “D19: HR + hole tiles on SessionView”.
+## Manager
+**Own:** TASKS.md, STATUS.md, HANDOFFS.md, PRODUCT.md  
+**Do:** Delegate one concrete next task per agent; clear HANDOFFS; never write product Swift.
 
-## 2. trail-right-motion
-**Purpose:** Trail-right motion → path class / score inputs.  
+## Error-fixer-learner
+**Own:** LESSONS.md, cross-agent compile breaks, build verify notes  
+**Do:** Search LESSONS before fixing; append patterns; static-audit `project.yml` on Linux; xcodebuild on Mac when present. Never rewrite product policy.
+
+---
+
+## 1. dual-gate-admission
+**Purpose:** Both-required start gate.  
+**Own:** `Shared/DualWearableRequirement.swift`; Round preflight dual-gate card + start `.disabled`; `AppModel` `dualWearableAdmission` / `canStartDualWearableRound` / `startRound` gate  
+**Do:** Ensure start is impossible unless `.satisfied`; copy honest; tests already seeded — gap-fill only.
+
+## 2. comprehensive-shot-intel
+**Purpose:** Club + path + ball-start + attack dossier.  
+**Own:** `Shared/ComprehensiveShotIntelligence.swift`; stroke board/presentation tracking display; Round club picker + `ComprehensiveTrackingBoard` in `WatchCompanionPanels.swift` / Round sections you already own  
+**Do:** Gap-fill UI bind; keep “tendency not radar” copy.
+
+## 3. watch-round-face
+**Purpose:** On-wrist max UX.  
+**Own:** `watch/WhoopGolfWatchApp/WatchRoundFaceView.swift`, `SessionView.swift`  
+**Do:** Confirm score, explanation, yards, HR, hole, club/ball labels, improver screens.
+
+## 4. trail-right-motion
+**Purpose:** Body-relative path polarity.  
 **Own:** `Shared/WatchWristPreference.swift`, `Shared/SwingPathGuidance.swift`, `watch/.../MotionManager.swift`  
-**D19 Do:**
-- Keep trail-right default + mirror math (DONE).
-- Ensure APIs expose what golf-improver needs for **score + explanation** (document; minimal glue if missing).
-- Status remains DONE unless improver needs a new Shared helper in these files.
+**Do:** Keep trail-right default + mirror math; document APIs for score chain.
 
-## 3. watch-connectivity
-**Purpose:** WCSession sync for Hybrid UX.  
-**Own:** `watch/.../WatchSessionTransfer.swift`, `WatchSupport/WatchSessionReceiver.swift`  
-**D19 Do:**
-- Activate session; live face publish/receive (yards, hole, path-related fields, HR if carried).
-- Session JSON aligned with phone importer; wrist sync.
-- File first `agents/watch-connectivity.md` (still missing).
-**Follow-up:** resume agent — “file status + fix any missing liveFace keys for HR/hole/yards”.
+## 5. watch-connectivity
+**Purpose:** WCSession sync.  
+**Own:** `watch/.../WatchSessionTransfer.swift`, `WatchSupport/WatchSessionReceiver.swift`, Shared WC contracts (`WatchRoundContext`, `WatchCoachingCue`, live face codec consumers)  
+**Do:** Live face v3 keys (club/ball/path score) publish/receive; round ID link.
 
-## 4. phone-yardage-bridge
-**Purpose:** Inter-swing GPS yardage + round geography UI.  
-**Own:** `Shared/WatchLiveFace.swift`; yardage/publish in `WhoopGolf/App/AppModel.swift`; phone round distance UI in `WhoopGolf/Views/RoundView.swift` (distance/list sections only — HANDOFF if contested)  
-**D19 Do:**
-- Shot N yardage = GPS distance swing N → N+1; last pending.
-- Tee/approach/putt heuristics if useful.
-- Round map/list shows per-stroke distances; honest labeling.
-- File `agents/phone-yardage-bridge.md`.
-**Follow-up:** resume — “implement inter-swing yardage + list rows”.
+## 6. phone-yardage-bridge
+**Purpose:** Swing-to-swing GPS yards.  
+**Own:** `Shared/PhoneYardageBridge.swift`, `Shared/WatchLiveFace.swift`, AppModel `publishWatchLiveFace`  
+**Do:** Keep N→N+1 yards; face enrichment with path/club/ball labels.
 
-## 5. watch-healthkit
-**Purpose:** Watch workout + HR for face.  
-**Own:** `watch/.../WorkoutManager.swift`  
-**D19 Do:** Wire/confirm HK start/stop + HR updates consumed by SessionView. File status md.  
-**Follow-up:** resume if no report.
+## 7. whoop-physio-merge
+**Purpose:** Delayed WHOOP + readiness.  
+**Own:** `WhoopGolf/Services/WhoopMotionImportService.swift`; Overview/Today readiness+fusion copy; Settings Check-for-swings sections  
+**Do:** Enrich after finalize; never Arming hang; surface recovery/strain.
 
-## 6. xcode-ship
-**Purpose:** Builds green.  
-**Own:** `agents/xcode-ship.md` only (no product edits).  
-**D19 Do:**
-```bash
-cd whoop-18birdies/apple
-xcodebuild -scheme WhoopGolf -destination 'generic/platform=iOS' build
-xcodebuild -scheme WhoopGolfWatch -destination 'generic/platform=watchOS' build
-# tests compile signal
-xcodebuild -scheme WhoopGolf -destination 'generic/platform=iOS' -only-testing:WhoopGolfTests build-for-testing
-```
-Report SUCCEEDED/FAILED; failures → HANDOFFS for error-fixer.  
-**Follow-up:** resume immediately — critical path for criterion 1/9.
-
-## 7. wearable-architecture
-**Purpose:** Hybrid maximize Watch live + WHOOP delayed.  
-**Own:** `Shared/SensorModeCoordinator.swift`  
-**D19 Do (re-aim):**
-- Cancel Watch-only-as-default execution bias from C0.
-- Prefer Hybrid plan when both available; Watch live motion + WHOOP delayed/physiology.
-- **Never** block UX on live TOGGLE_IMU / Arming failure — degrade to delayed Check for WHOOP swings.
-- Surface mode selection honestly for phone UI consumers.
-- Update `agents/wearable-architecture.md` with Hybrid evidence.
-**Follow-up:** resume — “D19 Hybrid maximize-both; no IMU hang”.
-
-## 8. golf-improver-engine
-**Purpose:** Score + plain-language explanation + expanded coaching.  
-**Own:** `Shared/GolfImprover.swift`; new Shared helpers if needed (`Shared/SwingStrokeScore.swift` OK to create); phone coaching/trends UI under `WhoopGolf/Views/` files you create or HANDOFF-claim (e.g. `StrokeJournalView`, trends section)  
-**D19 Do:**
-- Each verified stroke → **score + explanation** (path/tempo/face-path from trail-right; WHOOP delayed when available via provenance fields).
-- Ship APIs + UI hooks for: next-shot coaching, miss left/right, tempo history (pick ≥2 phone surfaces).
-- File status md.
-**Follow-up:** resume — “score+explanation + next-shot/miss/tempo surfaces”.
+## 8. wearable-architecture
+**Purpose:** Hybrid reconcile no double-count.  
+**Own:** `Shared/SensorModeCoordinator.swift`, `Shared/DualWearableFusion.swift`  
+**Do:** Preserve path/club on `materializedObservation`; HR ownership rules; fused status.
 
 ## 9. automated-tests
-**Purpose:** Dual-wearable regressions.  
-**Own:** `WhoopGolfTests/SwingPathGuidanceTests.swift` + new `WhoopGolfTests/*Stroke*` / yardage tests you add  
-**D19 Do:** trail-right, path mirror, face honesty, score/yardage contracts as APIs stabilize. File status.  
-**Follow-up:** resume after improver/yardage APIs land.
+**Purpose:** Regressions.  
+**Own:** `WhoopGolfTests/DualWearableRequirementTests.swift`, `StrokeScoreShotChainTests.swift`, related swing/path tests you add  
+**Do:** Gate, polarity, yards, hybrid preserve, ball-start.
 
-## 10. tailscale-ingest
-**Purpose:** Delayed WHOOP / bridge ingest reachability.  
-**Own:** `agents/tailscale-ingest.md` only  
-**D19 Do:** DONE (REACHABLE_LOCAL). Optional refresh if bind mode changes for phone reachability — still no secrets.  
-**Note:** localhost-only bind means phone needs Tailscale-reachable bind — document only.
-
-## 11. error-fixer-learner
-**Purpose:** Green builds + institutional memory.  
-**Own:** `LESSONS.md`; product files only after HANDOFFS claim  
-**D19 Do:**
-- Write ≥3 patterns (Symptom → Cause → Fix): e.g. trail-right unset, invented hole map, WHOOP live IMU hang, Shared membership watchOS, inter-swing pending last shot.
-- Fix compile breaks from xcode-ship.
-- File `agents/error-fixer-learner.md`.
-**Follow-up:** resume now — LESSONS body empty.
+## 10. vault-obsidian-graphify
+**Purpose:** Health+app overview loop.  
+**Own:** `docs/vault/10 Projects/Whoop Golf Companion/**`, Cursor memory mirrors, STATUS graphify checkpoint notes  
+**Do:** Sanitize App Overview; D19 decision note; no secrets; document graphify cadence.
 
 ---
 
-## Resume queue (manager → next spawn)
-
-Priority order if agents must be re-launched:
-1. xcode-ship  
-2. error-fixer-learner (LESSONS ≥3)  
-3. wearable-architecture (Hybrid)  
-4. golf-improver-engine (score+explanation)  
-5. phone-yardage-bridge (inter-swing yards)  
-6. watch-connectivity / watch-healthkit  
-7. watch-round-face D19 reopen (HR+hole)  
-8. automated-tests  
+## Integrator (manager-routed)
+**Own:** `project.yml` / `project.pbxproj` single-writer when membership changes requested via HANDOFFS.
