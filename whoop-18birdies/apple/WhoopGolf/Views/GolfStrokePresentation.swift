@@ -19,10 +19,18 @@ enum GolfStrokePresentation {
         let latitude: Double?
         let longitude: Double?
         let provenanceLabel: String
-        let clubLabel: String?
-        let ballStartLabel: String?
-        let ballStartDetail: String?
-        let attackFeelLabel: String?
+        /// Always populated — "Club not tagged" when the golfer skipped the picker.
+        let clubLabel: String
+        /// Always populated short tendency label (STRAIGHT / FADE / —).
+        let ballStartLabel: String
+        /// Always populated tendency detail (honest non-radar copy).
+        let ballStartDetail: String
+        /// Always populated attack/delivery feel title.
+        let attackFeelLabel: String
+        /// Always populated attack coaching detail.
+        let attackDetail: String
+        /// Path score chip — "—" when unscored.
+        let pathScoreLabel: String
 
         var coordinate: CLLocationCoordinate2D? {
             guard let latitude, let longitude,
@@ -135,10 +143,12 @@ enum GolfStrokePresentation {
             latitude: latitude,
             longitude: longitude,
             provenanceLabel: swing.provenance.source.title,
-            clubLabel: dossier.club?.displayName,
+            clubLabel: dossier.clubDisplayName,
             ballStartLabel: dossier.ballStartBias.shortLabel,
-            ballStartDetail: swing.ballStartDetail ?? dossier.ballStartDetail,
-            attackFeelLabel: dossier.attackFeel.title
+            ballStartDetail: dossier.ballStartDetail,
+            attackFeelLabel: dossier.attackFeel.title,
+            attackDetail: dossier.attackDetail,
+            pathScoreLabel: dossier.pathScoreLine
         )
     }
 

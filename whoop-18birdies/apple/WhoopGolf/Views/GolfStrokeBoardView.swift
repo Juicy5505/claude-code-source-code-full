@@ -6,7 +6,7 @@ struct GolfStrokeBoardView: View {
     let rows: [GolfStrokePresentation.Row]
     var title: String = "STROKES"
     var emptyDetail: String =
-        "Accepted Watch or WHOOP swings appear here with path score, explanation, and GPS displacement yards."
+        "Accepted Watch or WHOOP swings appear here with club, path score, ball-start tendency, attack feel, and GPS displacement yards."
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -26,6 +26,11 @@ struct GolfStrokeBoardView: View {
                     .font(.subheadline)
                     .foregroundStyle(Color.golfMist)
             } else {
+                Text(ComprehensiveShotIntelligence.tendencyDisclaimer)
+                    .font(.caption2)
+                    .foregroundStyle(Color.golfMist)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 if hasMapPoints {
                     StrokeMapView(rows: rows)
                         .frame(height: 168)
@@ -64,6 +69,9 @@ private struct StrokeBoardRowView: View {
                 Text(row.score.scoreHeadline)
                     .font(.subheadline.weight(.bold))
                 Spacer()
+                Text("score \(row.pathScoreLabel)")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(Color.golfSand)
                 Text(row.capturedAt.formatted(date: .omitted, time: .shortened))
                     .font(.caption2)
                     .foregroundStyle(Color.golfMist)
@@ -75,34 +83,31 @@ private struct StrokeBoardRowView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 8) {
-                if let club = row.clubLabel {
-                    Text(club)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(Color.golfLime.opacity(0.18), in: Capsule())
-                }
-                if let ball = row.ballStartLabel {
-                    Text(ball)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(.white.opacity(0.08), in: Capsule())
-                }
-                if let attack = row.attackFeelLabel {
-                    Text(attack)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(.white.opacity(0.08), in: Capsule())
-                }
+                Text(row.clubLabel)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(Color.golfLime.opacity(0.18), in: Capsule())
+                Text(row.ballStartLabel)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(.white.opacity(0.08), in: Capsule())
+                Text(row.attackFeelLabel)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(.white.opacity(0.08), in: Capsule())
             }
             .font(.caption2.weight(.bold))
             .foregroundStyle(Color.golfSand)
 
-            if let detail = row.ballStartDetail {
-                Text(detail)
-                    .font(.caption2)
-                    .foregroundStyle(Color.golfMist)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            Text(row.ballStartDetail)
+                .font(.caption2)
+                .foregroundStyle(Color.golfMist)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(row.attackDetail)
+                .font(.caption2)
+                .foregroundStyle(Color.golfMist.opacity(0.95))
+                .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 10) {
                 Label(row.yardsLine, systemImage: "ruler")

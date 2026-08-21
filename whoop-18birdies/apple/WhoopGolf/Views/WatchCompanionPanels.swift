@@ -310,9 +310,13 @@ struct ComprehensiveTrackingBoard: View {
                     .font(.caption.weight(.black))
                     .tracking(1)
                     .foregroundStyle(Color.golfMist)
-                Text("Watch path + WHOOP enrich + club + ball-start tendency + GPS yards")
+                Text("Watch path + WHOOP enrich + club + ball-start tendency + attack feel + GPS yards")
                     .font(.caption2)
                     .foregroundStyle(Color.golfMist)
+                Text(ComprehensiveShotIntelligence.tendencyDisclaimer)
+                    .font(.caption2)
+                    .foregroundStyle(Color.golfMist.opacity(0.9))
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if dossiers.isEmpty {
                     Text("Swing once with Watch live. WHOOP delayed enrich merges without double-counting. Tag club before each shot.")
@@ -325,10 +329,8 @@ struct ComprehensiveTrackingBoard: View {
                                 Text("#\(shot.sequence)")
                                     .font(.caption.weight(.black))
                                     .foregroundStyle(Color.golfLime)
-                                if let club = shot.club {
-                                    Text(club.shortCode)
-                                        .font(.caption2.weight(.bold))
-                                }
+                                Text(shot.clubShortCode)
+                                    .font(.caption2.weight(.bold))
                                 Text(shot.pathClass == .unknown
                                       ? "path —"
                                       : SwingPathGuidance.coachingLabel(shot.pathClass))
@@ -338,20 +340,27 @@ struct ComprehensiveTrackingBoard: View {
                                     .font(.caption2.weight(.black))
                                     .foregroundStyle(Color.golfSand)
                             }
+                            Text(shot.clubDisplayName)
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(Color.golfSand)
                             Text(shot.pathExplanation)
                                 .font(.caption2)
                                 .foregroundStyle(.white.opacity(0.88))
+                                .fixedSize(horizontal: false, vertical: true)
                             Text(shot.ballStartDetail)
                                 .font(.caption2)
                                 .foregroundStyle(Color.golfMist)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(shot.attackDetail)
+                                .font(.caption2)
+                                .foregroundStyle(Color.golfMist.opacity(0.95))
+                                .fixedSize(horizontal: false, vertical: true)
                             HStack(spacing: 8) {
                                 Text(shot.attackFeel.title)
                                 if let yards = shot.shotYards {
                                     Text(String(format: "%.0f yd", yards))
                                 }
-                                if let score = shot.pathScore {
-                                    Text("score \(score)")
-                                }
+                                Text("score \(shot.pathScoreLine)")
                                 Text(shot.watchLive && shot.whoopEnriched ? "Hybrid" : (shot.watchLive ? "Watch" : "WHOOP"))
                             }
                             .font(.caption2.weight(.semibold))
@@ -375,7 +384,11 @@ struct PostRoundPathSummaryCard: View {
     var body: some View {
         let stats = RoundOverviewStats.make(from: round, wrist: wrist)
         let pattern = GolfStrokePresentation.patternSummary(for: [round], wrist: wrist)
+        let dossiers = ComprehensiveShotIntelligence.dossiers(for: round, wrist: wrist)
         let sources = Set(round.swings.map(\.provenance.source.title)).sorted()
+        let biasCounts = Dictionary(grouping: dossiers, by: \.ballStartBias.shortLabel)
+            .mapValues(\.count)
+        let topBias = biasCounts.max(by: { $0.value < $1.value })
         GolfCard {
             VStack(alignment: .leading, spacing: 12) {
                 Text("PATH + YARDS")
@@ -384,6 +397,10 @@ struct PostRoundPathSummaryCard: View {
                     .foregroundStyle(Color.golfMist)
                 Text("Post-round stroke sheet")
                     .font(.headline)
+                Text(ComprehensiveShotIntelligence.tendencyDisclaimer)
+                    .font(.caption2)
+                    .foregroundStyle(Color.golfMist)
+                    .fixedSize(horizontal: false, vertical: true)
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     MetricTile(
                         label: "Avg path score",
@@ -392,16 +409,17 @@ struct PostRoundPathSummaryCard: View {
                         symbol: "arrow.triangle.branch"
                     )
                     MetricTile(
+                        label: "Ball-start",
+                        value: topBias?.key ?? "—",
+                        detail: topBias.map { "\($0.value) of \(dossiers.count) strokes" }
+                            ?? "Tendency pending scored path",
+                        symbol: "arrow.left.arrow.right"
+                    )
+                    MetricTile(
                         label: "Longest shot",
                         value: stats.longestShotYards.map { String(format: "%.0f yd", $0) } ?? "—",
                         detail: "Phone GPS segments",
                         symbol: "ruler"
-                    )
-                    MetricTile(
-                        label: "Total yards",
-                        value: stats.totalShotYards.map { String(format: "%.0f", $0) } ?? "—",
-                        detail: "Sum of measured shots",
-                        symbol: "sum"
                     )
                     MetricTile(
                         label: "Sources",

@@ -197,6 +197,27 @@ struct ComprehensiveShotDossier: Codable, Hashable, Sendable, Identifiable {
 /// Builds honest dual-wearable tracking dossiers. Never invents clubhead path,
 /// face angle, or measured ball flight from wrist IMU alone.
 enum ComprehensiveShotIntelligence {
+    /// Shared UI/copy: ball-start is coaching tendency, not radar.
+    static let tendencyDisclaimer =
+        "Ball-start is a wrist-path tendency — not launch-monitor carry, spin, or apex."
+
+    /// Club chip when the golfer has not tagged a club for this stroke.
+    static let untaggedClubLabel = "Club not tagged"
+    static let untaggedClubCode = "—"
+
+    static func clubDisplayName(_ club: GolfClubKind?) -> String {
+        club?.displayName ?? untaggedClubLabel
+    }
+
+    static func clubShortCode(_ club: GolfClubKind?) -> String {
+        club?.shortCode ?? untaggedClubCode
+    }
+
+    static func pathScoreLine(_ score: Int?) -> String {
+        guard let score else { return "—" }
+        return "\(score)"
+    }
+
     static func ballStartBias(
         path: SwingPathClass,
         severity: PathMissSeverity = .unknown,
@@ -263,15 +284,18 @@ enum ComprehensiveShotIntelligence {
     static func dossier(
         for swing: GolfSwingMetrics,
         sequence: Int,
-        wrist: WatchWristMount = .golferDefault
+        wrist: WatchWristMount = .golferDefault,
+        defaultClub: GolfClubKind? = nil
     ) -> ComprehensiveShotDossier {
         let row = GolfStrokePresentationProxy.score(for: swing, wrist: wrist)
+        // Prefer live path math for bias/attack so enrichTrackingFields and UI
+        // stay coherent. Persisted strings are overwritten on enrich.
         let (bias, biasDetail) = ballStartBias(
             path: row.path,
             severity: row.severity,
             tempoRatio: swing.tempoRatio
         )
-        let (attack, attackDetail) = attackFeel(
+        let (attack, attackDetailText) = attackFeel(
             path: row.path,
             tempoRatio: swing.tempoRatio,
             peakG: swing.peakG
@@ -294,17 +318,30 @@ enum ComprehensiveShotIntelligence {
             fusion = "Manual / incomplete wearable provenance"
         }
 
+        let club = GolfClubKind.normalize(swing.club) ?? defaultClub
+        // Keep persisted detail only when it still matches the recomputed bias.
+        let detail: String
+        if let persisted = swing.ballStartDetail,
+           !persisted.isEmpty,
+           swing.resolvedBallStartBias == bias {
+            detail = persisted
+        } else {
+            detail = biasDetail
+        }
+
         return ComprehensiveShotDossier(
             id: swing.id,
             sequence: sequence,
-            club: GolfClubKind.normalize(swing.club),
+            club: club,
             pathClass: row.path,
             pathScore: row.pathScore,
-            pathExplanation: row.explanation,
+            pathExplanation: row.explanation.isEmpty
+                ? "Path explanation pending a readable Watch sample."
+                : row.explanation,
             ballStartBias: bias,
-            ballStartDetail: biasDetail,
+            ballStartDetail: detail,
             attackFeel: attack,
-            attackDetail: attackDetail,
+            attackDetail: attackDetailText,
             tempoRatio: swing.tempoRatio,
             peakG: swing.peakG,
             shotYards: swing.shotYards,
@@ -318,30 +355,50 @@ enum ComprehensiveShotIntelligence {
 
     static func dossiers(
         for round: GolfRound,
-        wrist: WatchWristMount = .golferDefault
+        wrist: WatchWristMount = .golferDefault,
+        defaultClub: GolfClubKind? = nil
     ) -> [ComprehensiveShotDossier] {
         let ordered = round.swings.sorted { $0.capturedAt < $1.capturedAt }
         return ordered.enumerated().map { index, swing in
-            dossier(for: swing, sequence: index + 1, wrist: wrist)
+            dossier(for: swing, sequence: index + 1, wrist: wrist, defaultClub: defaultClub)
         }
     }
 
     /// Enrich metrics with club + derived ball-start / attack fields.
+    /// Same derivation path as `dossier` so persisted strings match UI packets.
     static func enrichTrackingFields(
         _ swings: [GolfSwingMetrics],
         defaultClub: GolfClubKind? = nil,
         wrist: WatchWristMount = .golferDefault
     ) -> [GolfSwingMetrics] {
         swings.map { swing in
-            let dossier = dossier(for: swing, sequence: 1, wrist: wrist)
-            let club = GolfClubKind.normalize(swing.club) ?? defaultClub
+            let packet = dossier(
+                for: swing,
+                sequence: 1,
+                wrist: wrist,
+                defaultClub: defaultClub
+            )
             return swing.withComprehensiveTracking(
-                club: club?.rawValue ?? swing.club,
-                ballStartBias: dossier.ballStartBias.rawValue,
-                attackFeel: dossier.attackFeel.rawValue,
-                ballStartDetail: dossier.ballStartDetail
+                club: packet.club?.rawValue ?? swing.club,
+                ballStartBias: packet.ballStartBias.rawValue,
+                attackFeel: packet.attackFeel.rawValue,
+                ballStartDetail: packet.ballStartDetail
             )
         }
+    }
+}
+
+extension ComprehensiveShotDossier {
+    var clubDisplayName: String {
+        ComprehensiveShotIntelligence.clubDisplayName(club)
+    }
+
+    var clubShortCode: String {
+        ComprehensiveShotIntelligence.clubShortCode(club)
+    }
+
+    var pathScoreLine: String {
+        ComprehensiveShotIntelligence.pathScoreLine(pathScore)
     }
 }
 

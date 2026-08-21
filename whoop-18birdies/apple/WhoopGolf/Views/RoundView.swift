@@ -600,6 +600,10 @@ private struct LiveRoundView: View {
                         Text("Tagged on the next verified swing. Sensors never invent club.")
                             .font(.caption2)
                             .foregroundStyle(Color.golfMist)
+                        Text(ComprehensiveShotIntelligence.tendencyDisclaimer)
+                            .font(.caption2)
+                            .foregroundStyle(Color.golfMist.opacity(0.85))
+                            .fixedSize(horizontal: false, vertical: true)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(GolfClubKind.allCases, id: \.rawValue) { club in
@@ -638,7 +642,7 @@ private struct LiveRoundView: View {
                     GolfStrokeBoardView(
                         rows: GolfStrokePresentation.rows(for: round, wrist: model.watchWristMount),
                         title: "STROKE BOARD",
-                        emptyDetail: "Live Watch swings and fused WHOOP enrichments land here with club, path, ball-start tendency, and swing-to-swing GPS yards."
+                        emptyDetail: "Live Watch swings and fused WHOOP enrichments land here with club, path score/explanation, ball-start tendency, attack feel, and swing-to-swing GPS yards. Ball-start is not launch-monitor carry or spin."
                     )
                 }
 
