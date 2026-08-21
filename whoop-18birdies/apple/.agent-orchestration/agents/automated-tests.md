@@ -10,17 +10,17 @@
 - Yards preserved through `StrokeScoreShotChain.enrichSwingMetrics` and `ComprehensiveShotIntelligence.enrichTrackingFields`
 - Hybrid `materializedObservation` / reconcile preserves Watch path + club (WHOOP may enrich peak/tempo)
 - Ball-start bias mapping: mild→fade/draw, moderate/severe→pullFade/pushDraw, onPlane→straight, unknown→unknown
+- WhoopGolfTests Sources membership present for DualWearableRequirement / StrokeScoreShotChain / ComprehensiveShotIntelligence tests
 
 ## Gaps
-- **NO_XCODE** on Linux cloud — cannot execute XCTest here
-- `WhoopGolfTests` membership for new/updated files still needs integrator single-writer pbxproj add (see HANDOFFS)
+- **NO_XCODE** on Linux cloud — cannot execute XCTest here; Mac must run WhoopGolfTests
 
 ## Files
 - `WhoopGolfTests/DualWearableRequirementTests.swift`
-- `WhoopGolfTests/ComprehensiveShotIntelligenceTests.swift` (split out)
+- `WhoopGolfTests/ComprehensiveShotIntelligenceTests.swift`
 - `WhoopGolfTests/StrokeScoreShotChainTests.swift`
 - `WhoopGolfTests/SwingPathGuidanceTests.swift` (trail-right polarity only)
 
 ## Evidence
-- Test names (Mac): see STATUS return below / commit message
-- Run on Mac: `xcodebuild test -scheme WhoopGolf -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:WhoopGolfTests`
+- **NO_XCODE** — static review only on this host
+- Mac: `xcodebuild test -scheme WhoopGolf -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:WhoopGolfTests`
