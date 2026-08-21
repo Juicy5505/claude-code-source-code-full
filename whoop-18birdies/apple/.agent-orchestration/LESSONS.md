@@ -144,7 +144,40 @@ Pass `wrist: wrist` explicitly at the call site. When adding a defaulted
 parameter for a user preference, grep every call site rather than relying on the
 compiler — a default argument is exactly the change the compiler cannot flag.
 
-## L6 — Dual admission is a separate pure gate, not SensorModeCoordinator
+---
+
+## L6 — `project.yml` `path: Shared` does not register files already missing from `pbxproj`
+
+**Symptom**
+iPhone call sites use `DualWearableRequirement` / `ComprehensiveShotIntelligence`,
+the `.swift` files sit under `apple/Shared/`, and `project.yml` already has
+`path: Shared` for **WhoopGolf** — yet Xcode still reports `cannot find … in scope`.
+
+**Root cause**
+This repo’s live membership is often the hand-edited `project.pbxproj`, not a
+fresh XcodeGen expand. New Shared files landed on disk (and in tests) without
+matching `PBXFileReference` / Sources entries. `project.yml` looking correct is
+not evidence the open project compiles.
+
+**Fix**
+Diff disk vs pbxproj before trusting green:
+
+```bash
+# Shared files on disk but absent from the project file
+comm -23 \
+  <(ls Shared/*.swift | xargs -n1 basename | sort) \
+  <(grep -oE '[A-Za-z0-9_]+\.swift' WhoopGolf.xcodeproj/project.pbxproj | sort -u)
+```
+
+Append a **membership request** to `HANDOFFS.md` (file + **WhoopGolf only** /
+never Watch). Do not race-edit `pbxproj` (see L4).
+
+**Rule of thumb:** Shared/ is a folder convention; the Sources phase is the
+compiler’s truth.
+
+---
+
+## L7 — Dual admission is a separate pure gate, not SensorModeCoordinator
 
 **Symptom**
 Hybrid plan exists when both sensors are present, but the Round Start button
@@ -162,20 +195,27 @@ button on `.satisfied` only. Single-source modes remain for Settings diagnostics
 
 **Rule of thumb:** capability → plan math ≠ product admission.
 
-## L7 — iPhone-only Shared types must not be listed on WhoopGolfWatch
+---
+
+## L8 — Watch Shared membership is an allowlist (never wholesale Shared/)
 
 **Symptom**
-Watch target fails if it pulls `GolfModels` / `ComprehensiveShotIntelligence`
-(or any CoreLocation-heavy Shared file) through a blanket Shared membership.
+Watch fails if it pulls `GolfModels`, `ComprehensiveShotIntelligence`,
+`DualWearableRequirement`, or `PhoneYardageBridge` — or if `project.yml`
+duplicates the same face files and later “fixes” by adding `path: Shared`.
 
 **Root cause**
-WhoopGolfWatch `project.yml` intentionally lists only Watch-safe Shared files
-(`WatchLiveFace`, `SwingPathGuidance`, `GolfImprover`, wrist prefs, WC contracts).
+WhoopGolfWatch must compile only the WC contract + on-wrist coaching surface
+(`WatchLiveFace`, `WatchRoundContext`, `WatchCoachingCue`, wrist/path/improver).
+iPhone-only Shared types pull GolfModels / CoreLocation publishers /
+SensorMode graphs that break watchOS (L2). Duplicate YAML allowlist entries
+are a regen-review hazard.
 
 **Fix**
-Keep `DualWearableRequirement` / `ComprehensiveShotIntelligence` on the iPhone
-`Shared/` folder membership only. Watch consumes Codable face fields (strings),
-not the iPhone dossier types.
+Keep a **single** explicit allowlist under WhoopGolfWatch. Comment the ban list
+in `project.yml`. Watch consumes Codable face *fields* (strings), not iPhone
+dossier / admission types. Static-check Watch Sources never contain the ban
+list before Mac `xcodebuild`.
 
-**Rule of thumb:** if a Shared type imports phone-only frameworks or models,
-never add it to WhoopGolfWatch sources.
+**Rule of thumb:** if a Shared type needs phone-only models/frameworks, it stays
+off WhoopGolfWatch Sources.

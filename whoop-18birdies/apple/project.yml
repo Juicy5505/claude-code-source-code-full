@@ -108,17 +108,15 @@ targets:
       - path: WatchSupport
         excludes:
           - WatchSessionReceiver.swift
+      # Watch allowlist only — do NOT add Shared/ wholesale or iPhone-only Shared
+      # (ComprehensiveShotIntelligence, DualWearableRequirement, GolfModels,
+      # PhoneYardageBridge, StrokeScoreShotChain, SensorModeCoordinator, …).
       - path: Shared/WatchCoachingCue.swift
       - path: Shared/WatchRoundContext.swift
       - path: Shared/WatchLiveFace.swift
       - path: Shared/WatchWristPreference.swift
       - path: Shared/SwingPathGuidance.swift
       - path: Shared/GolfImprover.swift
-      # Face models only — consume Shared motion/copy; do not pull iPhone-only Shared.
-      - path: Shared/WatchWristPreference.swift
-      - path: Shared/SwingPathGuidance.swift
-      - path: Shared/GolfImprover.swift
-      - path: Shared/WatchLiveFace.swift
     dependencies:
       - sdk: HealthKit.framework
       - sdk: CoreLocation.framework
