@@ -117,9 +117,13 @@ enum PhoneYardageBridge {
     }
 
     /// Builds the Watch live-face payload.
-    /// - `swings`: shot-chain source for stroke yards (swing-to-swing).
+    /// - `swings`: shot-chain source for stroke yards (swing N→N+1 GPS).
     /// - `greenTargets`: optional F/M/B overlay; never from facility search.
     /// - `phoneFix`: current GPS for green targeting only (not stroke yards).
+    ///
+    /// Honest empty: `lastShotYards` stays nil until a second verified swing
+    /// finalizes a measured segment; F/M/B stay nil without a hole map.
+    /// Path score, club, and ball-start fill from the latest swing when present.
     static func makeLiveFace(
         holeNumber: Int?,
         courseName: String?,
@@ -135,18 +139,20 @@ enum PhoneYardageBridge {
         } else {
             matchedTargets = nil
         }
+        // Authoritative stroke yards = swing N→N+1 phone GPS only.
+        let strokeYards = lastMeasuredShotYards(from: swings)
         let overlay = greenYards(from: phoneFix, targets: matchedTargets)
         let base = WatchLiveFace(
             holeNumber: holeNumber,
             frontYards: overlay.frontYards,
             middleYards: overlay.middleYards,
             backYards: overlay.backYards,
-            lastShotYards: lastMeasuredShotYards(from: swings),
+            lastShotYards: strokeYards,
             activeClubCode: GolfClubKind.load().shortCode,
             wristMount: wristMount,
             courseName: courseName
         )
-        // Attach body-relative path score / label / stroke count for the Watch face.
+        // No swings → return base (nil stroke yards; nil F/M/B without map).
         guard !swings.isEmpty else { return base }
         let journal = StrokeScoreShotChain.buildJournal(
             roundID: UUID(),
@@ -157,6 +163,8 @@ enum PhoneYardageBridge {
             wrist: wristMount
         )
         var enriched = StrokeScoreShotChain.enrichLiveFace(base, journal: journal)
+        // Pin GPS chain yards — do not let journal fallback invent stroke yards.
+        enriched.lastShotYards = strokeYards
         if let last = swings.sorted(by: { $0.capturedAt < $1.capturedAt }).last {
             let dossier = ComprehensiveShotIntelligence.dossier(
                 for: last,

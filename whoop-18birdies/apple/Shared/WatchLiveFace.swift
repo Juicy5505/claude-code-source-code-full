@@ -2,14 +2,16 @@ import Foundation
 
 /// Live round face the iPhone publishes to Apple Watch: hole, optional
 /// front/mid/back targeting overlay, last swing-to-swing shot yards, wrist,
-/// club, and derived ball-start tendency.
+/// path score, club, and derived ball-start tendency.
 ///
-/// - `lastShotYards`: consecutive verified swings via phone GPS
-///   (`SwingShotInterval` / `ShotDistanceCalculator`). Nil until a second
-///   swing finalizes the prior segment.
+/// - `lastShotYards`: swing N→N+1 phone GPS (`SwingShotInterval` /
+///   `ShotDistanceCalculator`). Nil until a second swing finalizes the
+///   prior segment (honest empty — never faked).
 /// - `frontYards` / `middleYards` / `backYards`: optional green targeting
-///   overlay from authorized hole geometry only. Facility search is not a
-///   green map — never invent pins.
+///   overlay from authorized hole geometry only. Nil without a hole map.
+///   Facility search is not a green map — never invent pins.
+/// - `lastPathScore` / `lastPathLabel`: body-relative path coaching from
+///   the stroke chain.
 /// - `lastBallStartLabel` / `activeClubCode`: coaching overlays, not radar.
 struct WatchLiveFace: Codable, Equatable, Sendable {
     static let currentSchemaVersion = 3

@@ -182,10 +182,11 @@ final class AppModel: ObservableObject {
         publishWatchLiveFace()
     }
 
-    /// Publishes Watch live face: stroke yards from the swing shot chain
-    /// (phone GPS A→B), optional F/M/B targeting overlay when geometry exists.
+    /// Publishes Watch live face via `PhoneYardageBridge.makeLiveFace`:
+    /// stroke yards = swing N→N+1 phone GPS; path/club/ball-start from the
+    /// shot chain; F/M/B only when `activeHoleGreenTargets` is set.
     /// `GolfCourseLocator` confirms a facility only — never green pins or
-    /// stroke yards.
+    /// stroke yards. Honest empty when no second swing / no hole map.
     func publishWatchLiveFace() {
         let hole = activeRound?.currentHole
         let matchedTargets: GolfHoleGreenTargets?
